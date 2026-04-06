@@ -20,6 +20,8 @@ export default function ConnectRepoPage() {
   const { data: session } = useSession()
   const router = useRouter()
 
+  const [error, setError] = useState("")
+
   const [repos,       setRepos]       = useState<Repo[]>([])
   const [filtered,    setFiltered]    = useState<Repo[]>([])
   const [loading,     setLoading]     = useState(false)
@@ -73,15 +75,21 @@ export default function ConnectRepoPage() {
 
   const connectRepo = async (repo: Repo) => {
     setConnecting(repo.full_name)
+    setError("")
     try {
-      const res = await fetch("/api/repos/analyze", {
+      const res  = await fetch("/api/repos/analyze", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ fullName: repo.full_name }),
       })
-      if (res.ok) router.push("/dashboard")
+      const data = await res.json()
+      if (res.ok) {
+        router.push("/dashboard")
+      } else {
+        setError(data.error || "Gagal menganalisis repository")
+      }
     } catch (e) {
-      console.error(e)
+      setError("Gagal terhubung ke server. Pastikan ML Service sudah berjalan.")
     } finally {
       setConnecting(null)
     }
@@ -141,6 +149,15 @@ export default function ConnectRepoPage() {
           <option value="organization_member">Organisasi</option>
         </select>
       </div>
+
+      {error && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl mb-4"
+          style={{ background: "#FFF0F0", border: "1px solid #F85149" }}>
+          <span>⚠️</span>
+          <p className="text-sm" style={{ color: "#F85149" }}>{error}</p>
+          <button onClick={() => setError("")} className="ml-auto text-sm" style={{ color: "#F85149" }}>✕</button>
+        </div>
+      )}
 
       {/* Repo List */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
