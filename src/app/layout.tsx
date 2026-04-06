@@ -5,6 +5,9 @@ import { SessionProvider } from "@/components/SessionProvider"
 export const metadata: Metadata = {
   title: "GitPulse",
   description: "Platform Analisis Kinerja Repository GitHub",
+   icons: {
+    icon: "/logo.png",
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
