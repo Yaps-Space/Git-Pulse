@@ -1,36 +1,126 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GitPulse
+
+Platform analisis kinerja repository GitHub dan evaluasi kolaborasi tim berbasis Machine Learning.
+
+## Tech Stack
+
+- **Frontend**: Next.js 16, TypeScript, Tailwind CSS v4
+- **Auth**: NextAuth v4 (GitHub OAuth)
+- **Database**: Firebase Firestore
+- **ML Service**: Python, FastAPI, scikit-learn
+
+## Prerequisites
+
+- Node.js >= 20
+- Python >= 3.12
+- pip
 
 ## Getting Started
 
-First, run the development server:
-
+### 1. Clone repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/username/gitpulse.git
+cd gitpulse
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Setup ML Service (FastAPI)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Masuk ke folder ML service:
+```bash
+cd github-analytics-ml
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Buat virtual environment dan aktifkan:
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\activate
 
-## Learn More
+# Mac/Linux
+python -m venv venv
+source venv/bin/activate
+```
 
-To learn more about Next.js, take a look at the following resources:
+Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Jalankan FastAPI server:
+```bash
+cd api
+uvicorn main:app --reload --port 8000
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+ML Service akan berjalan di `http://127.0.0.1:8000`.
 
-## Deploy on Vercel
+### 3. Setup Web App (Next.js)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Buka terminal baru, masuk ke folder web app:
+```bash
+cd gitpulse
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Install dependencies:
+```bash
+npm install
+```
+
+Buat file `.env.local` dan isi dengan kredensial kamu:
+```env
+GITHUB_ID=
+GITHUB_SECRET=
+NEXTAUTH_SECRET=
+NEXTAUTH_URL=http://localhost:3000
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+NEXT_PUBLIC_ML_SERVICE_URL=http://127.0.0.1:8000
+```
+
+Jalankan development server:
+```bash
+npm run dev
+```
+
+Web app akan berjalan di `http://localhost:3000`.
+
+## Menjalankan Project
+
+Pastikan kedua service berjalan bersamaan:
+
+| Service     | URL                       | Perintah                                      |
+|-------------|---------------------------|-----------------------------------------------|
+| ML Service  | http://127.0.0.1:8000     | `uvicorn main:app --reload --port 8000`       |
+| Web App     | http://localhost:3000     | `npm run dev`                                 |
+
+## Struktur Project
+```
+gitpulse/                        # Next.js web app
+github-analytics-ml/             # Python FastAPI ML service
+├── api/
+│   └── main.py
+├── models/
+│   ├── model1_productivity.pkl
+│   ├── model2_healthscore.pkl
+│   ├── model2_grade_thresholds.json
+│   ├── model3_memberstatus.pkl
+│   └── model3_scaler.pkl
+└── venv/
+```
+
+## Struktur Project
+
+**gitpulse/** — Next.js web app
+
+**github-analytics-ml/** — Python FastAPI ML service
+- `api/main.py` — entry point FastAPI
+- `models/model1_productivity.pkl`
+- `models/model2_healthscore.pkl`
+- `models/model2_grade_thresholds.json`
+- `models/model3_memberstatus.pkl`
+- `models/model3_scaler.pkl`
+- `venv/` — virtual environment (tidak di-push ke git)
