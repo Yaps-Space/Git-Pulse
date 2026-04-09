@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import "./globals.css"
-import { SessionProvider } from "@/components/SessionProvider"
+import { SessionProvider } from "@/shared/providers/SessionProvider"
 
 export const metadata: Metadata = {
   title: "GitPulse",
