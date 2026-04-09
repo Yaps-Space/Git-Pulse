@@ -37,7 +37,7 @@ export default function ConnectRepoPage() {
     pageNum === 1 ? setLoading(true) : setLoadingMore(true)
 
     try {
-      const res  = await fetch(`/api/repos?page=${pageNum}&filter=${filter}`)
+      const res  = await fetch(`/api/repo?page=${pageNum}&filter=${filter}`)
       const data = await res.json()
       const repoList = data.repos || []
       if (repoList.length < 20) setHasMore(false)
@@ -77,7 +77,7 @@ export default function ConnectRepoPage() {
     setConnecting(repo.full_name)
     setError("")
     try {
-      const res  = await fetch("/api/repos/analyze", {
+      const res  = await fetch("/api/repo/analyze", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ fullName: repo.full_name }),

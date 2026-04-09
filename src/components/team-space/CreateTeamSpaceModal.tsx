@@ -12,7 +12,7 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
   const [loadingRepos,setLoadingRepos]= useState(true)
 
   useEffect(() => {
-    fetch("/api/repos/list")
+    fetch("/api/repo/list")
       .then(r => r.json())
       .then(d => setRepos(d.repos || []))
       .finally(() => setLoadingRepos(false))
