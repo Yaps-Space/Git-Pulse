@@ -4,7 +4,7 @@ import { redirect } from "next/navigation"
 import { db } from "@/shared/lib/firebase"
 import { collection, query, where, getDocs } from "firebase/firestore"
 import Link from "next/link"
-import RepoTable from "@/components/dashboard/RepoTable"
+import RepoTable from "@/features/dashboard/components/RepoTable"
 
 async function getUserRepos(userId: string) {
   try {

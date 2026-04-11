@@ -4,7 +4,7 @@ import { redirect } from "next/navigation"
 import { db } from "@/shared/lib/firebase"
 import { collection, query, where, getDocs } from "firebase/firestore"
 import Link from "next/link"
-import TeamSpaceActions from "@/components/team-space/TeamSpaceActions"
+import TeamSpaceActions from "@/features/team-space/components/TeamSpaceActions"
 
 async function getUserTeamSpaces(userId: string) {
   try {

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation"
 import { db } from "@/shared/lib/firebase"
 import { doc, getDoc } from "firebase/firestore"
 import Link from "next/link"
-import RefreshButton from "@/components/dashboard/RefreshButton"
+import RefreshButton from "@/features/dashboard/components/RefreshButton"
 
 async function getRepo(id: string) {
   try {
