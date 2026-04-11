@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
-import CreateTeamSpaceModal from "@/components/team-space/CreateTeamSpaceModal"
-import JoinTeamSpaceModal from "@/components/team-space/JoinTeamSpaceModal"
+import CreateTeamSpaceModal from "./CreateTeamSpaceModal"
+import JoinTeamSpaceModal from "./JoinTeamSpaceModal"
 
 export default function TeamSpaceActions() {
   const [showCreate, setShowCreate] = useState(false)
