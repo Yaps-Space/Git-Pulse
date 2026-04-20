@@ -4,4 +4,5 @@ export interface AccountLayoutSwitcherProps {
   email:     string;
   avatar:    string;
   createdAt: string;
+  userId:    string;
 }
