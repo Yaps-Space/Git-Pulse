@@ -1,38 +1,49 @@
-import { Badge } from "@/shared/components/ui/badge";
-import { Users } from "lucide-react";
-import { DUMMY_TEAMS } from "../constants/DummyTeams";
-
-const ROLE_CONFIG = {
-  owner:       { label: "Owner",       className: "bg-yellow-100 text-yellow-700" },
-  evaluator:   { label: "Evaluator",   className: "bg-blue-100 text-blue-700"     },
-  contributor: { label: "Contributor", className: "bg-green-100 text-green-700"   },
-} as const;
+import { Users, ChevronRight } from "lucide-react";
+import { Separator } from "@/shared/components/ui/separator";
+import { DUMMY_TEAMS, ROLE_CONFIG } from "../constants/DummyTeams";
+import Link from "next/link";
 
 type Role = keyof typeof ROLE_CONFIG;
 
+const MAX_VISIBLE = 4;
+
 export function AccountTeamsCard() {
+  const visibleTeams = DUMMY_TEAMS.slice(0, MAX_VISIBLE);
+
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-6">
-      <div className="flex items-center justify-between mb-5">
-        <h3 className="font-bold text-gray-900">Tim yang Diikuti</h3>
-        <span className="text-xs text-gray-400">{DUMMY_TEAMS.length} tim</span>
+    <div className="bg-white border border-gray-100 rounded-2xl p-6 h-full">
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-2">
+          <h3 className="font-bold text-gray-900">Team yang diikuti</h3>
+        </div>
+        <Link href="/team-space" className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 transition-colors">
+          See All <ChevronRight className="w-3.5 h-3.5" />
+        </Link>
       </div>
 
-      <div className="space-y-3">
-        {DUMMY_TEAMS.map(({ id, name, role, memberCount }) => {
-          const { label, className } = ROLE_CONFIG[role as Role];
+      <div className="flex items-center gap-1 mb-4.5">
+        <Users className="w-3 h-3 text-gray-400" />
+        <p className="text-sm text-gray-400">{DUMMY_TEAMS.length} team</p>
+      </div>
+
+      <Separator className="mb-5" />
+
+      <div className="space-y-2">
+        {visibleTeams.map(({ id, name, role, memberCount }) => {
+          const config = ROLE_CONFIG[role as Role];
           return (
-            <div key={id} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-green-200 hover:bg-green-50/50 transition-colors">
-              <div className="w-9 h-9 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Users className="w-4 h-4 text-[#00d964]" />
+            <div key={id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
+                <p className="text-sm text-gray-400">{memberCount} members</p>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{name}</p>
-                <p className="text-xs text-gray-400">{memberCount} anggota</p>
-              </div>
-              <Badge className={`${className} border-0 text-xs flex-shrink-0`}>
-                {label}
-              </Badge>
+              <span
+                className="flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full flex-shrink-0 ml-3"
+                style={{ background: config.bg, color: config.text }}
+              >
+                <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: config.dot }} />
+                {config.label}
+              </span>
             </div>
           );
         })}
