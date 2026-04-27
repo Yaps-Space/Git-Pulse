@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import useSWR from "swr"
 
 export interface Team {
   id:          string;
@@ -10,30 +10,23 @@ export interface Team {
 interface UseTeamsResult {
   teams:   Team[];
   loading: boolean;
-  error:   string | null;
+  refresh: () => void;
 }
 
+const fetcher = (url: string): Promise<Team[]> => fetch(url).then(r => r.json())
+
 export function useTeams(): UseTeamsResult {
-  const [teams,   setTeams]   = useState<Team[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState<string | null>(null)
+  const { data, isLoading, mutate } = useSWR<Team[]>("/api/team-space", fetcher, {
+    revalidateOnFocus:     true,
+    revalidateOnReconnect: true,
+    refreshInterval:       30_000,
+    dedupingInterval:      5_000,
+    fallbackData:          [],
+  })
 
-  useEffect(() => {
-    async function fetchTeams() {
-      try {
-        const res = await fetch("/api/team-space")
-        if (!res.ok) throw new Error("Failed to fetch")
-        const data = await res.json()
-        setTeams(data)
-      } catch {
-        setError("Gagal memuat data team")
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchTeams()
-  }, [])
-
-  return { teams, loading, error }
+  return {
+    teams:   data ?? [],
+    loading: isLoading,
+    refresh: mutate,
+  }
 }
