@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { ChevronLeft, Users, GitBranch, Copy, Check } from "lucide-react"
 import { useState } from "react"
 import { useTeamSpaceDetail } from "../hooks/useTeamSpaceDetail"
@@ -149,7 +150,7 @@ export default function TeamSpaceDetailView({ id }: Props) {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         {member.userImage && (
-                          <img src={member.userImage} alt="" className="w-8 h-8 rounded-full object-cover" />
+                          <Image src={member.userImage} alt={member.userName} width={32} height={32} className="rounded-full object-cover" />
                         )}
                         <p className="text-sm font-medium text-gray-900">{member.userName}</p>
                       </div>
