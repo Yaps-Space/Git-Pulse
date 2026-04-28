@@ -1,5 +1,8 @@
 "use client"
+
 import { useState } from "react"
+import { UserPlus, Plus } from "lucide-react"
+import { Button } from "@/shared/components/ui/button"
 import CreateTeamSpaceModal from "./CreateTeamSpaceModal"
 import JoinTeamSpaceModal from "./JoinTeamSpaceModal"
 
@@ -10,16 +13,22 @@ export default function TeamSpaceActions() {
   return (
     <>
       <div className="flex gap-3">
-        <button onClick={() => setShowJoin(true)}
-          className="px-4 py-2 rounded-xl text-sm font-medium transition-opacity hover:opacity-80"
-          style={{ background: "#F4F6F9", color: "#555" }}>
-          Gabung Team Space
-        </button>
-        <button onClick={() => setShowCreate(true)}
-          className="px-4 py-2 rounded-xl text-sm font-medium text-white transition-opacity hover:opacity-90"
-          style={{ background: "#2E86C1" }}>
-          + Buat Team Space
-        </button>
+        <Button
+          variant="outline"
+          className="gap-2"
+          onClick={() => setShowJoin(true)}
+        >
+          <UserPlus className="w-4 h-4" />
+          Gabung
+        </Button>
+        <Button
+          className="gap-2 text-white"
+          style={{ background: "#6265FE" }}
+          onClick={() => setShowCreate(true)}
+        >
+          <Plus className="w-4 h-4" />
+          Buat Team Space
+        </Button>
       </div>
 
       {showCreate && <CreateTeamSpaceModal onClose={() => setShowCreate(false)} />}

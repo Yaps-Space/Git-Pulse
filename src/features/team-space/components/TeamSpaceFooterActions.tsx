@@ -1,21 +1,39 @@
 "use client"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { Button } from "@/shared/components/ui/button"
+import { Trash2, LogOut, AlertTriangle } from "lucide-react"
 
 interface Props {
-  classId: string
-  myRole:  string
+  classId: string;
+  myRole:  string;
+}
+
+type ConfirmType = "leave" | "delete"
+
+const CONFIRM_CONFIG: Record<ConfirmType, { title: string; description: string; buttonLabel: string }> = {
+  leave: {
+    title:       "Keluar dari Team Space?",
+    description: "Kamu akan keluar dari Team Space ini. Aksi ini tidak bisa dibatalkan.",
+    buttonLabel: "Ya, Keluar",
+  },
+  delete: {
+    title:       "Hapus Team Space?",
+    description: "Seluruh data Team Space dan anggota akan dihapus permanen. Aksi ini tidak bisa dibatalkan.",
+    buttonLabel: "Ya, Hapus",
+  },
 }
 
 export default function TeamSpaceFooterActions({ classId, myRole }: Props) {
-  const router  = useRouter()
-  const [loading,   setLoading]   = useState(false)
-  const [showConfirm, setShowConfirm] = useState<"leave" | "delete" | null>(null)
+  const router                        = useRouter()
+  const [loading,     setLoading]     = useState(false)
+  const [showConfirm, setShowConfirm] = useState<ConfirmType | null>(null)
 
-  const handleAction = async (type: "leave" | "delete") => {
+  const handleAction = async (type: ConfirmType) => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/team-space/${classId}/${type}`, { method: "POST" })
+      const res  = await fetch(`/api/team-space/${classId}/${type}`, { method: "POST" })
       const data = await res.json()
       if (res.ok) {
         router.push("/team-space")
@@ -29,49 +47,67 @@ export default function TeamSpaceFooterActions({ classId, myRole }: Props) {
     }
   }
 
+  const confirm = showConfirm ? CONFIRM_CONFIG[showConfirm] : null
+
   return (
     <>
-      <div className="flex gap-3 mt-6">
+      <div className="mt-6 bg-white rounded-2xl p-5 flex items-center justify-between border border-gray-100">
+        <div className="flex items-center gap-3 text-sm text-gray-400">
+          <LogOut className="w-4 h-4" />
+          {myRole === "owner"
+            ? "Kamu adalah owner dari Team Space ini"
+            : "Kamu adalah anggota dari Team Space ini"}
+        </div>
+
         {myRole !== "owner" && (
-          <button onClick={() => setShowConfirm("leave")}
-            className="px-4 py-2 rounded-xl text-sm font-medium transition-opacity hover:opacity-80"
-            style={{ background: "#FFF0F0", color: "#F85149" }}>
+          <Button
+            variant="ghost"
+            className="gap-2 text-red-500 hover:text-red-600 hover:bg-red-50"
+            onClick={() => setShowConfirm("leave")}
+          >
+            <LogOut className="w-4 h-4" />
             Keluar dari Team Space
-          </button>
+          </Button>
         )}
         {myRole === "owner" && (
-          <button onClick={() => setShowConfirm("delete")}
-            className="px-4 py-2 rounded-xl text-sm font-medium transition-opacity hover:opacity-80"
-            style={{ background: "#FFF0F0", color: "#F85149" }}>
+          <Button
+            variant="ghost"
+            className="gap-2 text-red-500 hover:text-red-600 hover:bg-red-50"
+            onClick={() => setShowConfirm("delete")}
+          >
+            <Trash2 className="w-4 h-4" />
             Hapus Team Space
-          </button>
+          </Button>
         )}
       </div>
 
-      {/* Confirm Modal */}
-      {showConfirm && (
+      {showConfirm && confirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center"
           style={{ background: "rgba(0,0,0,0.4)" }}>
           <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
-            <h3 className="text-lg font-bold mb-2" style={{ color: "#1E3A5F" }}>
-              {showConfirm === "leave" ? "Keluar dari Team Space?" : "Hapus Team Space?"}
-            </h3>
-            <p className="text-sm mb-6" style={{ color: "#888" }}>
-              {showConfirm === "leave"
-                ? "Kamu akan keluar dari Team Space ini. Aksi ini tidak bisa dibatalkan."
-                : "Seluruh data Team Space dan anggota akan dihapus permanen. Aksi ini tidak bisa dibatalkan."}
-            </p>
+            <div className="flex flex-col items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-red-500" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 text-center">{confirm.title}</h3>
+              <p className="text-sm text-gray-500 text-center">{confirm.description}</p>
+            </div>
             <div className="flex gap-3">
-              <button onClick={() => setShowConfirm(null)}
-                className="flex-1 py-2.5 rounded-xl text-sm font-medium"
-                style={{ background: "#F4F6F9", color: "#555" }}>
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowConfirm(null)}
+              >
                 Batal
-              </button>
-              <button onClick={() => handleAction(showConfirm)} disabled={loading}
-                className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white"
-                style={{ background: "#F85149", opacity: loading ? 0.7 : 1 }}>
-                {loading ? "Memproses..." : "Ya, Lanjutkan"}
-              </button>
+              </Button>
+              <Button
+                className="flex-1 text-white"
+                style={{ background: "#F85149", opacity: loading ? 0.7 : 1 }}
+                disabled={loading}
+                onClick={() => handleAction(showConfirm)}
+              >
+                {loading ? "Memproses..." : confirm.buttonLabel}
+              </Button>
             </div>
           </div>
         </div>
