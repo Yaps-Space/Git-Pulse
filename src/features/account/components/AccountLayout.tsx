@@ -1,4 +1,3 @@
-
 import { authOptions } from "@/shared/lib/auth";
 import { AccountLayoutSwitcher } from "./AccountLayoutSwitcher";
 import { getServerSession } from "next-auth";
@@ -20,6 +19,7 @@ export async function AccountLayout() {
       email     ={user?.email    ?? ""}
       avatar    ={user?.image    ?? ""}
       createdAt ={createdAt}
+      userId    ={user?.id       ?? ""}
     />
   );
 }

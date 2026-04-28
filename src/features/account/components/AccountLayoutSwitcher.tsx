@@ -6,10 +6,15 @@ import { AccountProfileCard } from "./AccountProfileCard";
 import { AccountLogoutCard } from "./AccountLogoutCard";
 import { AccountTeamsCard } from "./AccountTeamsCard";
 import { PageShell } from "@/shared/components/commons/PageShell";
+import { PageSkeleton } from "@/shared/components/commons/PageSkeleton";
 import { AccountLayoutSwitcherProps } from "../types/LayoutSwitch";
+import { useTeams } from "../hooks/UseTeams";
 
 export function AccountLayoutSwitcher(props: AccountLayoutSwitcherProps) {
-  const isMobile = useIsMobile();
+  const isMobile    = useIsMobile();
+  const { loading } = useTeams();
+
+  if (loading) return <PageSkeleton />;
 
   if (isMobile) return <AccountLayoutMobile {...props} />;
 
