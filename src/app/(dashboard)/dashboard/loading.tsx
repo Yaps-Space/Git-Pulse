@@ -1,4 +1,4 @@
-import { StatCardSkeleton, RepoTableSkeleton } from "@/components/dashboard/LoadingSkeleton"
+import { StatCardSkeleton, RepoTableSkeleton } from "@/features/dashboard/components/LoadingSkeleton";
 
 export default function DashboardLoading() {
   return (
