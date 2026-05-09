@@ -1,9 +1,16 @@
 "use client"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { Button } from "@/shared/components/ui/button"
+import { BarChart2 } from "lucide-react"
 
-export default function MemberManagement({ classId, members, myRole, ownerId }: any) {
-  const router  = useRouter()
+interface Props {
+  classId: string;
+}
+
+export default function MemberManagement({ classId }: Props) {
+  const router              = useRouter()
   const [loading, setLoading] = useState(false)
 
   const analyzeAll = async () => {
@@ -17,10 +24,14 @@ export default function MemberManagement({ classId, members, myRole, ownerId }: 
   }
 
   return (
-    <button onClick={analyzeAll} disabled={loading}
-      className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white transition-opacity hover:opacity-90"
-      style={{ background: "#7B2D8B", opacity: loading ? 0.7 : 1 }}>
-      {loading ? "Menganalisis..." : "🤖 Analisis Member"}
-    </button>
+    <Button
+      onClick={analyzeAll}
+      disabled={loading}
+      className="gap-2 text-white"
+      style={{ background: "#6265FE", opacity: loading ? 0.7 : 1 }}
+    >
+      <BarChart2 className="w-4 h-4" />
+      {loading ? "Menganalisis..." : "Analysis Member"}
+    </Button>
   )
 }

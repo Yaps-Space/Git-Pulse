@@ -1,0 +1,41 @@
+"use client";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
+import { AccountLayoutSwitcherProps } from "../types/LayoutSwitch";
+import { AccountProfileCard } from "./AccountProfileCard";
+import { AccountTeamsCard } from "./AccountTeamsCard";
+import { AccountLogoutCard } from "./AccountLogoutCard";
+
+export function AccountLayoutMobile({ name, username, email, avatar, createdAt }: AccountLayoutSwitcherProps) {
+  const initials = name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-gray-900 px-5 pt-10 pb-10 rounded-b-3xl">
+        <p className="text-gray-400 font-bold mb-4">Profil Akun</p>
+        <div className="flex items-center gap-4">
+          <Avatar className="w-16 h-16 border-2 border-white/20">
+            <AvatarImage src={avatar} alt={name} />
+            <AvatarFallback className="bg-[#00d964] text-gray-900 text-lg font-bold">{initials}</AvatarFallback>
+          </Avatar>
+          <div>
+            <h1 className="text-white font-bold">{name}</h1>
+            <p className="text-gray-400 text-sm">@{username}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-4 pt-5 pb-6 space-y-4">
+        <AccountProfileCard
+          name      ={name}
+          username  ={username}
+          email     ={email}
+          avatar    ={avatar}
+          createdAt ={createdAt}
+        />
+        <AccountTeamsCard />
+        <AccountLogoutCard />
+      </div>
+    </div>
+  );
+}
