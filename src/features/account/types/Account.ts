@@ -1,4 +1,4 @@
-export interface AccountProfileCardProps {
+export interface AccountData {
   name:      string;
   username:  string;
   email:     string;

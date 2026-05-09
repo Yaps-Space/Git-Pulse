@@ -4,11 +4,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avat
 import { Separator } from "@/shared/components/ui/separator";
 import { Github } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
-import { AccountProfileCardProps } from "../types/Profile";
 import { INFO_ITEMS } from "../constants/ProfileIcon";
 import { useIsMobile } from "@/shared/hooks/UseMobile";
+import { AccountData } from "../types/Account";
 
-export function AccountProfileCard({ name, username, email, avatar, createdAt }: AccountProfileCardProps) {
+export function AccountProfileCard({ name, username, email, avatar, createdAt }: AccountData) {
   const isMobile = useIsMobile();
   const initials = name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 

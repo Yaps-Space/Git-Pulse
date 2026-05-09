@@ -1,16 +1,16 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
-import { AccountLayoutSwitcherProps } from "../types/LayoutSwitch";
 import { AccountProfileCard } from "./AccountProfileCard";
 import { AccountTeamsCard } from "./AccountTeamsCard";
 import { AccountLogoutCard } from "./AccountLogoutCard";
+import { AccountData } from "../types/Account";
 
-export function AccountLayoutMobile({ name, username, email, avatar, createdAt }: AccountLayoutSwitcherProps) {
+export function AccountLayoutMobile({ name, username, email, avatar, createdAt }: AccountData) {
   const initials = name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="bg-gray-900 px-5 pt-10 pb-10 rounded-b-3xl">
         <p className="text-gray-400 font-bold mb-4">Profil Akun</p>
         <div className="flex items-center gap-4">
