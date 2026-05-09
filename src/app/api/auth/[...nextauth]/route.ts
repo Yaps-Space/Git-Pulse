@@ -17,12 +17,14 @@ export const authOptions: NextAuthOptions = {
       if (account) {
         token.accessToken = account.access_token
         token.id          = profile?.id?.toString() || token.sub
+        token.username    = profile?.login
       }
       return token
     },
     async session({ session, token }: any) {
       session.accessToken = token.accessToken
       session.user.id     = token.id || token.sub
+      session.user.username  = token.username
       return session
     }
   },
