@@ -1,6 +1,8 @@
 import NextAuth from "next-auth"
 import GithubProvider from "next-auth/providers/github"
 import type { NextAuthOptions } from "next-auth"
+import { db } from "@/shared/lib/firebase"
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -13,6 +15,26 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   callbacks: {
+    async signIn({ user, profile }: any) {
+      try {
+        const userId  = profile?.id?.toString() || user.id
+        const userRef = doc(db, "users", userId)
+        const userSnap = await getDoc(userRef)
+
+        if (!userSnap.exists()) {
+          await setDoc(userRef, {
+            name:      user.name,
+            email:     user.email,
+            image:     user.image,
+            username:  profile?.login,
+            createdAt: serverTimestamp(),
+          })
+        }
+      } catch (e) {
+        console.error("Failed to save user:", e)
+      }
+      return true
+    },
     async jwt({ token, account, profile }: any) {
       if (account) {
         token.accessToken = account.access_token
