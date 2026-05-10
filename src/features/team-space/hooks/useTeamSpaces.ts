@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import useSWR from "swr"
 import { TeamSpace } from "../types/TeamSpace"
 
 interface UseTeamSpacesResult {
@@ -8,28 +8,21 @@ interface UseTeamSpacesResult {
   refresh:    () => void;
 }
 
+const fetcher = (url: string): Promise<TeamSpace[]> => fetch(url).then(r => r.json())
+
 export function useTeamSpaces(): UseTeamSpacesResult {
-  const [teamSpaces, setTeamSpaces] = useState<TeamSpace[]>([])
-  const [loading,    setLoading]    = useState(true)
-  const [error,      setError]      = useState<string | null>(null)
-  const [tick,       setTick]       = useState(0)
+  const { data, isLoading, error, mutate } = useSWR<TeamSpace[]>("/api/team-space", fetcher, {
+    revalidateOnFocus:     true,
+    revalidateOnReconnect: true,
+    refreshInterval:       30_000,
+    dedupingInterval:      5_000,
+    fallbackData:          [],
+  })
 
-  useEffect(() => {
-    async function fetch_() {
-      setLoading(true)
-      try {
-        const res  = await fetch("/api/team-space")
-        if (!res.ok) throw new Error("Failed to fetch")
-        const data = await res.json()
-        setTeamSpaces(data)
-      } catch {
-        setError("Gagal memuat Team Space")
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetch_()
-  }, [tick])
-
-  return { teamSpaces, loading, error, refresh: () => setTick(t => t + 1) }
+  return {
+    teamSpaces: data ?? [],
+    loading:    isLoading,
+    error:      error ? "Gagal memuat Team Space" : null,
+    refresh:    mutate,
+  }
 }
