@@ -7,6 +7,8 @@ export interface Membership {
 export interface TeamResult {
   id:          string;
   name:        string;
+  description: string | null;
+  repoName:    string;
   role:        string;
   memberCount: number;
 }

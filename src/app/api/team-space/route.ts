@@ -48,6 +48,8 @@ export async function GET() {
         return {
           id:          m.classId,
           name:        ts.name        as string,
+          description: ts.description as string | null,
+          repoName:    ts.repoFullName as string,
           role:        m.role,
           memberCount: memberSnap.size,
         }
