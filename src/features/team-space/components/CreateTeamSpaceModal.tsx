@@ -1,20 +1,43 @@
 "use client"
+
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { X } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/components/ui/dialog"
+import { Button } from "@/shared/components/ui/button"
+import { Input } from "@/shared/components/ui/input"
+import { Label } from "@/shared/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select"
+import { createTeamSpace, fetchRepos } from "../services/TeamSpaceService"
+
+interface Repo {
+  id:       string;
+  fullName: string;
+}
 
 export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void }) {
   const router = useRouter()
-  const [name,        setName]        = useState("")
-  const [description, setDescription] = useState("")
-  const [repoFullName,setRepoFullName]= useState("")
-  const [repos,       setRepos]       = useState<any[]>([])
-  const [loading,     setLoading]     = useState(false)
-  const [loadingRepos,setLoadingRepos]= useState(true)
+  const [name,         setName]         = useState("")
+  const [description,  setDescription]  = useState("")
+  const [repoFullName, setRepoFullName] = useState("")
+  const [repos,        setRepos]        = useState<Repo[]>([])
+  const [loading,      setLoading]      = useState(false)
+  const [loadingRepos, setLoadingRepos] = useState(true)
 
   useEffect(() => {
-    fetch("/api/repo/list")
-      .then(r => r.json())
-      .then(d => setRepos(d.repos || []))
+    fetchRepos()
+      .then(setRepos)
       .finally(() => setLoadingRepos(false))
   }, [])
 
@@ -22,13 +45,8 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
     if (!name || !repoFullName) return
     setLoading(true)
     try {
-      const res = await fetch("/api/team-space", {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ name, description, repoFullName }),
-      })
-      const data = await res.json()
-      if (res.ok) {
+      const data = await createTeamSpace({ name, description, repoFullName })
+      if (data.id) {
         router.push(`/team-space/${data.id}`)
         router.refresh()
       }
@@ -38,70 +56,78 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ background: "rgba(0,0,0,0.4)" }}>
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold" style={{ color: "#1E3A5F" }}>Buat Team Space</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
-        </div>
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md rounded-2xl [&>button]:hidden">
+        <DialogHeader>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl font-bold text-gray-900">Create Team Space</DialogTitle>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </DialogHeader>
 
-        <div className="flex flex-col gap-4">
-          <div>
-            <label className="text-sm font-medium mb-1 block" style={{ color: "#333" }}>
-              Nama Team Space *
-            </label>
-            <input value={name} onChange={e => setName(e.target.value)}
-              placeholder="contoh: IF-A 2024"
-              className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
-              style={{ borderColor: "#E0E0E0", color: "#333" }}/>
+        <div className="flex flex-col gap-4 mt-2">
+          <div className="flex flex-col gap-1.5">
+            <Label className="text-sm font-medium text-gray-700">Nama Team Space</Label>
+            <Input
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="Contoh: Kajja Tim"
+              className="rounded-xl h-11"
+            />
           </div>
 
-          <div>
-            <label className="text-sm font-medium mb-1 block" style={{ color: "#333" }}>
-              Deskripsi (opsional)
-            </label>
-            <input value={description} onChange={e => setDescription(e.target.value)}
-              placeholder="contoh: Kelas praktikum semester 5"
-              className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
-              style={{ borderColor: "#E0E0E0", color: "#333" }}/>
+          <div className="flex flex-col gap-1.5">
+            <Label className="text-sm font-medium text-gray-700">Deskripsi</Label>
+            <Input
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder="Contoh: Tim Kajja dibentuk untuk mengerjakan projek."
+              className="rounded-xl h-11"
+            />
           </div>
 
-          <div>
-            <label className="text-sm font-medium mb-1 block" style={{ color: "#333" }}>
-              Repository *
-            </label>
+          <div className="flex flex-col gap-1.5">
+            <Label className="text-sm font-medium text-gray-700">Repository</Label>
             {loadingRepos ? (
-              <p className="text-sm" style={{ color: "#888" }}>Memuat repo...</p>
+              <p className="text-sm text-gray-400">Memuat repo...</p>
             ) : (
-              <select value={repoFullName} onChange={e => setRepoFullName(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
-                style={{ borderColor: "#E0E0E0", color: "#333" }}>
-                <option value="">Pilih repository...</option>
-                {repos.map((r: any) => (
-                  <option key={r.id} value={r.fullName}>{r.fullName}</option>
-                ))}
-              </select>
+              <Select value={repoFullName} onValueChange={setRepoFullName}>
+                <SelectTrigger className="rounded-xl h-11">
+                  <SelectValue placeholder="Pilih repository" />
+                </SelectTrigger>
+                <SelectContent>
+                  {repos.map((r) => (
+                    <SelectItem key={r.id} value={r.fullName}>{r.fullName}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
-            <p className="text-xs mt-1" style={{ color: "#aaa" }}>
-              Hanya repo yang sudah diconnect di Dashboard
-            </p>
+            <p className="text-xs text-gray-400">Hanya repo yang sudah diconnect di Dashboard</p>
           </div>
         </div>
 
-        <div className="flex gap-3 mt-6">
-          <button onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl text-sm font-medium"
-            style={{ background: "#F4F6F9", color: "#555" }}>
-            Batal
-          </button>
-          <button onClick={handleSubmit} disabled={loading || !name || !repoFullName}
-            className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white transition-opacity"
-            style={{ background: "#2E86C1", opacity: loading || !name || !repoFullName ? 0.6 : 1 }}>
-            {loading ? "Membuat..." : "Buat Team Space"}
-          </button>
+        <div className="flex gap-3 mt-2">
+          <Button
+            variant="outline"
+            className="flex-1 h-11 rounded-xl text-gray-600 font-bold"
+            onClick={onClose}
+          >
+            Cancel
+          </Button>
+          <Button
+            className="flex-1 h-11 rounded-xl bg-[#00D964] hover:bg-[#00c057] text-gray-900 font-bold"
+            onClick={handleSubmit}
+            disabled={loading || !name || !repoFullName}
+          >
+            {loading ? "Membuat..." : "Create"}
+          </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
