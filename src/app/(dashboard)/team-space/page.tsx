@@ -1,5 +1,5 @@
-import TeamSpaceListView from "@/features/team-space/components/TeamSpaceListView"
+import { TeamSpaceLayout } from "@/features/team-space/components/TeamSpaceLayout";
 
 export default function TeamSpacePage() {
-  return <TeamSpaceListView />
+  return <TeamSpaceLayout />;
 }
