@@ -76,7 +76,7 @@ export default function TeamSpaceListMobile() {
               <Link
                 key={ts.id}
                 href={`/team-space/${ts.id}`}
-                className="bg-white rounded-2xl p-5 flex flex-col border border-gray-100 active:shadow-md transition-shadow"
+                className="bg-white rounded-2xl p-5 flex flex-col border border-gray-100 active:shadow-md transition-shadow min-h-[120px]"
               >
                 <div className="flex items-start justify-between mb-1.5">
                   <div className="flex-1 min-w-0">
@@ -91,11 +91,11 @@ export default function TeamSpaceListMobile() {
                   </span>
                 </div>
 
-                {ts.description && (
-                  <p className="text-sm text-gray-400 truncate mb-3">{ts.description}</p>
-                )}
+                <p className="text-sm text-gray-400 truncate mb-3 min-h-[1.25rem]">
+                  {ts.description ?? ""}
+                </p>
 
-                <div className="flex items-center gap-4 mt-auto pt-2">
+                <div className="flex items-center gap-4 mt-auto">
                   <div className="flex items-center gap-1.5">
                     <Users className="w-3.5 h-3.5 text-gray-400" />
                     <span className="text-xs text-gray-400">{ts.memberCount} Anggota</span>
