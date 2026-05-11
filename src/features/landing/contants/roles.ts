@@ -46,8 +46,8 @@ export const LANDING_ROLES: LandingRole[] = [
 ];
 
 export const LANDING_TEAM_PREVIEW = [
-  { initials: "J",  name: "james",           role: "Owner",       kontribusi: "42%", bg: "bg-yellow-500" },
-  { initials: "JU", name: "justin",           role: "Evaluator",   kontribusi: "31%", bg: "bg-blue-600"   },
-  { initials: "DA", name: "dinda atikah",     role: "Contributor", kontribusi: "18%", bg: "bg-orange-500" },
-  { initials: "LS", name: "latifa salsabila", role: "Contributor", kontribusi: "9%",  bg: "bg-purple-600" },
+  { initials: "J",  name: "james",           role: "Owner",       kontribusi: "20%", bg: "bg-yellow-500" },
+  { initials: "JU", name: "justin",           role: "Evaluator",   kontribusi: "20%", bg: "bg-blue-600"   },
+  { initials: "DA", name: "dinda atikah",     role: "Contributor", kontribusi: "30%", bg: "bg-orange-500" },
+  { initials: "LS", name: "latifa salsabila", role: "Contributor", kontribusi: "30%",  bg: "bg-purple-600" },
 ];
