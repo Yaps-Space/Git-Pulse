@@ -1,0 +1,55 @@
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/shared/lib/auth"
+import { redirect } from "next/navigation"
+import { db } from "@/shared/lib/firebase"
+import { doc, getDoc } from "firebase/firestore"
+import { PageShell } from "@/shared/components/commons/PageShell"
+import RepoDetailView from "@/features/repository/components/RepoDetailView"
+
+async function getRepo(id: string) {
+  try {
+    const snap = await getDoc(doc(db, "repositories", id))
+    if (!snap.exists()) return null
+    const data = snap.data()
+    return {
+      id:                    snap.id,
+      fullName:              data.fullName,
+      name:                  data.name,
+      description:           data.description,
+      language:              data.language,
+      stars:                 data.stars,
+      forks:                 data.forks,
+      isPrivate:             data.isPrivate,
+      userId:                data.userId,
+      productivityState:     data.productivityState,
+      commitFrequency:       data.commitFrequency,
+      activityConsistency:   data.activityConsistency,
+      commitTrend:           data.commitTrend,
+      activeDaysRatio:       data.activeDaysRatio,
+      productivityRec:       data.productivityRec,
+      healthScore:           data.healthScore,
+      healthGrade:           data.healthGrade,
+      healthLabel:           data.healthLabel,
+      healthBreakdown:       data.healthBreakdown,
+      healthRecommendations: data.healthRecommendations || [],
+      analyzedAt:            data.analyzedAt?.seconds ? data.analyzedAt.seconds * 1000 : null,
+    }
+  } catch {
+    return null
+  }
+}
+
+export default async function RepoDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id }  = await params
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.id) redirect("/login")
+
+  const repo = await getRepo(id)
+  if (!repo || repo.userId !== session.user.id) redirect("/repository")
+
+  return (
+    <PageShell title="Repository" detail={repo.fullName}>
+      <RepoDetailView repo={repo} />
+    </PageShell>
+  )
+}

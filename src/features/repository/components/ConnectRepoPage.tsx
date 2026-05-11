@@ -84,7 +84,7 @@ export default function ConnectRepoPage() {
       })
       const data = await res.json()
       if (res.ok) {
-        router.push("/dashboard")
+        router.push("/repository")
       } else {
         setError(data.error || "Gagal menganalisis repository")
       }
