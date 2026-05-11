@@ -7,6 +7,7 @@ import { signOut } from "next-auth/react";
 import { LogOut, Menu, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
 import { Sheet, SheetContent, SheetTitle } from "@/shared/components/ui/sheet";
+import { Separator } from "@/shared/components/ui/separator";
 import { cn } from "@/shared/lib/utils";
 import { NAV_ITEMS } from "@/shared/contans/NavItems";
 import { SidebarProps } from "@/shared/types/Sidebar";
@@ -23,7 +24,7 @@ export function MobileDrawer({ user }: SidebarProps) {
     <>
       <header
         className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-14 border-b border-white/8"
-        style={{ background: "rgba(0,0,0,0.95)", backdropFilter: "blur(20px)" }}
+        style={{ background: "rgba(0,0,0,0.95)" }}
       >
         <Link href="/dashboard" className="flex items-center gap-2">
           <Image src="/logo.png" alt="GitPulse" width={28} height={28} className="rounded-md" />
@@ -44,18 +45,13 @@ export function MobileDrawer({ user }: SidebarProps) {
         <SheetContent
           side="right"
           className="w-64 p-0 border-l border-white/8 [&>button]:hidden"
-          style={{ background: "rgba(0,0,0,0.97)", backdropFilter: "blur(20px)" }}
+          style={{ background: "rgba(0,0,0,0.97)" }}
         >
           <SheetTitle className="sr-only">Menu</SheetTitle>
 
           <div className="flex flex-col h-full py-5 px-3">
-            <div className="flex items-center justify-between px-1 mb-5">
-              <Link href="/dashboard" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-                <Image src="/logo.png" alt="GitPulse" width={28} height={28} className="rounded-md" />
-                <span className="text-white font-bold text-base tracking-tight">
-                  Git<span className="text-[#00D964]">Pulse</span>
-                </span>
-              </Link>
+            <div className="flex items-center justify-between px-1 mb-2">
+              <p className="text-white font-bold text-base tracking-tight">Menu</p>
               <button
                 onClick={() => setOpen(false)}
                 className="w-8 h-8 flex items-center justify-center rounded-md text-white/30 hover:bg-white/8 hover:text-white transition-colors"
@@ -63,6 +59,8 @@ export function MobileDrawer({ user }: SidebarProps) {
                 <X className="w-4 h-4" />
               </button>
             </div>
+
+            <Separator className="bg-white/8 mb-4" />
 
             <nav className="flex flex-col gap-1 flex-1">
               {NAV_ITEMS.map(({ label, href, icon: Icon }) => (

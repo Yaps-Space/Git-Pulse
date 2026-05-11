@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import useSWR from "swr"
 import { TeamSpaceDetail } from "../types/TeamSpace"
 
 interface UseTeamSpaceDetailResult {
@@ -8,28 +8,26 @@ interface UseTeamSpaceDetailResult {
   refresh: () => void;
 }
 
+const fetcher = (url: string): Promise<TeamSpaceDetail> => fetch(url).then(r => {
+  if (!r.ok) throw new Error("Failed to fetch")
+  return r.json()
+})
+
 export function useTeamSpaceDetail(id: string): UseTeamSpaceDetailResult {
-  const [detail,  setDetail]  = useState<TeamSpaceDetail | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState<string | null>(null)
-  const [tick,    setTick]    = useState(0)
-
-  useEffect(() => {
-    async function fetch_() {
-      setLoading(true)
-      try {
-        const res  = await fetch(`/api/team-space/${id}`)
-        if (!res.ok) throw new Error("Failed to fetch")
-        const data = await res.json()
-        setDetail(data)
-      } catch {
-        setError("Gagal memuat detail Team Space")
-      } finally {
-        setLoading(false)
-      }
+  const { data, isLoading, error, mutate } = useSWR<TeamSpaceDetail>(
+    `/api/team-space/${id}`,
+    fetcher,
+    {
+      revalidateOnFocus:     true,
+      revalidateOnReconnect: true,
+      dedupingInterval:      5_000,
     }
-    fetch_()
-  }, [id, tick])
+  )
 
-  return { detail, loading, error, refresh: () => setTick(t => t + 1) }
+  return {
+    detail:  data ?? null,
+    loading: isLoading,
+    error:   error ? "Gagal memuat detail Team Space" : null,
+    refresh: mutate,
+  }
 }

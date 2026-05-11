@@ -155,4 +155,10 @@
   [data-slot="sidebar-wrapper"] {
     background-color: #EBEBEB;
   }
+  [data-slot="dialog-overlay"] {
+    backdrop-filter: none !important;
+  }
+  [data-slot="sheet-overlay"] {
+    backdrop-filter: none !important;
+  }
 }

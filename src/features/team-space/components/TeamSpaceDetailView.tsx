@@ -1,8 +1,7 @@
 "use client"
 
-import Link from "next/link"
 import Image from "next/image"
-import { ChevronLeft, Users, GitBranch, Copy, Check } from "lucide-react"
+import { Users, GitBranch, Copy, Check } from "lucide-react"
 import { useState } from "react"
 import { useTeamSpaceDetail } from "../hooks/useTeamSpaceDetail"
 import { ROLE_COLOR, ROLE_TEXT, ROLE_LABEL, STATUS_COLOR, STATUS_LABEL, CONSISTENCY_LABEL } from "../constants/TeamSpaceConfig"
@@ -12,21 +11,6 @@ import TeamSpaceFooterActions from "./TeamSpaceFooterActions"
 
 interface Props {
   id: string;
-}
-
-function DetailSkeleton() {
-  return (
-    <div className="p-8 animate-pulse">
-      <div className="h-6 w-48 bg-gray-100 rounded mb-2" />
-      <div className="h-4 w-64 bg-gray-100 rounded mb-8" />
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-2xl p-5 h-24" />
-        ))}
-      </div>
-      <div className="bg-white rounded-2xl h-64" />
-    </div>
-  )
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -46,62 +30,52 @@ function CopyButton({ text }: { text: string }) {
 }
 
 export default function TeamSpaceDetailView({ id }: Props) {
-  const { detail, loading } = useTeamSpaceDetail(id)
+  const { detail } = useTeamSpaceDetail(id)
 
-  if (loading) return <DetailSkeleton />
-  if (!detail)  return null
+  if (!detail) return null
 
-  const isEvaluator  = detail.myRole === "owner" || detail.myRole === "evaluator"
-  const activeCount  = detail.members.filter(m => m.status === "Active").length
-  const passiveCount = detail.members.filter(m => m.status === "Passive").length
-  const inactiveCount= detail.members.filter(m => m.status === "Inactive").length
+  const isEvaluator   = detail.myRole === "owner" || detail.myRole === "evaluator"
+  const activeCount   = detail.members.filter(m => m.status === "Active").length
+  const passiveCount  = detail.members.filter(m => m.status === "Passive").length
+  const inactiveCount = detail.members.filter(m => m.status === "Inactive").length
 
   const STATUS_STATS = [
-    { label: "Active",   count: activeCount,   color: "#3FB950", description: "Total account aktif"      },
-    { label: "Passive",  count: passiveCount,  color: "#F9C74F", description: "Total account pasif"      },
+    { label: "Active",   count: activeCount,   color: "#3FB950", description: "Total account aktif"       },
+    { label: "Passive",  count: passiveCount,  color: "#F9C74F", description: "Total account pasif"       },
     { label: "Inactive", count: inactiveCount, color: "#F85149", description: "Total account tidak aktif" },
   ]
 
   const CONTRIBUTION_ITEMS = [
-    { label: "Commit Velocity",    value: `${detail.myMembership.commitVelocity.toFixed(1)}/hari`                               },
-    { label: "Contribution Share", value: `${(detail.myMembership.contributionShare * 100).toFixed(1)}%`                       },
-    { label: "Consistency",        value: CONSISTENCY_LABEL(detail.myMembership.activityConsistency)                           },
-    { label: "Active Weeks",       value: `${Math.round(detail.myMembership.activeWeeksRatio * 100)}%`                         },
+    { label: "Commit Velocity",    value: `${detail.myMembership.commitVelocity.toFixed(1)}/hari`           },
+    { label: "Contribution Share", value: `${(detail.myMembership.contributionShare * 100).toFixed(1)}%`    },
+    { label: "Consistency",        value: CONSISTENCY_LABEL(detail.myMembership.activityConsistency)        },
+    { label: "Active Weeks",       value: `${Math.round(detail.myMembership.activeWeeksRatio * 100)}%`      },
   ]
 
   return (
-    <div className="p-8">
-      <div className="flex items-start justify-between mb-6">
-        <div className="flex items-start gap-4">
-          <Link
-            href="/team-space"
-            className="w-9 h-9 mt-1 rounded-xl flex items-center justify-center hover:bg-white transition-colors text-gray-500"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </Link>
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-2xl font-bold text-gray-900">{detail.name}</h1>
-              <span
-                className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-                style={{ background: ROLE_COLOR[detail.myRole] ?? "#eee", color: ROLE_TEXT[detail.myRole] ?? "#333" }}
-              >
-                <span className="w-1.5 h-1.5 rounded-full" style={{ background: ROLE_TEXT[detail.myRole] ?? "#333" }} />
-                {ROLE_LABEL[detail.myRole] ?? detail.myRole}
-              </span>
+    <div className="flex flex-col gap-6">
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
+              style={{ background: ROLE_COLOR[detail.myRole] ?? "#eee", color: ROLE_TEXT[detail.myRole] ?? "#333" }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: ROLE_TEXT[detail.myRole] ?? "#333" }} />
+              {ROLE_LABEL[detail.myRole] ?? detail.myRole}
+            </span>
+          </div>
+          {detail.description && (
+            <p className="text-sm text-gray-400 mb-2">{detail.description}</p>
+          )}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5">
+              <Users className="w-3.5 h-3.5 text-gray-400" />
+              <span className="text-sm text-gray-400">{detail.members.length} Anggota</span>
             </div>
-            {detail.description && (
-              <p className="text-sm text-gray-400 mb-2">{detail.description}</p>
-            )}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 text-gray-400" />
-                <span className="text-sm text-gray-400">{detail.members.length} Anggota</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <GitBranch className="w-3.5 h-3.5 text-gray-400" />
-                <span className="text-sm text-gray-400">{detail.repoFullName}</span>
-              </div>
+            <div className="flex items-center gap-1.5">
+              <GitBranch className="w-3.5 h-3.5 text-gray-400" />
+              <span className="text-sm text-gray-400">{detail.repoFullName}</span>
             </div>
           </div>
         </div>
@@ -116,7 +90,7 @@ export default function TeamSpaceDetailView({ id }: Props) {
       </div>
 
       {isEvaluator ? (
-        <div className="flex flex-col gap-6">
+        <>
           <div className="grid grid-cols-3 gap-4">
             {STATUS_STATS.map(({ label, count, color, description }) => (
               <div key={label} className="bg-white rounded-2xl p-5 border border-gray-100">
@@ -150,7 +124,13 @@ export default function TeamSpaceDetailView({ id }: Props) {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         {member.userImage && (
-                          <Image src={member.userImage} alt={member.userName} width={32} height={32} className="rounded-full object-cover" />
+                          <Image
+                            src={member.userImage}
+                            alt={member.userName}
+                            width={32}
+                            height={32}
+                            className="rounded-full object-cover"
+                          />
                         )}
                         <p className="text-sm font-medium text-gray-900">{member.userName}</p>
                       </div>
@@ -169,9 +149,15 @@ export default function TeamSpaceDetailView({ id }: Props) {
                     <td className="px-6 py-4">
                       <span
                         className="flex items-center gap-1.5 w-fit px-2.5 py-1 rounded-full text-xs font-medium"
-                        style={{ background: `${STATUS_COLOR[member.status] ?? "#888"}18`, color: STATUS_COLOR[member.status] ?? "#888" }}
+                        style={{
+                          background: (STATUS_COLOR[member.status] ?? "#888") + "18",
+                          color: STATUS_COLOR[member.status] ?? "#888",
+                        }}
                       >
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: STATUS_COLOR[member.status] ?? "#888" }} />
+                        <span
+                          className="w-1.5 h-1.5 rounded-full"
+                          style={{ background: STATUS_COLOR[member.status] ?? "#888" }}
+                        />
                         {STATUS_LABEL[member.status] ?? member.status}
                       </span>
                     </td>
@@ -190,7 +176,7 @@ export default function TeamSpaceDetailView({ id }: Props) {
               </tbody>
             </table>
           </div>
-        </div>
+        </>
       ) : (
         <div className="max-w-lg">
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
@@ -211,11 +197,14 @@ export default function TeamSpaceDetailView({ id }: Props) {
                   <span
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold"
                     style={{
-                      background: `${STATUS_COLOR[detail.myMembership.status] ?? "#888"}18`,
-                      color:       STATUS_COLOR[detail.myMembership.status] ?? "#888",
+                      background: (STATUS_COLOR[detail.myMembership.status] ?? "#888") + "18",
+                      color: STATUS_COLOR[detail.myMembership.status] ?? "#888",
                     }}
                   >
-                    <span className="w-2 h-2 rounded-full" style={{ background: STATUS_COLOR[detail.myMembership.status] ?? "#888" }} />
+                    <span
+                      className="w-2 h-2 rounded-full"
+                      style={{ background: STATUS_COLOR[detail.myMembership.status] ?? "#888" }}
+                    />
                     {STATUS_LABEL[detail.myMembership.status] ?? detail.myMembership.status}
                   </span>
                 </div>
