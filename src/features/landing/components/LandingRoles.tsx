@@ -7,6 +7,10 @@ import { LANDING_ROLES, LANDING_TEAM_PREVIEW } from "../contants/roles";
 import { fadeUp, slideInLeft, slideInRight, staggerContainer } from "../contants/LandingAnimations";
 
 export function LandingRoles() {
+  const avgContrib =
+    LANDING_TEAM_PREVIEW.reduce((sum, m) => sum + parseFloat(m.kontribusi), 0) /
+    LANDING_TEAM_PREVIEW.length;
+
   return (
     <section id="roles" className="py-32 px-[5%] bg-black border-t border-white/5">
       <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-20 items-start">
@@ -77,30 +81,43 @@ export function LandingRoles() {
           viewport={{ once: true, margin: "-100px" }}
           className="border border-white/8 rounded-3xl p-6 bg-white/[0.02]"
         >
-          <div className="flex items-center gap-2 mb-6">
-            <div className="w-2 h-2 rounded-full bg-[#00d964]" />
-            <p className="text-xs font-medium text-white/50">Team: Proyek Tugas Akhir</p>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#00d964]" />
+              <p className="text-xs font-medium text-white/50">Team: Proyek Tugas Akhir</p>
+            </div>
+            <span className="text-[10px] text-white/25 font-mono">Kode: 12KAJJA</span>
           </div>
+          <p className="text-[11px] text-white/25 mb-5 pl-4">Tim dibentuk untuk mengerjakan projek.</p>
+
           <div className="space-y-2 mb-6">
-            {LANDING_TEAM_PREVIEW.map(({ initials, name, role, score, bg }) => (
-              <div key={name} className="flex items-center gap-3 bg-white/[0.03] rounded-xl p-3 border border-white/5 hover:border-white/10 transition-colors">
-                <div className={`${bg} w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
+            {LANDING_TEAM_PREVIEW.map(({ initials, name, role, kontribusi, bg }) => (
+              <div
+                key={name}
+                className="flex items-center gap-3 bg-white/[0.03] rounded-xl px-3 py-2.5 border border-white/5 hover:border-white/10 transition-colors"
+              >
+                <div className={`${bg} w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0`}>
                   {initials}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{name}</p>
-                  <p className="text-xs text-white/35">{role}</p>
+                  <p className="text-xs font-medium text-white truncate">{name}</p>
+                  <p className="text-[10px] text-white/30">{role}</p>
                 </div>
-                <span className="text-sm font-bold text-[#00d964]">{score}</span>
+                <span className="text-sm font-bold text-[#00d964]">{kontribusi}</span>
               </div>
             ))}
           </div>
+
           <Separator className="bg-white/5 mb-6" />
+
           <div className="bg-white/[0.03] rounded-xl p-4 border border-white/5">
-            <p className="text-xs text-white/35 mb-2">Rata-rata Health Score Tim</p>
-            <p className="text-3xl font-bold text-[#00d964] mb-3">85.5</p>
+            <p className="text-xs text-white/35 mb-2">Rata-rata Kontribusi Tim</p>
+            <p className="text-3xl font-bold text-[#00d964] mb-3">{avgContrib.toFixed(1)}%</p>
             <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-              <div className="h-full rounded-full bg-[#00d964]" style={{ width: "85.5%" }} />
+              <div
+                className="h-full rounded-full bg-[#00d964]"
+                style={{ width: `${Math.min(avgContrib, 100)}%` }}
+              />
             </div>
           </div>
         </motion.div>
