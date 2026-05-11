@@ -11,6 +11,7 @@ import { EmptyState } from "./EmptyTeamSpace"
 import CreateTeamSpaceModal from "./CreateTeamSpaceModal"
 import JoinTeamSpaceModal from "./JoinTeamSpaceModal"
 import { cn } from "@/shared/lib/utils"
+import { MobilePageHeader } from "@/shared/components/commons/MobilePageHeader"
 
 export default function TeamSpaceListMobile() {
   const { teamSpaces }            = useTeamSpaces()
@@ -25,8 +26,7 @@ export default function TeamSpaceListMobile() {
   return (
     <>
       <div className="min-h-screen">
-        <div className="bg-gray-900 px-5 pt-10 pb-6 rounded-b-3xl">
-          <p className="text-gray-400 font-bold mb-4">Team Space</p>
+        <MobilePageHeader title="Team Space">
           <div className="flex items-center gap-2">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -66,7 +66,7 @@ export default function TeamSpaceListMobile() {
               <Plus className="w-4 h-4" />
             </Button>
           </div>
-        </div>
+        </MobilePageHeader>
 
         <div className="px-4 pt-5 pb-6 flex flex-col gap-3">
           {filtered.length === 0 ? (

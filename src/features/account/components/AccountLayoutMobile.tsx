@@ -5,14 +5,14 @@ import { AccountProfileCard } from "./AccountProfileCard";
 import { AccountTeamsCard } from "./AccountTeamsCard";
 import { AccountLogoutCard } from "./AccountLogoutCard";
 import { AccountData } from "../types/Account";
+import { MobilePageHeader } from "@/shared/components/commons/MobilePageHeader";
 
 export function AccountLayoutMobile({ name, username, email, avatar, createdAt }: AccountData) {
   const initials = name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
   return (
     <div className="min-h-screen">
-      <div className="bg-gray-900 px-5 pt-10 pb-10 rounded-b-3xl">
-        <p className="text-gray-400 font-bold mb-4">Profil Akun</p>
+      <MobilePageHeader title="Profil Akun">
         <div className="flex items-center gap-4">
           <Avatar className="w-16 h-16 border-2 border-white/20">
             <AvatarImage src={avatar} alt={name} />
@@ -23,7 +23,7 @@ export function AccountLayoutMobile({ name, username, email, avatar, createdAt }
             <p className="text-gray-400 text-sm">@{username}</p>
           </div>
         </div>
-      </div>
+      </MobilePageHeader>
 
       <div className="px-4 pt-5 pb-6 space-y-4">
         <AccountProfileCard
