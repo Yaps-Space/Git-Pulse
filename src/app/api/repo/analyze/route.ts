@@ -14,31 +14,36 @@ export async function POST(req: NextRequest) {
   const [owner, repo] = fullName.split("/")
 
   try {
-    // 1. Fetch commit history 52 minggu
-    const participationRes = await fetch(
-      `https://api.github.com/repos/${fullName}/stats/participation`,
-      { headers: { Authorization: `Bearer ${session.accessToken}` } }
-    )
-    const participation = await participationRes.json()
-    const commits: number[] = participation.all || []
+    const headers = { Authorization: `Bearer ${session.accessToken}` }
 
+    const [participationRes, metaRes, commitsRes, prsRes, issuesRes] = await Promise.all([
+      fetch(`https://api.github.com/repos/${fullName}/stats/participation`, { headers }),
+      fetch(`https://api.github.com/repos/${fullName}`, { headers }),
+      fetch(`https://api.github.com/repos/${fullName}/stats/code_frequency`, { headers }),
+      fetch(`https://api.github.com/repos/${fullName}/pulls?state=all&per_page=100`, { headers }),
+      fetch(`https://api.github.com/repos/${fullName}/issues?state=all&per_page=100&filter=all`, { headers }),
+    ])
+
+    const participation  = await participationRes.json()
+    const meta           = await metaRes.json()
+    const codeFrequency  = await commitsRes.json()
+    const pullRequests   = await prsRes.json()
+    const issues         = await issuesRes.json()
+
+    const commits: number[] = participation.all || []
     if (commits.length !== 52) {
       return NextResponse.json({ error: "Insufficient commit data" }, { status: 400 })
     }
 
-    // 2. Fetch repo metadata
-    const metaRes = await fetch(`https://api.github.com/repos/${fullName}`,
-      { headers: { Authorization: `Bearer ${session.accessToken}` } })
-    const meta = await metaRes.json()
-
-    // 3. Hitung fitur
     const mean  = commits.reduce((a, b) => a + b, 0) / 52
     const std   = Math.sqrt(commits.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / 52)
     const slope = (() => {
-      const n = 52, sumX = n*(n-1)/2, sumY = commits.reduce((a,b)=>a+b,0)
-      const sumXY = commits.reduce((a,b,i)=>a+i*b,0)
-      const sumX2 = commits.reduce((_a,_b,i,_arr)=>_a+i*i,0)
-      return (n*sumXY - sumX*sumY) / (n*sumX2 - sumX*sumX)
+      const n     = 52
+      const sumX  = n * (n - 1) / 2
+      const sumY  = commits.reduce((a, b) => a + b, 0)
+      const sumXY = commits.reduce((a, b, i) => a + i * b, 0)
+      const sumX2 = commits.reduce((a, _b, i) => a + i * i, 0)
+      return (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX)
     })()
     const activeWeeks = commits.filter(c => c > 0).length
 
@@ -56,7 +61,6 @@ export async function POST(req: NextRequest) {
       commit_count_total:   meta.size || 0,
     }
 
-    // 4. Kirim ke FastAPI
     const ML_URL = process.env.NEXT_PUBLIC_ML_SERVICE_URL || "http://127.0.0.1:8000"
 
     const [prodRes, healthRes] = await Promise.all([
@@ -80,7 +84,46 @@ export async function POST(req: NextRequest) {
     const prodData   = await prodRes.json()
     const healthData = await healthRes.json()
 
-    // 5. Simpan ke Firestore
+    // Hitung additions & deletions dari code_frequency
+    let totalAdditions = 0
+    let totalDeletions = 0
+    if (Array.isArray(codeFrequency)) {
+      codeFrequency.forEach((week: number[]) => {
+        totalAdditions += week[1] ?? 0
+        totalDeletions += Math.abs(week[2] ?? 0)
+      })
+    }
+    const totalChanges      = totalAdditions + totalDeletions
+    const additionsPercent  = totalChanges > 0 ? Math.round((totalAdditions / totalChanges) * 100) : 50
+    const deletionsPercent  = totalChanges > 0 ? Math.round((totalDeletions / totalChanges) * 100) : 50
+
+    // Hitung commits per bulan dari participation (52 minggu → 12 bulan)
+    const commitsPerMonth = Array.from({ length: 12 }, (_, monthIdx) => {
+      const startWeek = Math.floor(monthIdx * 52 / 12)
+      const endWeek   = Math.floor((monthIdx + 1) * 52 / 12)
+      return commits.slice(startWeek, endWeek).reduce((a, b) => a + b, 0)
+    })
+
+    // Pull requests per bulan
+    const prPerMonth = Array(12).fill(0)
+    if (Array.isArray(pullRequests)) {
+      pullRequests.forEach((pr: { created_at: string }) => {
+        const month = new Date(pr.created_at).getMonth()
+        prPerMonth[month] = (prPerMonth[month] ?? 0) + 1
+      })
+    }
+
+    // Issues per bulan (exclude PRs)
+    const issuesPerMonth = Array(12).fill(0)
+    if (Array.isArray(issues)) {
+      issues
+        .filter((issue: { pull_request?: unknown }) => !issue.pull_request)
+        .forEach((issue: { created_at: string }) => {
+          const month = new Date(issue.created_at).getMonth()
+          issuesPerMonth[month] = (issuesPerMonth[month] ?? 0) + 1
+        })
+    }
+
     const repoData = {
       userId:                session.user.id,
       fullName,
@@ -102,10 +145,14 @@ export async function POST(req: NextRequest) {
       healthLabel:           healthData.label,
       healthBreakdown:       healthData.breakdown,
       healthRecommendations: healthData.recommendations,
+      additionsPercent,
+      deletionsPercent,
+      commitsPerMonth,
+      prPerMonth,
+      issuesPerMonth,
       analyzedAt:            serverTimestamp(),
     }
 
-    // Cek apakah repo sudah ada
     const q    = query(
       collection(db, "repositories"),
       where("userId",   "==", session.user.id),
