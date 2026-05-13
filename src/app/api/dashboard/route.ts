@@ -26,6 +26,11 @@ export async function GET() {
         commitFrequency:   data.commitFrequency   ?? 0,
         activeDaysRatio:   data.activeDaysRatio   ?? 0,
         commitTrend:       data.commitTrend       ?? 0,
+        additionsPercent:  data.additionsPercent  ?? 50,
+        deletionsPercent:  data.deletionsPercent  ?? 50,
+        commitsPerMonth:   data.commitsPerMonth   ?? Array(12).fill(0),
+        prPerMonth:        data.prPerMonth        ?? Array(12).fill(0),
+        issuesPerMonth:    data.issuesPerMonth    ?? Array(12).fill(0),
         analyzedAt:        data.analyzedAt?.seconds ? data.analyzedAt.seconds * 1000 : null,
       }
     })
