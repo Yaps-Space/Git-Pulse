@@ -11,11 +11,9 @@ export interface DashboardRepo {
   commitFrequency:   number
   activeDaysRatio:   number
   commitTrend:       number
+  additionsPercent:  number
+  deletionsPercent:  number
+  commitsPerMonth:   number[]
+  prPerMonth:        number[]
+  issuesPerMonth:    number[]
 }
-
-// export interface DashboardStats {
-//   totalRepos:   number
-//   activeRepos:  number
-//   totalTeams:   number
-//   avgHealth:    number
-// }

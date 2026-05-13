@@ -5,6 +5,8 @@ import { useDashboardRepos, useDashboardTeams } from "../hooks/useDashboard"
 import { DashboardHeroCard }    from "./DashboardHeroCard"
 import { DashboardStatCards }   from "./DashboardStatCards"
 import { DashboardActivityChart } from "./DashboardActivityChart"
+import { DashboardCodeChanges }     from "./DashboardCodeChanges"
+import { DashboardWorkflowInsights } from "./DashboardWorkflowInsights"
 import { DashboardRepoSnapshot } from "./DashboardRepoSnapshot"
 import { DashboardTeamSnapshot } from "./DashboardTeamSnapshot"
 import { DashboardMobile }      from "./DashboardMobile"
@@ -41,13 +43,21 @@ export function DashboardLayout({ name }: Props) {
     <PageShell title="Dashboard">
       <div className="flex flex-col gap-4">
         <DashboardHeroCard name={name} />
+
         <DashboardStatCards
           totalRepos  ={repos.length}
           activeRepos ={activeRepos}
           totalTeams  ={teams.length}
           avgHealth   ={avgHealth}
         />
+
         <DashboardActivityChart repos={repos} />
+
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <DashboardCodeChanges      repos={repos} />
+          <DashboardWorkflowInsights repos={repos} />
+        </div>
+
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <DashboardRepoSnapshot repos={repos} />
           <DashboardTeamSnapshot teams={teams} />

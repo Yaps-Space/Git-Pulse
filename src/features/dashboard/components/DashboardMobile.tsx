@@ -4,6 +4,8 @@ import { MobilePageHeader }       from "@/shared/components/commons/MobilePageHe
 import { DashboardHeroCard }      from "./DashboardHeroCard"
 import { DashboardStatCards }     from "./DashboardStatCards"
 import { DashboardActivityChart } from "./DashboardActivityChart"
+import { DashboardCodeChanges }    from "./DashboardCodeChanges"
+import { DashboardWorkflowInsights } from "./DashboardWorkflowInsights"
 import { DashboardRepoSnapshot }  from "./DashboardRepoSnapshot"
 import { DashboardTeamSnapshot }  from "./DashboardTeamSnapshot"
 import { DashboardRepo }          from "../types"
@@ -39,6 +41,8 @@ export function DashboardMobile({ name, repos, teams, activeRepos, avgHealth }: 
         />
 
         <DashboardActivityChart repos={repos} />
+        <DashboardCodeChanges   repos={repos} />
+        <DashboardWorkflowInsights repos={repos} />
 
         <div className="flex flex-col gap-4">
           <DashboardRepoSnapshot repos={repos} />
