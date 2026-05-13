@@ -54,7 +54,7 @@ export function DashboardActivityChart({ repos }: Props) {
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="font-bold text-gray-900">Activities</h3>
-          <p className="text-xs text-gray-400 mt-0.5">Your weekly activity</p>
+          <p className="text-xs text-gray-400 mt-0.5">Your commits activity</p>
         </div>
         <select
           value={range}
