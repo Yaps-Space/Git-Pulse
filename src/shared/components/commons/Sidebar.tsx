@@ -29,6 +29,11 @@ export function AppSidebar({ user }: SidebarProps) {
   const initials = user?.name
     ?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) ?? "GP";
 
+  const isActive = (href: string) =>
+    href === "/dashboard"
+      ? pathname === href
+      : pathname === href || pathname.startsWith(href + "/")
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="py-5 px-3">
@@ -59,14 +64,14 @@ export function AppSidebar({ user }: SidebarProps) {
           {NAV_ITEMS.map(({ label, href, icon: Icon }) => (
             <SidebarMenuItem key={label}>
               <SidebarMenuButton
-                  asChild
-                  isActive={pathname === href}
-                  tooltip={label}
-                  className={cn(
-                    "h-10 font-medium text-sidebar-foreground/70",
-                    pathname === href && "!bg-[#00D964] !text-gray-900"
-                  )}
-                >
+                asChild
+                isActive={isActive(href)}
+                tooltip={label}
+                className={cn(
+                  "h-10 font-medium text-sidebar-foreground/70",
+                  isActive(href) && "!bg-[#00D964] !text-gray-900"
+                )}
+              >
                 <Link href={href}>
                   <Icon className="w-4 h-4 flex-shrink-0" />
                   <span>{label}</span>
