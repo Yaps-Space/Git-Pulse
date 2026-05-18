@@ -8,10 +8,11 @@ import Image from "next/image"
 import { Input } from "@/shared/components/ui/input"
 import { Button } from "@/shared/components/ui/button"
 import { PageSkeleton } from "@/shared/components/commons/PageSkeleton"
-import { ShowPerPage }  from "@/shared/components/commons/ShowPerPage"
-import { Pagination }   from "@/shared/components/commons/Pagination"
+import { ShowPerPage } from "@/shared/components/commons/ShowPerPage"
+import { Pagination }  from "@/shared/components/commons/Pagination"
 import { GithubRepo } from "../types"
 import { analyzeRepo, fetchGithubRepos } from "../services/repoService"
+import { timeAgo } from "../helpers"
 
 const FILTER_OPTIONS = [
   { value: "all",                 label: "Semua"       },
@@ -19,16 +20,6 @@ const FILTER_OPTIONS = [
   { value: "collaborator",        label: "Kolaborator" },
   { value: "organization_member", label: "Organisasi"  },
 ]
-
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const days = Math.floor(diff / 86400000)
-  if (days === 0)  return "Hari ini"
-  if (days === 1)  return "Kemarin"
-  if (days < 30)   return `${days} hari lalu`
-  if (days < 365)  return `${Math.floor(days / 30)} bulan lalu`
-  return `${Math.floor(days / 365)} tahun lalu`
-}
 
 export function ConnectRepoPage() {
   const { data: session } = useSession()
@@ -47,7 +38,7 @@ export function ConnectRepoPage() {
     if (!session?.accessToken) return
     setLoading(true)
     try {
-      const data     = await fetchGithubRepos(1, filter)
+      const data = await fetchGithubRepos(1, filter)
       setRepos(data.repos ?? [])
     } catch (e) {
       console.error(e)
@@ -68,15 +59,9 @@ export function ConnectRepoPage() {
   const totalPages = Math.ceil(filtered.length / pageSize)
   const paginated  = filtered.slice((page - 1) * pageSize, page * pageSize)
 
-  const handleSearch = (val: string) => {
-    setSearch(val)
-    setPage(1)
-  }
-
-  const handlePageSize = (val: number) => {
-    setPageSize(val)
-    setPage(1)
-  }
+  const handleSearch   = (val: string) => { setSearch(val);   setPage(1) }
+  const handlePageSize = (val: number) => { setPageSize(val); setPage(1) }
+  const handleFilter   = (val: string) => { setFilter(val);   setPage(1) }
 
   const handleConnect = async (repo: GithubRepo) => {
     setConnecting(repo.full_name)
@@ -114,7 +99,7 @@ export function ConnectRepoPage() {
 
         <select
           value={filter}
-          onChange={e => { setFilter(e.target.value); setPage(1) }}
+          onChange={e => handleFilter(e.target.value)}
           className="h-10 px-3 rounded-xl border border-gray-200 text-sm outline-none bg-white text-gray-700"
         >
           {FILTER_OPTIONS.map(o => (
@@ -140,7 +125,7 @@ export function ConnectRepoPage() {
           </div>
         ) : (
           <>
-            {paginated.map((repo) => (
+            {paginated.map(repo => (
               <div
                 key={repo.id}
                 className="flex items-center justify-between px-6 py-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors"
@@ -157,9 +142,7 @@ export function ConnectRepoPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium text-sm text-gray-800">{repo.full_name}</p>
                       <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        repo.private
-                          ? "bg-orange-50 text-orange-400"
-                          : "bg-gray-100 text-gray-500"
+                        repo.private ? "bg-orange-50 text-orange-400" : "bg-gray-100 text-gray-500"
                       }`}>
                         {repo.private ? "Private" : "Public"}
                       </span>
