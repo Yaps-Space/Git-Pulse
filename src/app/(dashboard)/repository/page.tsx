@@ -3,8 +3,7 @@ import { authOptions } from "@/shared/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/shared/lib/firebase"
 import { collection, query, where, getDocs } from "firebase/firestore"
-import { PageShell } from "@/shared/components/commons/PageShell"
-import { RepoTable } from "@/features/repository/components/RepoTable"
+import { RepositoryLayout } from "@/features/repository/components/RepositoryLayout"
 import { Repo } from "@/features/repository/types"
 
 async function getUserRepos(userId: string): Promise<Repo[]> {
@@ -33,9 +32,5 @@ export default async function RepositoryPage() {
 
   const repos = await getUserRepos(session.user.id)
 
-  return (
-    <PageShell title="Repository">
-      <RepoTable repos={repos} />
-    </PageShell>
-  )
+  return <RepositoryLayout repos={repos} />
 }
