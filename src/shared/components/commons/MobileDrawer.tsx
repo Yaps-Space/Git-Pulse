@@ -20,6 +20,11 @@ export function MobileDrawer({ user }: SidebarProps) {
   const initials = user?.name
     ?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) ?? "GP";
 
+  const isActive = (href: string) =>
+    href === "/dashboard"
+      ? pathname === href
+      : pathname === href || pathname.startsWith(href + "/")
+
   return (
     <>
       <header
@@ -70,7 +75,7 @@ export function MobileDrawer({ user }: SidebarProps) {
                   onClick={() => setOpen(false)}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
-                    pathname === href
+                    isActive(href)
                       ? "bg-[#00D964] text-gray-900"
                       : "text-white/70 hover:bg-white/8 hover:text-white"
                   )}
