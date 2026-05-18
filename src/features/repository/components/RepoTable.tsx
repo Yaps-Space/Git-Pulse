@@ -58,7 +58,7 @@ export function RepoTable({ repos, search, pageSize }: Props) {
                   </TableCell>
                   <TableCell>
                     <span
-                      className="px-3 py-1 rounded-full text-xs font-semibold"
+                      className="px-3 py-1 rounded-sm text-xs font-medium"
                       style={{
                         background: PRODUCTIVITY_BG[repo.productivityState]   ?? "#88888818",
                         color:      PRODUCTIVITY_COLOR[repo.productivityState] ?? "#888",
@@ -74,8 +74,8 @@ export function RepoTable({ repos, search, pageSize }: Props) {
                   </TableCell>
                   <TableCell>
                     <span
-                      className="w-8 h-8 rounded-lg inline-flex items-center justify-center text-white text-sm font-bold"
-                      style={{ background: GRADE_COLOR[repo.healthGrade] ?? "#888" }}
+                      className="w-8 h-8 inline-flex items-center justify-center text-lg font-bold"
+                      style={{ color: GRADE_COLOR[repo.healthGrade] ?? "#888" }}
                     >
                       {repo.healthGrade || "-"}
                     </span>
