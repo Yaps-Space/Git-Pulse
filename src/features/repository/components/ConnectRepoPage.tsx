@@ -3,27 +3,25 @@
 import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { Search, Star, GitFork, Clock, AlertCircle, X } from "lucide-react"
+import { Star, GitFork, Clock, AlertCircle, X } from "lucide-react"
 import Image from "next/image"
-import { Input } from "@/shared/components/ui/input"
 import { Button } from "@/shared/components/ui/button"
 import { PageSkeleton } from "@/shared/components/commons/PageSkeleton"
-import { ShowPerPage } from "@/shared/components/commons/ShowPerPage"
-import { Pagination }  from "@/shared/components/commons/Pagination"
+import { Pagination } from "@/shared/components/commons/Pagination"
+import { ConnectSearchActions } from "./ConnectSearchActions"
 import { GithubRepo } from "../types"
 import { analyzeRepo, fetchGithubRepos } from "../services/repoService"
 import { timeAgo } from "../helpers"
 
-const FILTER_OPTIONS = [
-  { value: "all",                 label: "Semua"       },
-  { value: "owner",               label: "Milik Saya"  },
-  { value: "collaborator",        label: "Kolaborator" },
-  { value: "organization_member", label: "Organisasi"  },
-]
+interface Props {
+  connectedFullNames?: string[]
+}
 
-export function ConnectRepoPage() {
+export function ConnectRepoPage({ connectedFullNames = [] }: Props) {
   const { data: session } = useSession()
   const router            = useRouter()
+
+  const connectedSet = new Set(connectedFullNames)
 
   const [repos,      setRepos]      = useState<GithubRepo[]>([])
   const [loading,    setLoading]    = useState(true)
@@ -52,7 +50,9 @@ export function ConnectRepoPage() {
     loadRepos()
   }, [filter, loadRepos])
 
-  const filtered   = repos.filter(r =>
+  const unconnected = repos.filter(r => !connectedSet.has(r.full_name))
+
+  const filtered   = unconnected.filter(r =>
     r.full_name.toLowerCase().includes(search.toLowerCase()) ||
     (r.description ?? "").toLowerCase().includes(search.toLowerCase())
   )
@@ -84,29 +84,14 @@ export function ConnectRepoPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input
-            value={search}
-            onChange={e => handleSearch(e.target.value)}
-            placeholder="Search"
-            className="pl-9 h-10 bg-white border-gray-200 text-sm"
-          />
-        </div>
-
-        <ShowPerPage value={pageSize} onChange={handlePageSize} />
-
-        <select
-          value={filter}
-          onChange={e => handleFilter(e.target.value)}
-          className="h-10 px-3 rounded-xl border border-gray-200 text-sm outline-none bg-white text-gray-700"
-        >
-          {FILTER_OPTIONS.map(o => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-      </div>
+      <ConnectSearchActions
+        search={search}
+        pageSize={pageSize}
+        filter={filter}
+        onSearch={handleSearch}
+        onPageSize={handlePageSize}
+        onFilter={handleFilter}
+      />
 
       {error && (
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200">
@@ -172,7 +157,7 @@ export function ConnectRepoPage() {
                 <Button
                   onClick={() => handleConnect(repo)}
                   disabled={connecting === repo.full_name}
-                  className="ml-4 bg-[#00D964] hover:bg-[#00c057] text-gray-900 font-semibold gap-2 flex-shrink-0"
+                  className="ml-4 flex-shrink-0 font-semibold gap-2 bg-[#00D964] hover:bg-[#00c057] text-gray-900"
                 >
                   {connecting === repo.full_name ? (
                     <>
