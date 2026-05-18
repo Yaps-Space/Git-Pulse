@@ -4,9 +4,10 @@ import { redirect } from "next/navigation"
 import { db } from "@/shared/lib/firebase"
 import { doc, getDoc } from "firebase/firestore"
 import { PageShell } from "@/shared/components/commons/PageShell"
-import RepoDetailView from "@/features/repository/components/RepoDetailView"
+import { RepoDetailView } from "@/features/repository/components/RepoDetailView"
+import { RepoDetail } from "@/features/repository/types"
 
-async function getRepo(id: string) {
+async function getRepo(id: string): Promise<RepoDetail | null> {
   try {
     const snap = await getDoc(doc(db, "repositories", id))
     if (!snap.exists()) return null
@@ -14,24 +15,22 @@ async function getRepo(id: string) {
     return {
       id:                    snap.id,
       fullName:              data.fullName,
-      name:                  data.name,
-      description:           data.description,
-      language:              data.language,
-      stars:                 data.stars,
-      forks:                 data.forks,
-      isPrivate:             data.isPrivate,
-      userId:                data.userId,
-      productivityState:     data.productivityState,
-      commitFrequency:       data.commitFrequency,
-      activityConsistency:   data.activityConsistency,
-      commitTrend:           data.commitTrend,
-      activeDaysRatio:       data.activeDaysRatio,
-      productivityRec:       data.productivityRec,
-      healthScore:           data.healthScore,
-      healthGrade:           data.healthGrade,
-      healthLabel:           data.healthLabel,
-      healthBreakdown:       data.healthBreakdown,
-      healthRecommendations: data.healthRecommendations || [],
+      description:           data.description       ?? null,
+      language:              data.language           ?? null,
+      stars:                 data.stars              ?? 0,
+      forks:                 data.forks              ?? 0,
+      isPrivate:             data.isPrivate          ?? false,
+      productivityState:     data.productivityState  ?? "-",
+      commitFrequency:       data.commitFrequency    ?? 0,
+      activityConsistency:   data.activityConsistency ?? 0,
+      commitTrend:           data.commitTrend        ?? 0,
+      activeDaysRatio:       data.activeDaysRatio    ?? 0,
+      productivityRec:       data.productivityRec    ?? null,
+      healthScore:           data.healthScore        ?? 0,
+      healthGrade:           data.healthGrade        ?? "-",
+      healthLabel:           data.healthLabel        ?? "",
+      healthBreakdown:       data.healthBreakdown    ?? {},
+      healthRecommendations: data.healthRecommendations ?? [],
       analyzedAt:            data.analyzedAt?.seconds ? data.analyzedAt.seconds * 1000 : null,
     }
   } catch {
@@ -45,7 +44,7 @@ export default async function RepoDetailPage({ params }: { params: Promise<{ id:
   if (!session?.user?.id) redirect("/login")
 
   const repo = await getRepo(id)
-  if (!repo || repo.userId !== session.user.id) redirect("/repository")
+  if (!repo) redirect("/repository")
 
   return (
     <PageShell title="Repository" detail={repo.fullName}>
