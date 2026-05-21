@@ -41,3 +41,6 @@ export interface GithubRepo {
   pushed_at:        string
   private:          boolean
 }
+
+export type SortKey = "fullName" | "healthScore" | "healthGrade" | "analyzedAt"
+export type SortDir = "asc" | "desc"

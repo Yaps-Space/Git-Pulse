@@ -11,8 +11,11 @@ import {
   TableRow,
 } from "@/shared/components/ui/table"
 import { Pagination } from "@/shared/components/commons/Pagination"
-import { Repo } from "../types"
+import { RepoSortIcon } from "./RepoSortIcon"
+import { Repo, SortKey, SortDir } from "../types"
 import { PRODUCTIVITY_COLOR, PRODUCTIVITY_BG, GRADE_COLOR } from "../constants"
+import { sortRepos } from "../helpers"
+import { SORTABLE_COLUMNS } from "../constants/Sortable"
 
 interface Props {
   repos:    Repo[]
@@ -23,15 +26,34 @@ interface Props {
 export function RepoTable({ repos, search, pageSize }: Props) {
   const router           = useRouter()
   const [page, setPage]  = useState(1)
+  const [sortKey, setSortKey] = useState<SortKey>("analyzedAt")
+  const [sortDir, setSortDir] = useState<SortDir>("desc")
+
+  const handleSort = (key: SortKey) => {
+    if (key === sortKey) {
+      setSortDir(d => d === "asc" ? "desc" : "asc")
+    } else {
+      setSortKey(key)
+      setSortDir("desc")
+    }
+    setPage(1)
+  }
 
   const filtered   = repos.filter(r =>
     r.fullName.toLowerCase().includes(search.toLowerCase())
   )
-  const totalPages = Math.ceil(filtered.length / pageSize)
-  const paginated  = filtered.slice((page - 1) * pageSize, page * pageSize)
+  const sorted     = sortRepos(filtered, sortKey, sortDir)
+  const totalPages = Math.ceil(sorted.length / pageSize)
+  const paginated  = sorted.slice((page - 1) * pageSize, page * pageSize)
+
+  const isSortable = (label: string) =>
+    SORTABLE_COLUMNS.some(c => c.label === label)
+
+  const getSortKey = (label: string) =>
+    SORTABLE_COLUMNS.find(c => c.label === label)?.key
 
   return (
-    <div className="bg-white rounded-lg overflow-hidden">
+    <div className="bg-white rounded-2xl overflow-hidden">
       {paginated.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 gap-3">
           <p className="font-medium text-gray-700">Belum ada repository</p>
@@ -42,9 +64,24 @@ export function RepoTable({ repos, search, pageSize }: Props) {
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-900 hover:bg-gray-900">
-                {["No", "Repository", "Productivity", "Health Score", "Grade", "Last Analyzed", "Detail"].map(h => (
-                  <TableHead key={h} className="text-white font-semibold text-xs">{h}</TableHead>
-                ))}
+                {["No", "Repository", "Productivity", "Health Score", "Grade", "Last Analyzed", "Detail"].map(h => {
+                  const key = getSortKey(h)
+                  return (
+                    <TableHead
+                      key={h}
+                      className="text-white font-semibold text-xs"
+                      onClick={() => key && handleSort(key)}
+                      style={{ cursor: isSortable(h) ? "pointer" : "default" }}
+                    >
+                      <div className="flex items-center gap-1.5 select-none">
+                        {h}
+                        {key && (
+                          <RepoSortIcon col={key} sortKey={sortKey} sortDir={sortDir} />
+                        )}
+                      </div>
+                    </TableHead>
+                  )
+                })}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -58,7 +95,7 @@ export function RepoTable({ repos, search, pageSize }: Props) {
                   </TableCell>
                   <TableCell>
                     <span
-                      className="px-3 py-1 rounded-sm text-xs font-medium"
+                      className="px-3 py-1 rounded-sm text-xs font-medium inline-flex items-center justify-center w-18"
                       style={{
                         background: PRODUCTIVITY_BG[repo.productivityState]   ?? "#88888818",
                         color:      PRODUCTIVITY_COLOR[repo.productivityState] ?? "#888",
