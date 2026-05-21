@@ -157,12 +157,12 @@ export function ConnectRepoPage({ connectedFullNames = [] }: Props) {
                 <Button
                   onClick={() => handleConnect(repo)}
                   disabled={connecting === repo.full_name}
-                  className="ml-4 flex-shrink-0 font-semibold gap-2 bg-[#00D964] hover:bg-[#00c057] text-gray-900"
+                  className="ml-4 flex-shrink-0 w-32 font-semibold gap-2 bg-[#00D964] hover:bg-[#00c057] text-gray-900 disabled:bg-gray-100 disabled:text-gray-400 disabled:opacity-100"
                 >
                   {connecting === repo.full_name ? (
                     <>
-                      <div className="w-4 h-4 rounded-full border-2 border-gray-900 border-t-transparent animate-spin" />
-                      Menganalisis...
+                      <div className="w-3.5 h-3.5 rounded-full border-2 border-gray-300 border-t-gray-400 animate-spin" />
+                      <span>Proses...</span>
                     </>
                   ) : "Connect"}
                 </Button>
