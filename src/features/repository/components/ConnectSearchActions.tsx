@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, ChevronDown, Check } from "lucide-react"
+import { Search, ChevronDown } from "lucide-react"
 import { Input } from "@/shared/components/ui/input"
 import { ShowPerPage } from "@/shared/components/commons/ShowPerPage"
 import {
@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu"
 import { FILTER_OPTIONS } from "../constants/ConnectFilter"
+import { cn } from "@/shared/lib/utils"
 
 interface Props {
   search:     string
@@ -21,8 +22,6 @@ interface Props {
 }
 
 export function ConnectSearchActions({ search, pageSize, filter, onSearch, onPageSize, onFilter }: Props) {
-  const activeLabel = FILTER_OPTIONS.find(o => o.value === filter)?.label ?? "Semua"
-
   return (
     <div className="flex items-center gap-3">
       <div className="flex-1 relative">
@@ -39,20 +38,22 @@ export function ConnectSearchActions({ search, pageSize, filter, onSearch, onPag
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="flex items-center gap-2 h-10 px-3 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 outline-none hover:border-gray-300 transition-colors">
-            <span>{activeLabel}</span>
+          <button className="flex items-center justify-between w-28 h-10 px-3 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 outline-none hover:border-gray-300 transition-colors">
+            <span className="text-gray-900">Filter</span>
             <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-[140px]">
+        <DropdownMenuContent align="end" className="min-w-[112px]">
           {FILTER_OPTIONS.map(o => (
             <DropdownMenuItem
               key={o.value}
               onClick={() => onFilter(o.value)}
-              className="flex items-center justify-between text-sm cursor-pointer"
+              className={cn(
+                "justify-between text-sm cursor-pointer",
+                o.value === filter && "font-semibold text-gray-900 bg-gray-50"
+              )}
             >
               {o.label}
-              {o.value === filter && <Check className="w-3.5 h-3.5 text-gray-700" />}
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
