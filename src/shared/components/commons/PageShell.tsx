@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
 
@@ -16,41 +16,38 @@ export function PageShell({ title, tabs, detail, oneBack, children }: PageShellP
   const router = useRouter()
 
   const handleBack = () => {
-    if (oneBack) {
-      oneBack()
-    } else {
-      router.back()
-    }
+    if (oneBack) oneBack()
+    else router.back()
   }
 
   return (
     <section className="flex flex-col min-h-screen">
-      <div className="sticky top-0 z-10 border-b border-black/8 bg-[#EBEBEB] px-8 flex flex-col justify-center" style={{ minHeight: detail ? '5.5rem' : '4.6rem' }}>
-        <header className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg font-semibold tracking-tight text-gray-900 xl:text-xl">{title}</h1>
-            {tabs && (
-              <span className="hidden items-center gap-2 text-lg font-semibold tracking-tight text-gray-500 sm:flex xl:text-xl">
-                <span className="font-bold">-</span>
-                {tabs}
-              </span>
-            )}
-            {detail && (
-              <span className="hidden items-center gap-2 text-lg font-semibold tracking-tight text-gray-500 sm:flex xl:text-xl">
-                <ChevronRight className="w-4 h-4" />
-                {detail}
-              </span>
-            )}
-          </div>
-          {detail && (
+      <div className="sticky top-0 z-10 border-b border-black/8 bg-[#EBEBEB] px-8 flex flex-col justify-center" style={{ minHeight: '4.6rem' }}>
+        <header className="flex items-center gap-2">
+          {detail ? (
             <button
               type="button"
               onClick={handleBack}
-              className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors sm:hidden"
+              className="text-lg font-semibold tracking-tight text-gray-900 hover:underline underline-offset-2 transition-all xl:text-xl"
             >
-              <ChevronLeft className="h-4 w-4" />
-              {detail}
+              {title}
             </button>
+          ) : (
+            <h1 className="text-lg font-semibold tracking-tight text-gray-900 xl:text-xl">{title}</h1>
+          )}
+
+          {tabs && (
+            <span className="flex items-center gap-2 text-lg font-semibold tracking-tight text-gray-500 xl:text-xl">
+              <span className="font-bold">-</span>
+              {tabs}
+            </span>
+          )}
+
+          {detail && (
+            <span className="flex items-center gap-2 text-lg font-semibold tracking-tight text-gray-900 xl:text-xl">
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+              {detail}
+            </span>
           )}
         </header>
       </div>

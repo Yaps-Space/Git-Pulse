@@ -46,7 +46,7 @@ export function Pagination({ page, totalPages, onChange, className }: Pagination
             className={cn(
               "w-8 h-8 rounded-lg text-sm font-medium transition-colors",
               page === p
-                ? "bg-[#00D964] text-gray-900"
+                ? "bg-[#000000] text-white"
                 : "text-gray-500 hover:bg-gray-100"
             )}
           >

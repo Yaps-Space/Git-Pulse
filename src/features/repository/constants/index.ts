@@ -1,19 +1,19 @@
 export const PRODUCTIVITY_COLOR: Record<string, string> = {
-  Active:   "#3FB950",
-  Moderate: "#F9C74F",
-  Inactive: "#F85149",
+  Active:   "#000000",
+  Moderate: "#000000",
+  Inactive: "#000000",
 }
 
 export const GRADE_COLOR: Record<string, string> = {
-  A: "#3FB950",
-  B: "#7BC67E",
-  C: "#F9C74F",
-  D: "#F0883E",
-  E: "#F85149",
+  A: "#00D964",
+  B: "#100086",
+  C: "#D7AC00",
+  D: "#FF7D20",
+  E: "#BB230B",
 }
 
 export const PRODUCTIVITY_BG: Record<string, string> = {
-  Active:   "#3FB95018",
-  Moderate: "#F9C74F18",
-  Inactive: "#F8514918",
+  Active:   "#83ECA7",
+  Moderate: "#B6BBFF",
+  Inactive: "#FF9898",
 }
