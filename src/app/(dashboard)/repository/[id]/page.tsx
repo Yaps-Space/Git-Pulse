@@ -4,8 +4,8 @@ import { redirect } from "next/navigation"
 import { db } from "@/shared/lib/firebase"
 import { doc, getDoc } from "firebase/firestore"
 import { PageShell } from "@/shared/components/commons/PageShell"
-import { RepoDetailView } from "@/features/repository/components/RepoDetailView"
-import { RepoDetail } from "@/features/repository/types"
+import { RepoDetail } from "@/features/repository/detail/types/RepoDetail"
+import { RepoDetailView } from "@/features/repository/detail/components/RepoDetailView"
 
 async function getRepo(id: string): Promise<RepoDetail | null> {
   try {

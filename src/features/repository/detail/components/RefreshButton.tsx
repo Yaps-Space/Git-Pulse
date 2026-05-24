@@ -14,11 +14,11 @@ export function RefreshButton({ fullName }: Props) {
   return (
     <Button
       variant="outline"
-      className="gap-2"
+      className="w-38 h-10 gap-2 border-gray-200 bg-white text-gray-700 hover:bg-[#00D964] hover:text-gray-900 hover:border-[#00D964] disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 transition-colors"
       onClick={() => refresh(fullName)}
       disabled={loading}
     >
-      <RotateCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+      <RotateCw className={`w-4 h-4 flex-shrink-0 ${loading ? "animate-spin" : ""}`} />
       {loading ? "Menganalisis..." : "Refresh Analysis"}
     </Button>
   )
