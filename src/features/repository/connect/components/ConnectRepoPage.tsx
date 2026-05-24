@@ -4,9 +4,12 @@ import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { AlertCircle, X } from "lucide-react"
+import { useIsMobile } from "@/shared/hooks/UseMobile"
+import { PageShell } from "@/shared/components/commons/PageShell"
 import { PageSkeleton } from "@/shared/components/commons/PageSkeleton"
 import { ConnectSearchActions } from "./ConnectSearchActions"
 import { ConnectRepoList } from "./ConnectRepoList"
+import { ConnectMobile } from "./ConnectMobile"
 import { useConnectedRepos } from "../hooks/useConnectedRepos"
 import { GithubRepo } from "../types"
 import { fetchGithubRepos } from "../services"
@@ -15,6 +18,7 @@ import { analyzeRepo } from "../../detail/services/repoService"
 export function ConnectRepoPage() {
   const { data: session }                                 = useSession()
   const router                                            = useRouter()
+  const isMobile                                          = useIsMobile()
   const { connectedFullNames, refresh: refreshConnected } = useConnectedRepos()
 
   const connectedSet = new Set(connectedFullNames)
@@ -86,37 +90,58 @@ export function ConnectRepoPage() {
 
   if (loading) return <PageSkeleton />
 
+  if (isMobile) return (
+    <ConnectMobile
+      search={search}
+      filter={filter}
+      pageSize={pageSize}
+      page={page}
+      totalPages={totalPages}
+      paginated={paginated}
+      connecting={connecting}
+      error={error}
+      onSearch={handleSearch}
+      onFilter={handleFilter}
+      onPageSize={handlePageSize}
+      onPageChange={setPage}
+      onConnect={handleConnect}
+      onDismissError={() => setError("")}
+    />
+  )
+
   return (
-    <div className="flex flex-col gap-4">
-      <ConnectSearchActions
-        search={search}
-        pageSize={pageSize}
-        filter={filter}
-        onSearch={handleSearch}
-        onPageSize={handlePageSize}
-        onFilter={handleFilter}
-      />
-
-      {error && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200">
-          <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-          <p className="text-sm text-red-500 flex-1">{error}</p>
-          <button onClick={() => setError("")}>
-            <X className="w-4 h-4 text-red-400" />
-          </button>
-        </div>
-      )}
-
-      <div className="bg-white rounded-xl overflow-hidden">
-        <ConnectRepoList
-          paginated={paginated}
-          page={page}
-          totalPages={totalPages}
-          connecting={connecting}
-          onConnect={handleConnect}
-          onPageChange={setPage}
+    <PageShell title="Repository" detail="Connect Repository">
+      <div className="flex flex-col gap-4">
+        <ConnectSearchActions
+          search={search}
+          pageSize={pageSize}
+          filter={filter}
+          onSearch={handleSearch}
+          onPageSize={handlePageSize}
+          onFilter={handleFilter}
         />
+
+        {error && (
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200">
+            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+            <p className="text-sm text-red-500 flex-1">{error}</p>
+            <button onClick={() => setError("")}>
+              <X className="w-4 h-4 text-red-400" />
+            </button>
+          </div>
+        )}
+
+        <div className="bg-white rounded-xl overflow-hidden">
+          <ConnectRepoList
+            paginated={paginated}
+            page={page}
+            totalPages={totalPages}
+            connecting={connecting}
+            onConnect={handleConnect}
+            onPageChange={setPage}
+          />
+        </div>
       </div>
-    </div>
+    </PageShell>
   )
 }
