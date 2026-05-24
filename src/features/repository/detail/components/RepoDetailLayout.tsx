@@ -2,10 +2,12 @@
 
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
-import { PageShell } from "@/shared/components/commons/PageShell"
-import { PageSkeleton } from "@/shared/components/commons/PageSkeleton"
-import { RepoDetailView } from "./RepoDetailView"
-import { useRepoDetail } from "../hooks/useRepoDetail"
+import { useIsMobile }   from "@/shared/hooks/UseMobile"
+import { PageShell }     from "@/shared/components/commons/PageShell"
+import { PageSkeleton }  from "@/shared/components/commons/PageSkeleton"
+import { RepoDetailView }    from "./RepoDetailView"
+import { RepoDetailMobile }  from "./RepoDetailMobile"
+import { useRepoDetail }     from "../hooks/useRepoDetail"
 
 interface Props {
   id: string
@@ -14,6 +16,7 @@ interface Props {
 export function RepoDetailLayout({ id }: Props) {
   const { repo, loading } = useRepoDetail(id)
   const router            = useRouter()
+  const isMobile          = useIsMobile()
 
   useEffect(() => {
     if (!loading && !repo) router.push("/repository")
@@ -21,6 +24,8 @@ export function RepoDetailLayout({ id }: Props) {
 
   if (loading) return <PageSkeleton />
   if (!repo)   return null
+
+  if (isMobile) return <RepoDetailMobile repo={repo} />
 
   return (
     <PageShell title="Repository" detail={repo.fullName}>

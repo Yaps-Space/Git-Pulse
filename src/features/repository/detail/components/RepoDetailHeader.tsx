@@ -1,15 +1,17 @@
 "use client"
 
 import { Star, GitFork, Clock } from "lucide-react"
-import { RepoDetail } from "../types/RepoDetail"
+import { RepoDetail }       from "../types/RepoDetail"
 import { RefreshButton }    from "./RefreshButton"
 import { DisconnectButton } from "./DisconnectButton"
 
 interface Props {
-  repo: RepoDetail
+  repo:       RepoDetail
+  refreshing: boolean
+  onRefresh:  (fullName: string) => void
 }
 
-export function RepoDetailHeader({ repo }: Props) {
+export function RepoDetailHeader({ repo, refreshing, onRefresh }: Props) {
   return (
     <div className="flex items-start justify-between">
       <div className="flex flex-col gap-1">
@@ -40,8 +42,8 @@ export function RepoDetailHeader({ repo }: Props) {
       </div>
 
       <div className="flex items-center gap-2">
-        <DisconnectButton id={repo.id} fullName={repo.fullName} />
-        <RefreshButton    id={repo.id} fullName={repo.fullName} />
+        <DisconnectButton id={repo.id} fullName={repo.fullName} className="w-38 h-10" />
+        <RefreshButton    fullName={repo.fullName} refreshing={refreshing} onRefresh={onRefresh} className="w-38 h-10" />
       </div>
     </div>
   )

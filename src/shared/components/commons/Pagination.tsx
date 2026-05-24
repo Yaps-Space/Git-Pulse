@@ -6,10 +6,38 @@ interface PaginationProps {
   totalPages: number
   onChange:   (page: number) => void
   className?: string
+  variant?:   "default" | "mobile"
 }
 
-export function Pagination({ page, totalPages, onChange, className }: PaginationProps) {
+export function Pagination({ page, totalPages, onChange, className, variant = "default" }: PaginationProps) {
   if (totalPages <= 1) return null
+
+  if (variant === "mobile") {
+    return (
+      <div className={cn("flex items-center justify-between px-1 py-3", className)}>
+        <span className="text-sm text-gray-400">Item {((page - 1) * 10) + 1} to {Math.min(page * 10, totalPages * 10)}</span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onChange(Math.max(1, page - 1))}
+            disabled={page === 1}
+            className="w-8 h-8 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:bg-gray-50 disabled:opacity-30 transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <span className="text-sm text-gray-700 min-w-[40px] text-center">
+            {page} / {totalPages}
+          </span>
+          <button
+            onClick={() => onChange(Math.min(totalPages, page + 1))}
+            disabled={page === totalPages}
+            className="w-8 h-8 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:bg-gray-50 disabled:opacity-30 transition-colors"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   const getPages = () => {
     const pages: (number | "...")[] = []
