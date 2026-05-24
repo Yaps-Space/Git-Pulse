@@ -9,17 +9,16 @@ import { Button } from "@/shared/components/ui/button"
 import { PageSkeleton } from "@/shared/components/commons/PageSkeleton"
 import { Pagination } from "@/shared/components/commons/Pagination"
 import { ConnectSearchActions } from "./ConnectSearchActions"
+import { useConnectedRepos } from "../hooks/useConnectedRepos"
 import { GithubRepo } from "../types"
-import { analyzeRepo, fetchGithubRepos } from "../services/repoService"
+import { fetchGithubRepos } from "../services"
+import { analyzeRepo } from "../../detail/services/repoService"
 import { timeAgo } from "../helpers"
 
-interface Props {
-  connectedFullNames?: string[]
-}
-
-export function ConnectRepoPage({ connectedFullNames = [] }: Props) {
-  const { data: session } = useSession()
-  const router            = useRouter()
+export function ConnectRepoPage() {
+  const { data: session }                         = useSession()
+  const router                                    = useRouter()
+  const { connectedFullNames, refresh: refreshConnected } = useConnectedRepos()
 
   const connectedSet = new Set(connectedFullNames)
 
@@ -36,8 +35,16 @@ export function ConnectRepoPage({ connectedFullNames = [] }: Props) {
     if (!session?.accessToken) return
     setLoading(true)
     try {
-      const data = await fetchGithubRepos(1, filter)
-      setRepos(data.repos ?? [])
+      let allRepos: GithubRepo[] = []
+      let currentPage = 1
+      while (true) {
+        const data = await fetchGithubRepos(currentPage, filter)
+        const batch = data.repos ?? []
+        allRepos = [...allRepos, ...batch]
+        if (batch.length < 20) break
+        currentPage++
+      }
+      setRepos(allRepos)
     } catch (e) {
       console.error(e)
     } finally {
@@ -51,13 +58,12 @@ export function ConnectRepoPage({ connectedFullNames = [] }: Props) {
   }, [filter, loadRepos])
 
   const unconnected = repos.filter(r => !connectedSet.has(r.full_name))
-
-  const filtered   = unconnected.filter(r =>
+  const filtered    = unconnected.filter(r =>
     r.full_name.toLowerCase().includes(search.toLowerCase()) ||
     (r.description ?? "").toLowerCase().includes(search.toLowerCase())
   )
-  const totalPages = Math.ceil(filtered.length / pageSize)
-  const paginated  = filtered.slice((page - 1) * pageSize, page * pageSize)
+  const totalPages  = Math.ceil(filtered.length / pageSize)
+  const paginated   = filtered.slice((page - 1) * pageSize, page * pageSize)
 
   const handleSearch   = (val: string) => { setSearch(val);   setPage(1) }
   const handlePageSize = (val: number) => { setPageSize(val); setPage(1) }
@@ -77,6 +83,7 @@ export function ConnectRepoPage({ connectedFullNames = [] }: Props) {
       setError("Gagal terhubung ke server. Pastikan ML Service sudah berjalan.")
     } finally {
       setConnecting(null)
+      refreshConnected()
     }
   }
 

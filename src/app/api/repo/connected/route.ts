@@ -11,19 +11,9 @@ export async function GET() {
   try {
     const q    = query(collection(db, "repositories"), where("userId", "==", session.user.id))
     const snap = await getDocs(q)
-    const repos = snap.docs.map(doc => {
-      const data = doc.data()
-      return {
-        id:                doc.id,
-        fullName:          data.fullName          ?? "",
-        productivityState: data.productivityState ?? "-",
-        healthScore:       data.healthScore       ?? 0,
-        healthGrade:       data.healthGrade       ?? "-",
-        analyzedAt:        data.analyzedAt?.seconds ? data.analyzedAt.seconds * 1000 : null,
-      }
-    })
-    return NextResponse.json({ repos })
+    const fullNames = snap.docs.map(doc => doc.data().fullName ?? "")
+    return NextResponse.json({ fullNames })
   } catch {
-    return NextResponse.json({ repos: [] })
+    return NextResponse.json({ fullNames: [] })
   }
 }

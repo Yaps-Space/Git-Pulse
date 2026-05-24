@@ -8,8 +8,3 @@ export async function analyzeRepo(fullName: string): Promise<{ success: boolean;
   if (!res.ok) return { success: false, error: data.error }
   return { success: true }
 }
-
-export async function fetchGithubRepos(page: number, filter: string): Promise<{ repos: import("../types").GithubRepo[] }> {
-  const res  = await fetch(`/api/repo?page=${page}&filter=${filter}`)
-  return res.json()
-}
