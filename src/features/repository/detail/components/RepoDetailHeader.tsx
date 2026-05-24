@@ -41,7 +41,7 @@ export function RepoDetailHeader({ repo }: Props) {
 
       <div className="flex items-center gap-2">
         <DisconnectButton id={repo.id} fullName={repo.fullName} />
-        <RefreshButton fullName={repo.fullName} />
+        <RefreshButton    id={repo.id} fullName={repo.fullName} />
       </div>
     </div>
   )

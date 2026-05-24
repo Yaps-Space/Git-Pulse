@@ -1,16 +1,16 @@
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useSWRConfig } from "swr"
 import { analyzeRepo } from "../services/repoService"
 
-export function useRefreshRepo() {
+export function useRefreshRepo(id: string) {
   const [loading, setLoading] = useState(false)
-  const router                = useRouter()
+  const { mutate }            = useSWRConfig()
 
   const refresh = async (fullName: string) => {
     setLoading(true)
     try {
       await analyzeRepo(fullName)
-      router.refresh()
+      mutate(`/api/repo/${id}`)
     } catch (e) {
       console.error(e)
     } finally {
