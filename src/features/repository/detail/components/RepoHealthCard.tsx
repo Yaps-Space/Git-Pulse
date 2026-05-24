@@ -6,12 +6,18 @@ import { GRADE_COLOR } from "../../constants"
 import { HEALTH_BREAKDOWN_ITEMS } from "../constants/HealthCard"
 
 interface Props {
-  repo: RepoDetail
+  repo:        RepoDetail
+  refreshing?: boolean
 }
 
-export function RepoHealthCard({ repo }: Props) {
+export function RepoHealthCard({ repo, refreshing }: Props) {
   return (
-    <Card>
+    <Card className="relative overflow-hidden">
+      {refreshing && (
+        <div className="absolute inset-0 z-10 bg-white/70 flex items-center justify-center rounded-xl">
+          <div className="w-6 h-6 rounded-full border-2 border-gray-200 border-t-[#00D964] animate-spin" />
+        </div>
+      )}
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-base font-bold">Health Score</CardTitle>
         <div className="flex items-center gap-2">

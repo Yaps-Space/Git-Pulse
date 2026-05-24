@@ -4,14 +4,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 
 interface Props {
   recommendations: string[]
+  refreshing?:     boolean
 }
 
-export function RepoRecommendations({ recommendations }: Props) {
+export function RepoRecommendations({ recommendations, refreshing }: Props) {
   if (recommendations.length === 0) return null
 
   return (
-    <Card className="bg-gray-900 border-gray-900">
-      <CardHeader className="">
+    <Card className="relative overflow-hidden bg-gray-900 border-gray-900">
+      {refreshing && (
+        <div className="absolute inset-0 z-10 bg-gray-900/70 flex items-center justify-center rounded-xl">
+          <div className="w-6 h-6 rounded-full border-2 border-gray-700 border-t-[#00D964] animate-spin" />
+        </div>
+      )}
+      <CardHeader>
         <CardTitle className="text-white text-base">Rekomendasi</CardTitle>
       </CardHeader>
       <CardContent>

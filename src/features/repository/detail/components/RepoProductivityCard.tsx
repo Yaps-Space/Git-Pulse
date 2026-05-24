@@ -7,10 +7,11 @@ import { PRODUCTIVITY_BG, PRODUCTIVITY_COLOR } from "../../constants"
 import { PRODUCTIVITY_ITEMS } from "../constants/Productivity"
 
 interface Props {
-  repo: RepoDetail
+  repo:        RepoDetail
+  refreshing?: boolean
 }
 
-export function RepoProductivityCard({ repo }: Props) {
+export function RepoProductivityCard({ repo, refreshing }: Props) {
   const trendLabel = repo.commitTrend > 0.01 ? "Meningkat"
     : repo.commitTrend < -0.01 ? "Menurun" : "Stabil"
   const trendColor = repo.commitTrend > 0.01 ? "#3FB950"
@@ -20,12 +21,17 @@ export function RepoProductivityCard({ repo }: Props) {
 
   const items = [
     ...PRODUCTIVITY_ITEMS(repo).slice(0, 2).map(item => ({ ...item, color: undefined, icon: null })),
-    { label: "Commit Trend",       value: trendLabel, color: trendColor, icon: TrendIcon },
+    { label: "Commit Trend",      value: trendLabel, color: trendColor, icon: TrendIcon },
     { ...PRODUCTIVITY_ITEMS(repo)[2], color: undefined, icon: null },
   ]
 
   return (
-    <Card>
+    <Card className="relative overflow-hidden">
+      {refreshing && (
+        <div className="absolute inset-0 z-10 bg-white/70 flex items-center justify-center rounded-xl">
+          <div className="w-6 h-6 rounded-full border-2 border-gray-200 border-t-[#00D964] animate-spin" />
+        </div>
+      )}
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-base font-bold">Productivity State</CardTitle>
         <span

@@ -8,12 +8,15 @@ import { RepoRecommendations }  from "./RepoRecommendations"
 import { RefreshButton }        from "./RefreshButton"
 import { DisconnectButton }     from "./DisconnectButton"
 import { RepoDetail }           from "../types/RepoDetail"
+import { useRefreshRepo }       from "../hooks/useRefreshRepo"
 
 interface Props {
   repo: RepoDetail
 }
 
 export function RepoDetailMobile({ repo }: Props) {
+  const { loading, refresh } = useRefreshRepo(repo.id)
+
   return (
     <div className="min-h-screen">
       <MobilePageHeader title={repo.fullName} backHref="/repository">
@@ -52,15 +55,16 @@ export function RepoDetailMobile({ repo }: Props) {
             className="flex-1 h-11 justify-center"
           />
           <RefreshButton
-            id={repo.id}
             fullName={repo.fullName}
+            refreshing={loading}
+            onRefresh={refresh}
             className="flex-1 h-11 justify-center"
           />
         </div>
 
-        <RepoProductivityCard repo={repo} />
-        <RepoHealthCard       repo={repo} />
-        <RepoRecommendations  recommendations={repo.healthRecommendations} />
+        <RepoProductivityCard repo={repo} refreshing={loading} />
+        <RepoHealthCard       repo={repo} refreshing={loading} />
+        <RepoRecommendations  recommendations={repo.healthRecommendations} refreshing={loading} />
       </div>
     </div>
   )
