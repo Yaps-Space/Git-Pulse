@@ -1,7 +1,7 @@
 "use client"
 
 import { Star, GitFork, Clock } from "lucide-react"
-import { RepoDetail } from "../types/RepoDetail"
+import { RepoDetail }       from "../types/RepoDetail"
 import { RefreshButton }    from "./RefreshButton"
 import { DisconnectButton } from "./DisconnectButton"
 
@@ -40,8 +40,8 @@ export function RepoDetailHeader({ repo }: Props) {
       </div>
 
       <div className="flex items-center gap-2">
-        <DisconnectButton id={repo.id} fullName={repo.fullName} />
-        <RefreshButton    id={repo.id} fullName={repo.fullName} />
+        <DisconnectButton id={repo.id} fullName={repo.fullName} className="w-38 h-10" />
+        <RefreshButton    id={repo.id} fullName={repo.fullName} className="w-38 h-10" />
       </div>
     </div>
   )
