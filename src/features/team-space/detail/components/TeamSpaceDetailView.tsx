@@ -4,7 +4,8 @@ import Image from "next/image"
 import { Users, GitBranch, Copy, Check } from "lucide-react"
 import { useState } from "react"
 import { useTeamSpaceDetail } from "../hooks/useTeamSpaceDetail"
-import { ROLE_COLOR, ROLE_TEXT, ROLE_LABEL, STATUS_COLOR, STATUS_LABEL, CONSISTENCY_LABEL } from "../constants/TeamSpaceConfig"
+import { ROLE_COLOR, ROLE_TEXT, ROLE_LABEL } from "../../constants/TeamSpaceConfig"
+import { STATUS_COLOR, STATUS_LABEL, CONSISTENCY_LABEL } from "../constants/TeamSpaceDetail"
 import MemberManagement from "./MemberManagement"
 import MemberActions from "./MemberActions"
 import TeamSpaceFooterActions from "./TeamSpaceFooterActions"
@@ -40,9 +41,9 @@ export default function TeamSpaceDetailView({ id }: Props) {
   const inactiveCount = detail.members.filter(m => m.status === "Inactive").length
 
   const STATUS_STATS = [
-    { label: "Active",   count: activeCount,   color: "#3FB950", description: "Total account aktif"       },
-    { label: "Passive",  count: passiveCount,  color: "#F9C74F", description: "Total account pasif"       },
-    { label: "Inactive", count: inactiveCount, color: "#F85149", description: "Total account tidak aktif" },
+    { label: "Active",   count: activeCount,   color: STATUS_COLOR.Active, description: "Total account aktif"       },
+    { label: "Passive",  count: passiveCount,  color: STATUS_COLOR.Passive, description: "Total account pasif"       },
+    { label: "Inactive", count: inactiveCount, color: STATUS_COLOR.Inactive, description: "Total account tidak aktif" },
   ]
 
   const CONTRIBUTION_ITEMS = [

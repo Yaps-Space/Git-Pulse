@@ -1,5 +1,5 @@
 import useSWR from "swr"
-import { TeamSpaceDetail } from "../types/TeamSpace"
+import { TeamSpaceDetail } from "../types/TeamSpaceDetail"
 
 interface UseTeamSpaceDetailResult {
   detail:  TeamSpaceDetail | null;
