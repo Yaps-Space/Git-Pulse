@@ -53,7 +53,7 @@ export function RepoTable({ repos, search, pageSize }: Props) {
     SORTABLE_COLUMNS.find(c => c.label === label)?.key
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden">
+    <div className="bg-white rounded-xl overflow-hidden">
       {paginated.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 gap-3">
           <p className="font-medium text-gray-700">Belum ada repository</p>
