@@ -15,7 +15,7 @@ export function RefreshButton({ id, fullName }: Props) {
   return (
     <Button
       variant="outline"
-      className="w-44 gap-2 border-gray-200 bg-white text-gray-700 hover:bg-[#00D964] hover:text-gray-900 hover:border-[#00D964] disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 transition-colors"
+      className="w-38 h-10 gap-2 border-gray-200 bg-white text-gray-700 hover:bg-[#00D964] hover:text-gray-900 hover:border-[#00D964] disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 transition-colors"
       onClick={() => refresh(fullName)}
       disabled={loading}
     >
