@@ -2,17 +2,17 @@
 
 import { useState } from "react"
 import { PageShell } from "@/shared/components/commons/PageShell"
+import { PageSkeleton } from "@/shared/components/commons/PageSkeleton"
 import { RepoActions } from "./RepoActions"
 import { RepoTable } from "./RepoTable"
-import { Repo } from "../types"
+import { useRepos } from "../hooks/useRepos"
 
-interface Props {
-  repos: Repo[]
-}
-
-export function RepositoryLayout({ repos }: Props) {
+export function RepositoryLayout() {
+  const { repos, loading }      = useRepos()
   const [search,   setSearch]   = useState("")
   const [pageSize, setPageSize] = useState(10)
+
+  if (loading) return <PageSkeleton />
 
   return (
     <PageShell title="Repository">
