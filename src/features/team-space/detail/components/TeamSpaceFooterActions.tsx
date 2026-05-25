@@ -6,8 +6,8 @@ import { Button } from "@/shared/components/ui/button"
 import { Trash2, LogOut, AlertTriangle } from "lucide-react"
 
 interface Props {
-  classId: string;
-  myRole:  string;
+  classId: string
+  myRole:  string
 }
 
 type ConfirmType = "leave" | "delete"
@@ -51,11 +51,11 @@ export default function TeamSpaceFooterActions({ classId, myRole }: Props) {
 
   return (
     <>
-      <div className="mt-6 bg-white rounded-2xl p-5 flex items-center justify-between border border-gray-100">
-        <div className="flex items-center gap-3 text-sm text-gray-400">
+      <div className="bg-white rounded-2xl p-5 flex items-center justify-between border border-gray-100">
+        <div className="flex items-center gap-2 text-sm text-gray-400">
           <LogOut className="w-4 h-4" />
           {myRole === "owner"
-            ? "Kamu adalah owner dari Team Space ini"
+            ? "Your team space was created on"
             : "Kamu adalah anggota dari Team Space ini"}
         </div>
 
@@ -71,19 +71,20 @@ export default function TeamSpaceFooterActions({ classId, myRole }: Props) {
         )}
         {myRole === "owner" && (
           <Button
-            variant="ghost"
-            className="gap-2 text-red-500 hover:text-red-600 hover:bg-red-50"
+            className="gap-2 bg-red-500 hover:bg-red-600 text-white"
             onClick={() => setShowConfirm("delete")}
           >
             <Trash2 className="w-4 h-4" />
-            Hapus Team Space
+            Delete Team
           </Button>
         )}
       </div>
 
       {showConfirm && confirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ background: "rgba(0,0,0,0.4)" }}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ background: "rgba(0,0,0,0.4)" }}
+        >
           <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
             <div className="flex flex-col items-center gap-3 mb-6">
               <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
@@ -96,13 +97,13 @@ export default function TeamSpaceFooterActions({ classId, myRole }: Props) {
               <Button
                 variant="outline"
                 className="flex-1"
+                disabled={loading}
                 onClick={() => setShowConfirm(null)}
               >
                 Batal
               </Button>
               <Button
-                className="flex-1 text-white"
-                style={{ background: "#F85149", opacity: loading ? 0.7 : 1 }}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white disabled:opacity-70"
                 disabled={loading}
                 onClick={() => handleAction(showConfirm)}
               >
