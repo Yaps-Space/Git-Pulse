@@ -2,14 +2,16 @@
 
 import { QrCode } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
+import { cn } from "@/shared/lib/utils"
 import QRCode from "qrcode"
 
 interface Props {
   inviteCode: string
   teamName:   string
+  className?: string
 }
 
-export function QRButton({ inviteCode, teamName }: Props) {
+export function QRButton({ inviteCode, teamName, className }: Props) {
   const handleDownload = async () => {
     try {
       const dataUrl = await QRCode.toDataURL(inviteCode, {
@@ -28,10 +30,11 @@ export function QRButton({ inviteCode, teamName }: Props) {
 
   return (
     <Button
+      variant="outline"
+      className={cn("gap-2 border-gray-200 bg-white text-gray-700 hover:bg-[#00D964] hover:text-gray-900 hover:border-[#00D964] transition-colors", className)}
       onClick={handleDownload}
-      className="gap-2 bg-[#00D964] hover:bg-[#00c057] text-gray-900 font-semibold"
     >
-      <QrCode className="w-4 h-4" />
+      <QrCode className="w-4 h-4 flex-shrink-0" />
       QR
     </Button>
   )
