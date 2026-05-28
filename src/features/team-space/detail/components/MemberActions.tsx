@@ -52,17 +52,19 @@ export default function MemberActions({ memberId, memberName, currentRole, myRol
         </button>
       </div>
 
-      <EditRoleDialog
-        open={editOpen}
-        onClose={() => setEditOpen(false)}
-        memberId={memberId}
-        memberName={memberName}
-        currentRole={currentRole}
-        myRole={myRole}
-        classId={classId}
-        onKick={onKick}
-        onRoleChange={onRoleChange}
-      />
+      {showEdit && (
+        <EditRoleDialog
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          memberId={memberId}
+          memberName={memberName}
+          currentRole={currentRole}
+          myRole={myRole}
+          classId={classId}
+          onKick={onKick}
+          onRoleChange={onRoleChange}
+        />
+      )}
     </>
   )
 }

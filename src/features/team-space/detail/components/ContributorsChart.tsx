@@ -6,7 +6,7 @@ import { getLastNMonthLabels } from "../constants/TeamSpaceDetail"
 import { MemberChart } from "./MemberChart"
 
 interface Props {
-  members: TeamMember[]
+  members:             TeamMember[]
   repoCommitsPerMonth: number[]
 }
 
