@@ -5,7 +5,7 @@ import { useTeamSpaceDetail } from "../hooks/useTeamSpaceDetail";
 import { PageShell } from "@/shared/components/commons/PageShell";
 import { PageSkeleton } from "@/shared/components/commons/PageSkeleton";
 import TeamSpaceDetailView from "./TeamSpaceDetailView";
-// import TeamSpaceDetailMobile from "./TeamSpaceDetailMobile";
+import { TeamSpaceDetailMobile } from "./TeamSpaceDetailMobile";
 
 interface Props {
   id: string;
@@ -13,12 +13,14 @@ interface Props {
 
 export function TeamSpaceDetailLayout({ id }: Props) {
   const isMobile        = useIsMobile();
-  const { detail, loading } = useTeamSpaceDetail(id);
+  const { detail, loading, refresh } = useTeamSpaceDetail(id);
 
   if (loading) return <PageSkeleton />;
   if (!detail) return null;
 
-  // if (isMobile) return <TeamSpaceDetailMobile id={id} />;
+  if (isMobile) return (
+    <TeamSpaceDetailMobile detail={detail} onMutate={refresh} />
+  )
 
   return (
     <PageShell title="Team Space" detail={detail.name}>
