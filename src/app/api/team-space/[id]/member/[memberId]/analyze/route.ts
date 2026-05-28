@@ -74,7 +74,7 @@ export async function POST(
       memberStats[login].dates.push(c.commit?.author?.date || "")
     })
 
-    const loginKey = member.userName?.toLowerCase()
+    const loginKey = (member.userLogin ?? member.userName)?.toLowerCase()
     const stats    = memberStats[loginKey] || { commits: 0, dates: [] }
 
     const commitVelocity    = stats.commits / 52

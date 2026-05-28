@@ -73,7 +73,6 @@ export async function POST(req: NextRequest) {
   try {
     const inviteCode = generateInviteCode()
 
-    // Buat Team Space
     const tsRef = await addDoc(collection(db, "teamSpaces"), {
       name,
       description:  description || null,
@@ -83,15 +82,15 @@ export async function POST(req: NextRequest) {
       createdAt:    serverTimestamp(),
     })
 
-    // Buat membership owner
     await addDoc(collection(db, "memberships"), {
-      classId:  tsRef.id,
-      userId:   session.user.id,
-      userName: session.user.name,
-      userImage:session.user.image,
-      role:     "owner",
-      joinedAt: serverTimestamp(),
-      status:   "pending",
+      classId:   tsRef.id,
+      userId:    session.user.id,
+      userName:  session.user.name,
+      userLogin: session.user.username ?? null,
+      userImage: session.user.image,
+      role:      "owner",
+      joinedAt:  serverTimestamp(),
+      status:    "pending",
     })
 
     return NextResponse.json({ id: tsRef.id, inviteCode })
