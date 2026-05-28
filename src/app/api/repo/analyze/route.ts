@@ -84,7 +84,6 @@ export async function POST(req: NextRequest) {
     const prodData   = await prodRes.json()
     const healthData = await healthRes.json()
 
-    // Hitung additions & deletions dari code_frequency
     let totalAdditions = 0
     let totalDeletions = 0
     if (Array.isArray(codeFrequency)) {
@@ -93,34 +92,35 @@ export async function POST(req: NextRequest) {
         totalDeletions += Math.abs(week[2] ?? 0)
       })
     }
-    const totalChanges      = totalAdditions + totalDeletions
-    const additionsPercent  = totalChanges > 0 ? Math.round((totalAdditions / totalChanges) * 100) : 50
-    const deletionsPercent  = totalChanges > 0 ? Math.round((totalDeletions / totalChanges) * 100) : 50
+    const totalChanges     = totalAdditions + totalDeletions
+    const additionsPercent = totalChanges > 0 ? Math.round((totalAdditions / totalChanges) * 100) : 50
+    const deletionsPercent = totalChanges > 0 ? Math.round((totalDeletions / totalChanges) * 100) : 50
 
-    // Hitung commits per bulan dari participation (52 minggu → 12 bulan)
-    const commitsPerMonth = Array.from({ length: 12 }, (_, monthIdx) => {
-      const startWeek = Math.floor(monthIdx * 52 / 12)
-      const endWeek   = Math.floor((monthIdx + 1) * 52 / 12)
-      return commits.slice(startWeek, endWeek).reduce((a, b) => a + b, 0)
+    const now             = new Date()
+    const commitsPerMonth = Array(12).fill(0)
+    commits.forEach((weekCount: number, weekIdx: number) => {
+      const weeksAgo      = 51 - weekIdx
+      const d             = new Date(now)
+      d.setDate(d.getDate() - weeksAgo * 7)
+      const calendarMonth = d.getMonth()
+      commitsPerMonth[calendarMonth] += weekCount
     })
 
-    // Pull requests per bulan
     const prPerMonth = Array(12).fill(0)
     if (Array.isArray(pullRequests)) {
       pullRequests.forEach((pr: { created_at: string }) => {
-        const month = new Date(pr.created_at).getMonth()
-        prPerMonth[month] = (prPerMonth[month] ?? 0) + 1
+        const month         = new Date(pr.created_at).getMonth()
+        prPerMonth[month]  += 1
       })
     }
 
-    // Issues per bulan (exclude PRs)
     const issuesPerMonth = Array(12).fill(0)
     if (Array.isArray(issues)) {
       issues
         .filter((issue: { pull_request?: unknown }) => !issue.pull_request)
         .forEach((issue: { created_at: string }) => {
-          const month = new Date(issue.created_at).getMonth()
-          issuesPerMonth[month] = (issuesPerMonth[month] ?? 0) + 1
+          const month             = new Date(issue.created_at).getMonth()
+          issuesPerMonth[month]  += 1
         })
     }
 
@@ -129,11 +129,11 @@ export async function POST(req: NextRequest) {
       fullName,
       owner,
       name:                  repo,
-      description:           meta.description || null,
-      language:              meta.language || null,
-      stars:                 meta.stargazers_count || 0,
-      forks:                 meta.forks_count || 0,
-      isPrivate:             meta.private || false,
+      description:           meta.description           || null,
+      language:              meta.language              || null,
+      stars:                 meta.stargazers_count      || 0,
+      forks:                 meta.forks_count           || 0,
+      isPrivate:             meta.private               || false,
       productivityState:     prodData.productivityState,
       commitFrequency:       prodData.commitFrequency,
       activityConsistency:   prodData.activityConsistency,

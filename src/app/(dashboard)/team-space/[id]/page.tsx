@@ -1,4 +1,4 @@
-import { TeamSpaceDetailLayout } from "@/features/team-space/components/TeamSpaceDetailLayout";
+import { TeamSpaceDetailLayout } from "@/features/team-space/detail/components/TeamSpaceDetailLayout";
 
 export default async function TeamSpaceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

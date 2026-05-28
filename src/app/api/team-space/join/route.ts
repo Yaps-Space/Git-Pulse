@@ -12,7 +12,6 @@ export async function POST(req: NextRequest) {
   if (!inviteCode) return NextResponse.json({ error: "Missing invite code" }, { status: 400 })
 
   try {
-    // Cari team space dengan invite code
     const tsQuery = query(collection(db, "teamSpaces"), where("inviteCode", "==", inviteCode))
     const tsSnap  = await getDocs(tsQuery)
 
@@ -21,7 +20,6 @@ export async function POST(req: NextRequest) {
     const tsDoc   = tsSnap.docs[0]
     const classId = tsDoc.id
 
-    // Cek apakah sudah member
     const memberQuery = query(collection(db, "memberships"),
       where("classId", "==", classId),
       where("userId",  "==", session.user.id))
@@ -29,11 +27,11 @@ export async function POST(req: NextRequest) {
 
     if (!memberSnap.empty) return NextResponse.json({ error: "Kamu sudah terdaftar di Team Space ini" }, { status: 400 })
 
-    // Tambah membership
     await addDoc(collection(db, "memberships"), {
       classId,
       userId:    session.user.id,
       userName:  session.user.name,
+      userLogin: session.user.username ?? null,
       userImage: session.user.image,
       role:      "contributor",
       joinedAt:  serverTimestamp(),

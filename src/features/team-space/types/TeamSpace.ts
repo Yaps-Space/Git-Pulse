@@ -19,18 +19,7 @@ export interface TeamMember {
   contributionShare:   number;
   activityConsistency: number;
   activeWeeksRatio:    number;
+  commitsPerMonth:     number[];
   recommendation:      string | null;
   joinedAt:            number | null;
-}
-
-export interface TeamSpaceDetail {
-  id:           string;
-  name:         string;
-  description:  string | null;
-  repoFullName: string;
-  ownerId:      string;
-  inviteCode:   string;
-  myRole:       string;
-  myMembership: TeamMember;
-  members:      TeamMember[];
 }
