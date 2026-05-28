@@ -50,7 +50,7 @@ export async function POST(
     let commitPage                 = 1
     while (true) {
       const res  = await fetch(
-        `https://api.github.com/repos/${repoFullName}/commits?per_page=100&page=${commitPage}&since=${sinceStr}`,
+        `https://api.github.com/repos/${repoFullName}/commits?per_page=100&page=${commitPage}&since=${sinceStr}&sha=main`,
         { headers }
       )
       const data = await res.json() as GithubCommit[]

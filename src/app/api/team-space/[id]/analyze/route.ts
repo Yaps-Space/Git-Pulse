@@ -47,7 +47,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     let commitPage                 = 1
     while (true) {
       const res  = await fetch(
-        `https://api.github.com/repos/${repoFullName}/commits?per_page=100&page=${commitPage}&since=${sinceStr}`,
+        `https://api.github.com/repos/${repoFullName}/commits?per_page=100&page=${commitPage}&since=${sinceStr}&sha=main`,
         { headers }
       )
       const data = await res.json() as GithubCommit[]
@@ -74,7 +74,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     const ML_URL = process.env.NEXT_PUBLIC_ML_SERVICE_URL || "http://127.0.0.1:8000"
 
     for (const member of members) {
-      const loginKey = member.userName?.toLowerCase()
+      const loginKey = (member.userLogin ?? member.userName)?.toLowerCase()
       const stats    = memberStats[loginKey] || { commits: 0, dates: [] }
 
       const commitVelocity    = stats.commits / 52
