@@ -70,7 +70,7 @@ export default function TeamSpaceDetailView({ id }: Props) {
             classId={detail.id}
             onMutate={refresh}
           />
-          <ContributorsChart members={detail.members} />
+          <ContributorsChart members={detail.members} repoCommitsPerMonth={detail.repoCommitsPerMonth} />
         </>
       ) : (
         <TeamSpaceContribution membership={detail.myMembership} />
