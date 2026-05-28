@@ -1,74 +1,68 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { Edit2, BarChart2 } from "lucide-react"
+import { canManageMembers } from "../helpers/permissions"
+import { EditRoleDialog }   from "./EditRoleDialog"
 
 interface Props {
-  memberId:     string;
-  memberRole:   string;
-  memberUserId: string;
-  myRole:       string;
-  ownerId:      string;
-  classId:      string;
+  memberId:      string
+  memberName:    string
+  currentRole:   string
+  myRole:        string
+  classId:       string
+  onAnalyze:     () => void
+  onKick:        () => void
+  onRoleChange:  (role: string) => void
 }
 
-type ActionType = "promote" | "demote" | "kick"
+export default function MemberActions({ memberId, memberName, currentRole, myRole, classId, onAnalyze, onKick, onRoleChange }: Props) {
+  const [loading, setLoading]   = useState<string | null>(null)
+  const [editOpen, setEditOpen] = useState(false)
 
-export default function MemberActions({ memberId, memberRole, memberUserId, myRole, ownerId, classId }: Props) {
-  const router              = useRouter()
-  const [loading, setLoading] = useState<ActionType | null>(null)
+  const showEdit = canManageMembers(myRole)
 
-  if (memberUserId === ownerId) {
-    return <span className="text-xs text-gray-400">Owner</span>
-  }
-
-  const action = async (type: ActionType) => {
-    setLoading(type)
+  const handleAnalyze = async () => {
+    onAnalyze()
+    setLoading("analyze")
     try {
-      await fetch(`/api/team-space/${classId}/member/${memberId}/${type}`, { method: "POST" })
-      router.refresh()
+      await fetch(`/api/team-space/${classId}/member/${memberId}/analyze`, { method: "POST" })
     } finally {
       setLoading(null)
     }
   }
 
-  const ACTION_CONFIG: { type: ActionType; label: string; bg: string; color: string; show: boolean }[] = [
-    {
-      type:  "demote",
-      label: "Demote",
-      bg:    "#FFF3E0",
-      color: "#F0883E",
-      show:  myRole === "owner" && memberRole === "evaluator",
-    },
-    {
-      type:  "promote",
-      label: "Promote",
-      bg:    "#EBF5FB",
-      color: "#2E86C1",
-      show:  (myRole === "owner" || myRole === "evaluator") && memberRole === "contributor",
-    },
-    {
-      type:  "kick",
-      label: "Kick",
-      bg:    "#FFF0F0",
-      color: "#F85149",
-      show:  myRole === "owner" || myRole === "evaluator",
-    },
-  ]
-
   return (
-    <div className="flex gap-2">
-      {ACTION_CONFIG.filter(a => a.show).map(({ type, label, bg, color }) => (
+    <>
+      <div className="flex items-center gap-2">
+        {showEdit && (
+          <button
+            onClick={() => setEditOpen(true)}
+            className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-400 transition-colors"
+          >
+            <Edit2 className="w-3.5 h-3.5" />
+          </button>
+        )}
         <button
-          key={type}
-          onClick={() => action(type)}
-          disabled={loading === type}
-          className="text-xs px-2 py-1 rounded-lg transition-opacity hover:opacity-80"
-          style={{ background: bg, color, opacity: loading === type ? 0.6 : 1 }}
+          onClick={handleAnalyze}
+          disabled={loading === "analyze"}
+          className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-[#00D964] hover:text-[#00b853] hover:border-[#00D964] transition-colors disabled:opacity-50"
         >
-          {loading === type ? "..." : label}
+          <BarChart2 className="w-3.5 h-3.5" />
         </button>
-      ))}
-    </div>
+      </div>
+
+      <EditRoleDialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        memberId={memberId}
+        memberName={memberName}
+        currentRole={currentRole}
+        myRole={myRole}
+        classId={classId}
+        onKick={onKick}
+        onRoleChange={onRoleChange}
+      />
+    </>
   )
 }

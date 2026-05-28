@@ -8,6 +8,7 @@ import { Trash2, LogOut, AlertTriangle } from "lucide-react"
 interface Props {
   classId: string
   myRole:  string
+  createdAt:  number | null
 }
 
 type ConfirmType = "leave" | "delete"
@@ -25,7 +26,7 @@ const CONFIRM_CONFIG: Record<ConfirmType, { title: string; description: string; 
   },
 }
 
-export default function TeamSpaceFooterActions({ classId, myRole }: Props) {
+export default function TeamSpaceFooterActions({ classId, myRole, createdAt }: Props) {
   const router                        = useRouter()
   const [loading,     setLoading]     = useState(false)
   const [showConfirm, setShowConfirm] = useState<ConfirmType | null>(null)
@@ -48,15 +49,16 @@ export default function TeamSpaceFooterActions({ classId, myRole }: Props) {
   }
 
   const confirm = showConfirm ? CONFIRM_CONFIG[showConfirm] : null
+  const createdLabel = createdAt
+    ? `Your team space was created on ${new Date(createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`
+    : "Your team space"
 
   return (
     <>
       <div className="bg-white rounded-2xl p-5 flex items-center justify-between border border-gray-100">
         <div className="flex items-center gap-2 text-sm text-gray-400">
           <LogOut className="w-4 h-4" />
-          {myRole === "owner"
-            ? "Your team space was created on"
-            : "Kamu adalah anggota dari Team Space ini"}
+          {myRole === "owner" ? createdLabel : "Kamu adalah anggota dari Team Space ini"}
         </div>
 
         {myRole !== "owner" && (
@@ -81,10 +83,7 @@ export default function TeamSpaceFooterActions({ classId, myRole }: Props) {
       </div>
 
       {showConfirm && confirm && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ background: "rgba(0,0,0,0.4)" }}
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.4)" }}>
           <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
             <div className="flex flex-col items-center gap-3 mb-6">
               <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
@@ -94,12 +93,7 @@ export default function TeamSpaceFooterActions({ classId, myRole }: Props) {
               <p className="text-sm text-gray-500 text-center">{confirm.description}</p>
             </div>
             <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="flex-1"
-                disabled={loading}
-                onClick={() => setShowConfirm(null)}
-              >
+              <Button variant="outline" className="flex-1" disabled={loading} onClick={() => setShowConfirm(null)}>
                 Batal
               </Button>
               <Button
