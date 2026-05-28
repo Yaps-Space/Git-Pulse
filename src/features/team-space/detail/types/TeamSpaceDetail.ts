@@ -1,4 +1,4 @@
-import { TeamMember } from "../../types/TeamSpace";
+import { TeamMember } from "../../types/TeamSpace"
 
 export interface TeamSpaceDetail {
   id:           string;
@@ -7,6 +7,7 @@ export interface TeamSpaceDetail {
   repoFullName: string;
   ownerId:      string;
   inviteCode:   string;
+  createdAt:    number | null;
   myRole:       string;
   myMembership: TeamMember;
   members:      TeamMember[];

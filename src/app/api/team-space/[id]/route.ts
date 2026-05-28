@@ -3,7 +3,8 @@ import { authOptions } from "@/shared/lib/auth"
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/shared/lib/firebase"
 import { collection, query, where, getDocs, doc, getDoc, DocumentData } from "firebase/firestore"
-import { TeamMember, TeamSpaceDetail } from "@/features/team-space/types/TeamSpace"
+import { TeamMember } from "@/features/team-space/types/TeamSpace"
+import { TeamSpaceDetail } from "@/features/team-space/detail/types/TeamSpaceDetail"
 
 export async function GET(
   _req: NextRequest,
@@ -37,6 +38,7 @@ export async function GET(
         contributionShare:   (m.contributionShare   as number) || 0,
         activityConsistency: (m.activityConsistency as number) || 0,
         activeWeeksRatio:    (m.activeWeeksRatio    as number) || 0,
+        commitsPerMonth:     (m.commitsPerMonth     as number[]) || Array(12).fill(0),
         recommendation:      (m.recommendation      as string) || null,
         joinedAt:            m.joinedAt?.seconds ? (m.joinedAt.seconds as number) * 1000 : null,
       }
@@ -52,6 +54,7 @@ export async function GET(
       repoFullName: ts.repoFullName   as string,
       ownerId:      ts.ownerId        as string,
       inviteCode:   ts.inviteCode     as string,
+      createdAt:    ts.createdAt?.seconds ? (ts.createdAt.seconds as number) * 1000 : null,
       myRole:       myMembership.role,
       myMembership,
       members,

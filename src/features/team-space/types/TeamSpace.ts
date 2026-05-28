@@ -19,6 +19,7 @@ export interface TeamMember {
   contributionShare:   number;
   activityConsistency: number;
   activeWeeksRatio:    number;
+  commitsPerMonth:     number[];
   recommendation:      string | null;
   joinedAt:            number | null;
 }
