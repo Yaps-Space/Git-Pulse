@@ -102,17 +102,19 @@ export function TeamSpaceMemberCard({ member, myRole, classId, onAnalyze, onKick
         </div>
       </div>
 
-      <EditRoleDialog
-        open={editOpen}
-        onClose={() => setEditOpen(false)}
-        memberId={member.id}
-        memberName={member.userName}
-        currentRole={member.role}
-        myRole={myRole}
-        classId={classId}
-        onKick={onKick}
-        onRoleChange={onRoleChange}
-      />
+      {showEdit && (
+        <EditRoleDialog
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          memberId={member.id}
+          memberName={member.userName}
+          currentRole={member.role}
+          myRole={myRole}
+          classId={classId}
+          onKick={onKick}
+          onRoleChange={onRoleChange}
+        />
+      )}
     </>
   )
 }

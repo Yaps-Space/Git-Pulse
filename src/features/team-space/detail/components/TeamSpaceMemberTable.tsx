@@ -25,16 +25,17 @@ import { TeamSpaceDetail }                   from "../types/TeamSpaceDetail"
 import { SortKey, SortDir }                  from "../types/TeamSpaceMember"
 
 interface Props {
-  members:  TeamMember[]
-  myRole:   string
-  ownerId:  string
-  classId:  string
-  onMutate: (optimisticFn: (data: TeamSpaceDetail) => TeamSpaceDetail) => void
+  members:             TeamMember[]
+  myRole:              string
+  ownerId:             string
+  classId:             string
+  onMutate:            (optimisticFn: (data: TeamSpaceDetail) => TeamSpaceDetail) => void
+  showSearchAndFilter: boolean
 }
 
 const COLUMNS = ["No", "Anggota", "Role", "Frekuensi Commits", "Kontribusi", "Status", "Actions"]
 
-export function TeamSpaceMemberTable({ members, myRole, classId, onMutate }: Props) {
+export function TeamSpaceMemberTable({ members, myRole, classId, onMutate, showSearchAndFilter }: Props) {
   const [search,   setSearch]   = useState("")
   const [pageSize, setPageSize] = useState(10)
   const [page,     setPage]     = useState(1)
@@ -89,18 +90,20 @@ export function TeamSpaceMemberTable({ members, myRole, classId, onMutate }: Pro
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input
-            value={search}
-            onChange={e => handleSearch(e.target.value)}
-            placeholder="Search"
-            className="pl-9 h-10 bg-white border-gray-200 text-sm"
-          />
+      {showSearchAndFilter && (
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              value={search}
+              onChange={e => handleSearch(e.target.value)}
+              placeholder="Search"
+              className="pl-9 h-10 bg-white border-gray-200 text-sm"
+            />
+          </div>
+          <ShowPerPage value={pageSize} onChange={handlePageSize} />
         </div>
-        <ShowPerPage value={pageSize} onChange={handlePageSize} />
-      </div>
+      )}
 
       <div className="bg-white rounded-xl overflow-hidden">
         {paginated.length === 0 ? (
@@ -199,7 +202,7 @@ export function TeamSpaceMemberTable({ members, myRole, classId, onMutate }: Pro
               </TableBody>
             </Table>
 
-            {totalPages > 1 && (
+            {showSearchAndFilter && totalPages > 1 && (
               <div className="p-4 border-t border-gray-100">
                 <Pagination page={page} totalPages={totalPages} onChange={setPage} />
               </div>

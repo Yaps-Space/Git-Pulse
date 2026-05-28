@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Search } from "lucide-react"
-import { Input }      from "@/shared/components/ui/input"
+import { Input }       from "@/shared/components/ui/input"
 import { ShowPerPage } from "@/shared/components/commons/ShowPerPage"
 import { Pagination }  from "@/shared/components/commons/Pagination"
 import { TeamSpaceMemberCard } from "./TeamSpaceMemberCard"
@@ -10,13 +10,14 @@ import { TeamMember }          from "../../types/TeamSpace"
 import { TeamSpaceDetail }     from "../types/TeamSpaceDetail"
 
 interface Props {
-  members:  TeamMember[]
-  myRole:   string
-  classId:  string
-  onMutate: (fn: (data: TeamSpaceDetail) => TeamSpaceDetail) => void
+  members:             TeamMember[]
+  myRole:              string
+  classId:             string
+  onMutate:            (fn: (data: TeamSpaceDetail) => TeamSpaceDetail) => void
+  showSearchAndFilter: boolean
 }
 
-export function TeamSpaceMemberList({ members, myRole, classId, onMutate }: Props) {
+export function TeamSpaceMemberList({ members, myRole, classId, onMutate, showSearchAndFilter }: Props) {
   const [search,   setSearch]   = useState("")
   const [pageSize, setPageSize] = useState(10)
   const [page,     setPage]     = useState(1)
@@ -51,20 +52,23 @@ export function TeamSpaceMemberList({ members, myRole, classId, onMutate }: Prop
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="bg-white rounded-xl border border-gray-100 px-4 py-3">
-        <ShowPerPage variant="mobile" value={pageSize} onChange={handlePageSize} />
-        <Pagination variant="mobile" page={page} totalPages={totalPages} onChange={setPage} />
-      </div>
-
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <Input
-          value={search}
-          onChange={e => handleSearch(e.target.value)}
-          placeholder="Search anggota..."
-          className="pl-9 h-10 bg-white border-gray-200 text-sm"
-        />
-      </div>
+      {showSearchAndFilter && (
+        <>
+          <div className="bg-white rounded-xl border border-gray-100 px-4 py-3">
+            <ShowPerPage variant="mobile" value={pageSize} onChange={handlePageSize} />
+            <Pagination variant="mobile" page={page} totalPages={totalPages} onChange={setPage} />
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              value={search}
+              onChange={e => handleSearch(e.target.value)}
+              placeholder="Search anggota..."
+              className="pl-9 h-10 bg-white border-gray-200 text-sm"
+            />
+          </div>
+        </>
+      )}
 
       {paginated.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 gap-2">

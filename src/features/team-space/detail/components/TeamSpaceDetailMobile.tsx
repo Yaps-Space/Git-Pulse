@@ -8,7 +8,6 @@ import { InviteCodeButton }        from "./InviteCodeButton"
 import { QRButton }                from "./QRButton"
 import { TeamSpaceStatusCards }    from "./TeamSpaceStatusCards"
 import { TeamSpaceMemberList }     from "./TeamSpaceMemberList"
-import { TeamSpaceContribution }   from "./TeamSpaceContribution"
 import { ContributorsChart }       from "./ContributorsChart"
 import TeamSpaceFooterActions      from "./TeamSpaceFooterActions"
 import { TeamSpaceDetail }         from "../types/TeamSpaceDetail"
@@ -19,7 +18,10 @@ interface Props {
 }
 
 export function TeamSpaceDetailMobile({ detail, onMutate }: Props) {
-  const isEvaluator = canViewAllMembers(detail.myRole)
+  const isEvaluator    = canViewAllMembers(detail.myRole)
+  const visibleMembers = isEvaluator
+    ? detail.members
+    : detail.members.filter(m => m.userId === detail.myMembership.userId)
 
   return (
     <div className="min-h-screen">
@@ -58,23 +60,20 @@ export function TeamSpaceDetailMobile({ detail, onMutate }: Props) {
           </div>
         )}
 
-        {isEvaluator ? (
-          <>
-            <TeamSpaceStatusCards members={detail.members} />
-            <TeamSpaceMemberList
-              members={detail.members}
-              myRole={detail.myRole}
-              classId={detail.id}
-              onMutate={onMutate}
-            />
-            <ContributorsChart
-              members={detail.members}
-              repoCommitsPerMonth={detail.repoCommitsPerMonth ?? Array(12).fill(0)}
-            />
-          </>
-        ) : (
-          <TeamSpaceContribution membership={detail.myMembership} />
-        )}
+        {isEvaluator && <TeamSpaceStatusCards members={detail.members} />}
+
+        <TeamSpaceMemberList
+          members={visibleMembers}
+          myRole={detail.myRole}
+          classId={detail.id}
+          onMutate={onMutate}
+          showSearchAndFilter={isEvaluator}
+        />
+
+        <ContributorsChart
+          members={visibleMembers}
+          repoCommitsPerMonth={detail.repoCommitsPerMonth ?? Array(12).fill(0)}
+        />
 
         <TeamSpaceFooterActions
           classId={detail.id}
