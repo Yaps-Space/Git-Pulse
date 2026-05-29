@@ -6,10 +6,11 @@ import { getLastNMonthLabels } from "../constants/TeamSpaceDetail"
 import { MemberChart } from "./MemberChart"
 
 interface Props {
-  members: TeamMember[]
+  members:             TeamMember[]
+  repoCommitsPerMonth: number[]
 }
 
-export function ContributorsChart({ members }: Props) {
+export function ContributorsChart({ members, repoCommitsPerMonth }: Props) {
   const labels = getLastNMonthLabels(12)
 
   const sorted = [...members].sort((a, b) =>
@@ -19,7 +20,7 @@ export function ContributorsChart({ members }: Props) {
 
   const allData = labels.map((month, i) => ({
     month,
-    commits: members.reduce((sum, m) => sum + (m.commitsPerMonth?.[i] ?? 0), 0),
+    commits: repoCommitsPerMonth[i] ?? 0,
   }))
 
   return (

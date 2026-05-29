@@ -8,7 +8,6 @@ import { InviteCodeButton }        from "./InviteCodeButton"
 import { QRButton }                from "./QRButton"
 import { TeamSpaceStatusCards }    from "./TeamSpaceStatusCards"
 import { TeamSpaceMemberTable }    from "./TeamSpaceMemberTable"
-import { TeamSpaceContribution }   from "./TeamSpaceContribution"
 import { ContributorsChart }       from "./ContributorsChart"
 import TeamSpaceFooterActions      from "./TeamSpaceFooterActions"
 
@@ -21,7 +20,10 @@ export default function TeamSpaceDetailView({ id }: Props) {
 
   if (!detail) return null
 
-  const isEvaluator = canViewAllMembers(detail.myRole)
+  const isEvaluator    = canViewAllMembers(detail.myRole)
+  const visibleMembers = isEvaluator
+    ? detail.members
+    : detail.members.filter(m => m.userId === detail.myMembership.userId)
 
   return (
     <div className="flex flex-col gap-6">
@@ -60,21 +62,18 @@ export default function TeamSpaceDetailView({ id }: Props) {
         )}
       </div>
 
-      {isEvaluator ? (
-        <>
-          <TeamSpaceStatusCards members={detail.members} />
-          <TeamSpaceMemberTable
-            members={detail.members}
-            myRole={detail.myRole}
-            ownerId={detail.ownerId}
-            classId={detail.id}
-            onMutate={refresh}
-          />
-          <ContributorsChart members={detail.members} />
-        </>
-      ) : (
-        <TeamSpaceContribution membership={detail.myMembership} />
-      )}
+      {isEvaluator && <TeamSpaceStatusCards members={detail.members} />}
+
+      <TeamSpaceMemberTable
+        members={visibleMembers}
+        myRole={detail.myRole}
+        ownerId={detail.ownerId}
+        classId={detail.id}
+        onMutate={refresh}
+        showSearchAndFilter={isEvaluator}
+      />
+
+      <ContributorsChart members={visibleMembers} repoCommitsPerMonth={detail.repoCommitsPerMonth} />
 
       <TeamSpaceFooterActions
         classId={detail.id}

@@ -5,6 +5,7 @@ import { db } from "@/shared/lib/firebase"
 import { collection, query, where, getDocs, doc, getDoc, DocumentData } from "firebase/firestore"
 import { TeamMember } from "@/features/team-space/types/TeamSpace"
 import { TeamSpaceDetail } from "@/features/team-space/detail/types/TeamSpaceDetail"
+import { GithubCommit } from "@/features/team-space/detail/types/analyzeTypes"
 
 export async function GET(
   _req: NextRequest,
@@ -19,7 +20,13 @@ export async function GET(
     const tsSnap = await getDoc(doc(db, "teamSpaces", id))
     if (!tsSnap.exists()) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
-    const ts = tsSnap.data() as DocumentData
+    const ts  = tsSnap.data() as DocumentData
+    const now = new Date()
+
+    const last12Months = Array.from({ length: 12 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1)
+      return { year: d.getFullYear(), month: d.getMonth() }
+    })
 
     const memberSnap = await getDocs(
       query(collection(db, "memberships"), where("classId", "==", id))
@@ -47,6 +54,36 @@ export async function GET(
     const myMembership = members.find(m => m.userId === session.user.id)
     if (!myMembership) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
+    let repoCommitsPerMonth = Array(12).fill(0)
+    try {
+      const since    = new Date(now)
+      since.setFullYear(since.getFullYear() - 1)
+      const sinceStr = since.toISOString()
+
+      let repoCommits: string[] = []
+      let page                  = 1
+      while (true) {
+        const res  = await fetch(
+          `https://api.github.com/repos/${ts.repoFullName}/commits?per_page=100&page=${page}&since=${sinceStr}&sha=main`,
+          { headers: { Authorization: `Bearer ${session.accessToken}` } }
+        )
+        const data = await res.json() as GithubCommit[]
+        if (!Array.isArray(data) || data.length === 0) break
+        repoCommits = [...repoCommits, ...data.map((c: GithubCommit) => c.commit?.author?.date || "")]
+        if (data.length < 100) break
+        page++
+      }
+
+      repoCommits.forEach((date) => {
+        if (!date) return
+        const d        = new Date(date)
+        const matchIdx = last12Months.findIndex(m => m.year === d.getFullYear() && m.month === d.getMonth())
+        if (matchIdx !== -1) repoCommitsPerMonth[matchIdx]++
+      })
+    } catch {
+      repoCommitsPerMonth = Array(12).fill(0)
+    }
+
     const detail: TeamSpaceDetail = {
       id,
       name:         ts.name          as string,
@@ -58,6 +95,7 @@ export async function GET(
       myRole:       myMembership.role,
       myMembership,
       members,
+      repoCommitsPerMonth,
     }
 
     return NextResponse.json(detail)

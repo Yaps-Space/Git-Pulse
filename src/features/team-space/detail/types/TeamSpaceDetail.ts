@@ -11,4 +11,5 @@ export interface TeamSpaceDetail {
   myRole:       string;
   myMembership: TeamMember;
   members:      TeamMember[];
+  repoCommitsPerMonth: number[];
 }
