@@ -14,7 +14,7 @@ export function Pagination({ page, totalPages, onChange, className, variant = "d
 
   if (variant === "mobile") {
     return (
-      <div className={cn("flex items-center justify-between px-1 py-3", className)}>
+      <div className={cn("flex items-center justify-between px-1 pt-3 pb-0", className)}>
         <span className="text-sm text-gray-400">Item {((page - 1) * 10) + 1} to {Math.min(page * 10, totalPages * 10)}</span>
         <div className="flex items-center gap-2">
           <button
