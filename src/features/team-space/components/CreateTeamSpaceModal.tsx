@@ -113,14 +113,13 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
 
         <div className="flex gap-3 mt-2">
           <Button
-            variant="outline"
-            className="flex-1 h-11 rounded-lg text-gray-900 font-bold bg-[#CACACA] hover:bg-[#b0b0b0]"
+            className="flex-1 h-10 rounded-lg text-gray-900 font-bold bg-[#CACACA] hover:bg-[#b0b0b0]"
             onClick={onClose}
           >
             Cancel
           </Button>
           <Button
-            className="flex-1 h-11 rounded-lg bg-[#00D964] hover:bg-[#00c057] text-gray-900 font-bold"
+            className="flex-1 h-10 rounded-lg bg-[#00D964] hover:bg-[#00c057] text-gray-900 font-bold"
             onClick={handleSubmit}
             disabled={loading || !name || !repoFullName}
           >

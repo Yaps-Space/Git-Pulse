@@ -94,9 +94,7 @@ export function TeamSpaceMemberCard({ member, myRole, classId, onAnalyze, onKick
           >
             {member.status === "analyzing" ? (
               <span className="w-2 h-2 rounded-full border border-current border-t-transparent animate-spin" />
-            ) : (
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: STATUS_COLOR[member.status] ?? "#888" }} />
-            )}
+            ) : null}
             {STATUS_LABEL[member.status] ?? member.status}
           </span>
         </div>

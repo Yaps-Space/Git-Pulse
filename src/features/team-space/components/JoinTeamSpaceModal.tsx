@@ -154,7 +154,7 @@ export default function JoinTeamSpaceModal({ onClose }: { onClose: () => void })
                 value={code}
                 onChange={e => { setCode(e.target.value.toUpperCase()); setError("") }}
                 placeholder="Contoh: 12KAJJA"
-                className={`rounded-lg h-11 text-center font-mono tracking-widest ${error ? "border-red-400" : ""}`}
+                className={`rounded-lg h-10 text-center font-mono tracking-widest ${error ? "border-red-400" : ""}`}
                 maxLength={6}
                 onKeyDown={e => e.key === "Enter" && handleJoin()}
               />
@@ -163,14 +163,13 @@ export default function JoinTeamSpaceModal({ onClose }: { onClose: () => void })
 
             <div className="flex gap-3">
               <Button
-                variant="outline"
-                className="flex-1 h-11 rounded-lg text-gray-900 font-bold bg-[#CACACA] hover:bg-[#b0b0b0]"
+                className="flex-1 h-10 rounded-lg text-gray-900 font-bold bg-[#CACACA] hover:bg-[#b0b0b0]"
                 onClick={handleClose}
               >
                 Cancel
               </Button>
               <Button
-                className="flex-1 h-11 rounded-lg bg-[#00D964] hover:bg-[#00c057] text-gray-900 font-bold"
+                className="flex-1 h-10 rounded-lg bg-[#00D964] hover:bg-[#00c057] text-gray-900 font-bold"
                 onClick={handleJoin}
                 disabled={loading || !code.trim()}
               >
@@ -210,8 +209,7 @@ export default function JoinTeamSpaceModal({ onClose }: { onClose: () => void })
             </p>
 
             <Button
-              variant="outline"
-              className="w-full h-11 rounded-lg text-gray-900 font-bold bg-[#CACACA] hover:bg-[#b0b0b0]"
+              className="w-full h-10 rounded-lg text-gray-900 font-bold bg-[#CACACA] hover:bg-[#b0b0b0]"
               onClick={handleClose}
             >
               Cancel

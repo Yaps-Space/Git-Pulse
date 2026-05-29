@@ -3,27 +3,19 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/shared/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/components/ui/dialog"
 import { Trash2, LogOut, AlertTriangle } from "lucide-react"
+import { ConfirmType, CONFIRM_CONFIG } from "../constants/ConfrimFooterActions"
 
 interface Props {
-  classId: string
-  myRole:  string
-  createdAt:  number | null
-}
-
-type ConfirmType = "leave" | "delete"
-
-const CONFIRM_CONFIG: Record<ConfirmType, { title: string; description: string; buttonLabel: string }> = {
-  leave: {
-    title:       "Keluar dari Team Space?",
-    description: "Kamu akan keluar dari Team Space ini. Aksi ini tidak bisa dibatalkan.",
-    buttonLabel: "Ya, Keluar",
-  },
-  delete: {
-    title:       "Hapus Team Space?",
-    description: "Seluruh data Team Space dan anggota akan dihapus permanen. Aksi ini tidak bisa dibatalkan.",
-    buttonLabel: "Ya, Hapus",
-  },
+  classId:   string
+  myRole:    string
+  createdAt: number | null
 }
 
 export default function TeamSpaceFooterActions({ classId, myRole, createdAt }: Props) {
@@ -48,7 +40,7 @@ export default function TeamSpaceFooterActions({ classId, myRole, createdAt }: P
     }
   }
 
-  const confirm = showConfirm ? CONFIRM_CONFIG[showConfirm] : null
+  const confirm      = showConfirm ? CONFIRM_CONFIG[showConfirm] : null
   const createdLabel = createdAt
     ? `Your team space was created on ${new Date(createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`
     : "Your team space"
@@ -64,7 +56,7 @@ export default function TeamSpaceFooterActions({ classId, myRole, createdAt }: P
         {myRole !== "owner" && (
           <Button
             variant="ghost"
-            className="gap-2 text-red-500 hover:text-red-600 hover:bg-red-50"
+            className="gap-2 h-10 text-white bg-[#BB230B] hover:bg-[#A21C06]"
             onClick={() => setShowConfirm("leave")}
           >
             <LogOut className="w-4 h-4" />
@@ -73,7 +65,7 @@ export default function TeamSpaceFooterActions({ classId, myRole, createdAt }: P
         )}
         {myRole === "owner" && (
           <Button
-            className="gap-2 bg-red-500 hover:bg-red-600 text-white"
+            className="gap-2 h-10 bg-[#BB230B] hover:bg-[#A21C06] text-white"
             onClick={() => setShowConfirm("delete")}
           >
             <Trash2 className="w-4 h-4" />
@@ -82,31 +74,43 @@ export default function TeamSpaceFooterActions({ classId, myRole, createdAt }: P
         )}
       </div>
 
-      {showConfirm && confirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.4)" }}>
-          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
-            <div className="flex flex-col items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6 text-red-500" />
+      <Dialog open={!!showConfirm} onOpenChange={() => setShowConfirm(null)}>
+        <DialogContent className="max-w-sm">
+
+          {confirm && (
+            <>
+              <div className="flex flex-col items-center gap-3 py-2">
+                <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-[#BB230B]" />
+                </div>
+              <DialogHeader>
+                <DialogTitle className="flex items-center justify-center text-lg font-semibold">
+                  {confirm?.title}
+                </DialogTitle>
+              </DialogHeader>
+                <p className="text-sm text-gray-500 text-center">{confirm.description}</p>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 text-center">{confirm.title}</h3>
-              <p className="text-sm text-gray-500 text-center">{confirm.description}</p>
-            </div>
-            <div className="flex gap-3">
-              <Button variant="outline" className="flex-1" disabled={loading} onClick={() => setShowConfirm(null)}>
-                Batal
-              </Button>
-              <Button
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white disabled:opacity-70"
-                disabled={loading}
-                onClick={() => handleAction(showConfirm)}
-              >
-                {loading ? "Memproses..." : confirm.buttonLabel}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  onClick={() => setShowConfirm(null)}
+                  disabled={loading}
+                  className="flex-1 h-10 rounded-lg text-gray-900 font-bold bg-[#CACACA] hover:bg-[#b0b0b0]"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => handleAction(showConfirm!)}
+                  disabled={loading}
+                  className="flex-1 h-10 rounded-lg text-white font-bold bg-[#BB230B] hover:bg-[#A21C06] disabled:opacity-70"
+                >
+                  {loading ? "Memproses..." : confirm.buttonLabel}
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
