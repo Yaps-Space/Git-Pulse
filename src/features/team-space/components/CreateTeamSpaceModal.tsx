@@ -59,11 +59,11 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md rounded-2xl [&>button]:hidden">
         <DialogHeader>
-          <div className="flex items-center justify-between">
+          <div className="relative flex items-center justify-center">
             <DialogTitle className="text-xl font-bold text-gray-900">Create Team Space</DialogTitle>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute right-0 text-gray-400 hover:text-gray-600 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -77,7 +77,7 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="Contoh: Kajja Tim"
-              className="rounded-xl h-11"
+              className="rounded-lg h-10 text-sm"
             />
           </div>
 
@@ -87,7 +87,7 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
               value={description}
               onChange={e => setDescription(e.target.value)}
               placeholder="Contoh: Tim Kajja dibentuk untuk mengerjakan projek."
-              className="rounded-xl h-11"
+              className="rounded-lg h-10 text-sm"
             />
           </div>
 
@@ -97,7 +97,7 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
               <p className="text-sm text-gray-400">Memuat repo...</p>
             ) : (
               <Select value={repoFullName} onValueChange={setRepoFullName}>
-                <SelectTrigger className="rounded-xl h-11">
+                <SelectTrigger className="w-full rounded-lg !h-10 text-sm px-3 border border-input [&>span]:text-sm">
                   <SelectValue placeholder="Pilih repository" />
                 </SelectTrigger>
                 <SelectContent>
@@ -107,20 +107,20 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
                 </SelectContent>
               </Select>
             )}
-            <p className="text-xs text-gray-400">Hanya repo yang sudah diconnect di Dashboard</p>
+            <p className="text-xs text-gray-400">Hanya repo yang sudah diconnect</p>
           </div>
         </div>
 
         <div className="flex gap-3 mt-2">
           <Button
             variant="outline"
-            className="flex-1 h-11 rounded-xl text-gray-600 font-bold"
+            className="flex-1 h-11 rounded-lg text-gray-900 font-bold bg-[#CACACA] hover:bg-[#b0b0b0]"
             onClick={onClose}
           >
             Cancel
           </Button>
           <Button
-            className="flex-1 h-11 rounded-xl bg-[#00D964] hover:bg-[#00c057] text-gray-900 font-bold"
+            className="flex-1 h-11 rounded-lg bg-[#00D964] hover:bg-[#00c057] text-gray-900 font-bold"
             onClick={handleSubmit}
             disabled={loading || !name || !repoFullName}
           >

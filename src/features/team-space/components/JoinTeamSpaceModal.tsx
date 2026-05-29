@@ -117,15 +117,15 @@ export default function JoinTeamSpaceModal({ onClose }: { onClose: () => void })
     <Dialog open onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md rounded-2xl [&>button]:hidden">
         <DialogHeader>
-          <div className="flex items-center justify-between">
+          <div className="relative flex items-center justify-center">
             <DialogTitle className="text-xl font-bold text-gray-900">Join Team Space</DialogTitle>
-            <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <button onClick={handleClose} className="absolute right-0 text-gray-400 hover:text-gray-600 transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
         </DialogHeader>
 
-        <div className="flex gap-0 mt-2 border border-gray-200 rounded-xl overflow-hidden">
+        <div className="flex gap-0 mt-2 border border-gray-200 rounded-lg overflow-hidden">
           <button
             onClick={() => setTab("code")}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold transition-colors ${
@@ -154,7 +154,7 @@ export default function JoinTeamSpaceModal({ onClose }: { onClose: () => void })
                 value={code}
                 onChange={e => { setCode(e.target.value.toUpperCase()); setError("") }}
                 placeholder="Contoh: 12KAJJA"
-                className={`rounded-xl h-11 text-center font-mono tracking-widest ${error ? "border-red-400" : ""}`}
+                className={`rounded-lg h-11 text-center font-mono tracking-widest ${error ? "border-red-400" : ""}`}
                 maxLength={6}
                 onKeyDown={e => e.key === "Enter" && handleJoin()}
               />
@@ -164,13 +164,13 @@ export default function JoinTeamSpaceModal({ onClose }: { onClose: () => void })
             <div className="flex gap-3">
               <Button
                 variant="outline"
-                className="flex-1 h-11 rounded-xl text-gray-600 font-bold"
+                className="flex-1 h-11 rounded-lg text-gray-900 font-bold bg-[#CACACA] hover:bg-[#b0b0b0]"
                 onClick={handleClose}
               >
                 Cancel
               </Button>
               <Button
-                className="flex-1 h-11 rounded-xl bg-[#00D964] hover:bg-[#00c057] text-gray-900 font-bold"
+                className="flex-1 h-11 rounded-lg bg-[#00D964] hover:bg-[#00c057] text-gray-900 font-bold"
                 onClick={handleJoin}
                 disabled={loading || !code.trim()}
               >
@@ -180,7 +180,7 @@ export default function JoinTeamSpaceModal({ onClose }: { onClose: () => void })
           </div>
         ) : (
           <div className="flex flex-col gap-3 mt-2">
-            <div className="relative w-full rounded-2xl overflow-hidden bg-black" style={{ height: 300 }}>
+            <div className="relative w-full rounded-xl overflow-hidden bg-black" style={{ height: 300 }}>
               <div id={scannerDivId} className="w-full h-full" />
 
               {!scanning && (
@@ -198,7 +198,7 @@ export default function JoinTeamSpaceModal({ onClose }: { onClose: () => void })
               {cameras.length > 1 && (
                 <button
                   onClick={handleSwitchCamera}
-                  className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+                  className="absolute top-3 right-3 w-9 h-9 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center text-white hover:bg-white/30 transition-colors"
                 >
                   <RefreshCw className="w-4 h-4" />
                 </button>
@@ -211,7 +211,7 @@ export default function JoinTeamSpaceModal({ onClose }: { onClose: () => void })
 
             <Button
               variant="outline"
-              className="w-full h-11 rounded-xl text-gray-600 font-bold"
+              className="w-full h-11 rounded-lg text-gray-900 font-bold bg-[#CACACA] hover:bg-[#b0b0b0]"
               onClick={handleClose}
             >
               Cancel
