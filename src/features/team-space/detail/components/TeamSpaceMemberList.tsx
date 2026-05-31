@@ -1,13 +1,24 @@
 "use client"
 
 import { useState } from "react"
-import { Search } from "lucide-react"
+import { Search, SlidersHorizontal } from "lucide-react"
 import { Input }       from "@/shared/components/ui/input"
+import { Button }      from "@/shared/components/ui/button"
 import { ShowPerPage } from "@/shared/components/commons/ShowPerPage"
 import { Pagination }  from "@/shared/components/commons/Pagination"
-import { TeamSpaceMemberCard } from "./TeamSpaceMemberCard"
-import { TeamMember }          from "../../types/TeamSpace"
-import { TeamSpaceDetail }     from "../types/TeamSpaceDetail"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu"
+import { TeamSpaceMemberCard }     from "./TeamSpaceMemberCard"
+import { SORTABLE_MEMBER_COLUMNS } from "../constants/SortableMember"
+import { sortMembers }             from "../helpers/sortMembers"
+import { TeamMember }              from "../../types/TeamSpace"
+import { TeamSpaceDetail }         from "../types/TeamSpaceDetail"
+import { SortKey, SortDir }        from "../types/TeamSpaceMember"
+import { cn }                      from "@/shared/lib/utils"
 
 interface Props {
   members:             TeamMember[]
@@ -21,13 +32,18 @@ export function TeamSpaceMemberList({ members, myRole, classId, onMutate, showSe
   const [search,   setSearch]   = useState("")
   const [pageSize, setPageSize] = useState(10)
   const [page,     setPage]     = useState(1)
-
-  const filtered   = members.filter(m => m.userName.toLowerCase().includes(search.toLowerCase()))
-  const totalPages = Math.ceil(filtered.length / pageSize)
-  const paginated  = filtered.slice((page - 1) * pageSize, page * pageSize)
+  const [sortKey,  setSortKey]  = useState<SortKey>("userName")
+  const [sortDir,  setSortDir]  = useState<SortDir>("asc")
+  const [sortOpen, setSortOpen] = useState(false)
 
   const handleSearch   = (val: string) => { setSearch(val);   setPage(1) }
   const handlePageSize = (val: number) => { setPageSize(val); setPage(1) }
+
+  const handleSort = (key: SortKey) => {
+    if (key === sortKey) setSortDir(d => d === "asc" ? "desc" : "asc")
+    else { setSortKey(key); setSortDir("asc") }
+    setPage(1)
+  }
 
   const handleAnalyze = (memberId: string) => {
     onMutate(data => ({
@@ -50,15 +66,16 @@ export function TeamSpaceMemberList({ members, myRole, classId, onMutate, showSe
     }))
   }
 
+  const filtered   = members.filter(m => m.userName.toLowerCase().includes(search.toLowerCase()))
+  const sorted     = sortMembers(filtered, sortKey, sortDir)
+  const totalPages = Math.ceil(sorted.length / pageSize)
+  const paginated  = sorted.slice((page - 1) * pageSize, page * pageSize)
+
   return (
     <div className="flex flex-col gap-3">
       {showSearchAndFilter && (
-        <>
-          <div className="bg-white rounded-xl border border-gray-100 px-4 py-3">
-            <ShowPerPage variant="mobile" value={pageSize} onChange={handlePageSize} />
-            <Pagination variant="mobile" page={page} totalPages={totalPages} onChange={setPage} />
-          </div>
-          <div className="relative">
+        <div className="flex items-center gap-2">
+          <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
               value={search}
@@ -67,26 +84,73 @@ export function TeamSpaceMemberList({ members, myRole, classId, onMutate, showSe
               className="pl-9 h-10 bg-white border-gray-200 text-sm"
             />
           </div>
-        </>
+
+          <DropdownMenu onOpenChange={setSortOpen}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className={cn(
+                  "h-10 w-10 flex-shrink-0 border-gray-200 transition-colors",
+                  sortOpen
+                    ? "text-gray-900 border-gray-300 bg-white"
+                    : "bg-white text-gray-900 hover:bg-[#00D964]"
+                )}
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-[180px]">
+              {SORTABLE_MEMBER_COLUMNS.map(col => (
+                <DropdownMenuItem
+                  key={col.key}
+                  onClick={() => handleSort(col.key)}
+                  className={cn(
+                    "flex items-center justify-between text-sm cursor-pointer",
+                    col.key === sortKey && "font-semibold bg-gray-50"
+                  )}
+                >
+                  {col.label}
+                  {col.key === sortKey && (
+                    <span className="text-xs text-gray-400">
+                      {sortDir === "asc" ? "↑" : "↓"}
+                    </span>
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       )}
 
-      {paginated.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 gap-2">
-          <p className="font-medium text-gray-700">Tidak ada anggota ditemukan</p>
+      <div className="bg-white rounded-xl border border-gray-100 px-4 py-3">
+        {showSearchAndFilter && (
+          <>
+            <ShowPerPage variant="mobile" value={pageSize} onChange={handlePageSize} />
+            <Pagination variant="mobile" page={page} totalPages={totalPages} onChange={setPage} />
+          </>
+        )}
+        <div className="mt-2.5 flex flex-col gap-2">
+          {paginated.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-2">
+              <p className="font-medium text-gray-700">Tidak ada anggota ditemukan</p>
+            </div>
+          ) : (
+            paginated.map((member, idx) => (
+              <TeamSpaceMemberCard
+                key={member.id}
+                member={member}
+                index={(page - 1) * pageSize + idx + 1}
+                myRole={myRole}
+                classId={classId}
+                onAnalyze={() => handleAnalyze(member.id)}
+                onKick={() => handleKick(member.id)}
+                onRoleChange={role => handleRoleChange(member.id, role)}
+              />
+            ))
+          )}
         </div>
-      ) : (
-        paginated.map(member => (
-          <TeamSpaceMemberCard
-            key={member.id}
-            member={member}
-            myRole={myRole}
-            classId={classId}
-            onAnalyze={() => handleAnalyze(member.id)}
-            onKick={() => handleKick(member.id)}
-            onRoleChange={role => handleRoleChange(member.id, role)}
-          />
-        ))
-      )}
+      </div>
     </div>
   )
 }

@@ -11,6 +11,7 @@ import { TeamMember }                        from "../../types/TeamSpace"
 
 interface Props {
   member:       TeamMember
+  index:        number
   myRole:       string
   classId:      string
   onAnalyze:    () => void
@@ -18,7 +19,7 @@ interface Props {
   onRoleChange: (role: string) => void
 }
 
-export function TeamSpaceMemberCard({ member, myRole, classId, onAnalyze, onKick, onRoleChange }: Props) {
+export function TeamSpaceMemberCard({ member, index, myRole, classId, onAnalyze, onKick, onRoleChange }: Props) {
   const [editOpen, setEditOpen] = useState(false)
   const [loading,  setLoading]  = useState(false)
   const showEdit                = canManageMembers(myRole)
@@ -35,16 +36,17 @@ export function TeamSpaceMemberCard({ member, myRole, classId, onAnalyze, onKick
 
   return (
     <>
-      <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
+      <div className="bg-gray-50 rounded-xl p-5 flex flex-col gap-3 border border-gray-100">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-3 min-w-0">
+            <span className="text-sm font-bold text-gray-900 flex-shrink-0">{index}.</span>
             {member.userImage && (
               <Image src={member.userImage} alt={member.userName} width={36} height={36} className="rounded-full object-cover flex-shrink-0" />
             )}
-            <div className="min-w-0">
-              <p className="font-semibold text-sm text-gray-900 truncate">{member.userName}</p>
+            <div className="flex items-center gap-2 min-w-0">
+              <p className="font-bold text-sm text-gray-900 truncate">{member.userName}</p>
               <span
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium mt-0.5"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0"
                 style={{ background: ROLE_COLOR[member.role] ?? "#eee", color: ROLE_TEXT[member.role] ?? "#333" }}
               >
                 <span className="w-1 h-1 rounded-full" style={{ background: ROLE_TEXT[member.role] ?? "#333" }} />
@@ -57,7 +59,7 @@ export function TeamSpaceMemberCard({ member, myRole, classId, onAnalyze, onKick
             {showEdit && (
               <button
                 onClick={() => setEditOpen(true)}
-                className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-400 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-md bg-[#83ECA7] hover:bg-[#00D964] text-gray-900 transition-colors"
               >
                 <Edit2 className="w-3.5 h-3.5" />
               </button>
@@ -65,38 +67,34 @@ export function TeamSpaceMemberCard({ member, myRole, classId, onAnalyze, onKick
             <button
               onClick={handleAnalyze}
               disabled={loading}
-              className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-[#00D964] hover:border-[#00D964] transition-colors disabled:opacity-50"
+              className="w-8 h-8 flex items-center justify-center rounded-md bg-[#00D964] hover:bg-[#00b853] text-gray-900 transition-colors disabled:opacity-50"
             >
               <BarChart2 className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <div className="flex flex-col gap-0.5">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
             <span className="text-xs text-gray-400">Frekuensi Commits</span>
             <span className="text-xs font-semibold text-gray-700">{member.commitVelocity.toFixed(1)} / hari</span>
           </div>
-          <div className="flex flex-col gap-0.5">
+          <div className="flex items-center justify-between">
             <span className="text-xs text-gray-400">Kontribusi</span>
             <span className="text-xs font-semibold text-gray-700">{(member.contributionShare * 100).toFixed(1)}%</span>
           </div>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-400">Status</span>
-          <span
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
-            style={{
-              background: (STATUS_COLOR[member.status] ?? "#888") + "18",
-              color:      STATUS_COLOR[member.status] ?? "#888",
-            }}
-          >
-            {member.status === "analyzing" ? (
-              <span className="w-2 h-2 rounded-full border border-current border-t-transparent animate-spin" />
-            ) : null}
-            {STATUS_LABEL[member.status] ?? member.status}
-          </span>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-400">Status</span>
+            <span
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-xs font-medium"
+              style={{ background: STATUS_COLOR[member.status] ?? "#888" }}
+            >
+              {member.status === "analyzing" ? (
+                <span className="w-2 h-2 rounded-full border border-current border-t-transparent animate-spin" />
+              ) : null}
+              {STATUS_LABEL[member.status] ?? member.status}
+            </span>
+          </div>
         </div>
       </div>
 
