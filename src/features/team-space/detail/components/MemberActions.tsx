@@ -34,11 +34,11 @@ export default function MemberActions({ memberId, memberName, currentRole, myRol
 
   return (
     <>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         {showEdit && (
           <button
             onClick={() => setEditOpen(true)}
-            className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-400 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-md bg-[#83ECA7] hover:bg-[#00D964] text-gray-900 transition-colors"
           >
             <Edit2 className="w-3.5 h-3.5" />
           </button>
@@ -46,7 +46,7 @@ export default function MemberActions({ memberId, memberName, currentRole, myRol
         <button
           onClick={handleAnalyze}
           disabled={loading === "analyze"}
-          className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-[#00D964] hover:text-[#00b853] hover:border-[#00D964] transition-colors disabled:opacity-50"
+          className="w-8 h-8 flex items-center justify-center rounded-md bg-[#00D964] hover:bg-[#00b853] text-gray-900transition-colors"
         >
           <BarChart2 className="w-3.5 h-3.5" />
         </button>

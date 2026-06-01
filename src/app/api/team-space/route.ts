@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const { name, description, repoFullName } = await req.json()
+  const { name, description, repoFullName, importLogins } = await req.json()
   if (!name || !repoFullName) return NextResponse.json({ error: "Missing fields" }, { status: 400 })
 
   try {
@@ -92,6 +92,30 @@ export async function POST(req: NextRequest) {
       joinedAt:  serverTimestamp(),
       status:    "pending",
     })
+
+    if (Array.isArray(importLogins) && importLogins.length > 0) {
+      const ownerLogin = session.user.username?.toLowerCase()
+      const toImport   = (importLogins as string[]).filter(l => l.toLowerCase() !== ownerLogin)
+
+      await Promise.all(toImport.map(async (login: string) => {
+        const usersSnap = await getDocs(
+          query(collection(db, "users"), where("username", "==", login))
+        )
+        if (usersSnap.empty) return
+
+        const userData = usersSnap.docs[0].data()
+        await addDoc(collection(db, "memberships"), {
+          classId:   tsRef.id,
+          userId:    usersSnap.docs[0].id,
+          userName:  userData.name  ?? login,
+          userLogin: login,
+          userImage: userData.image ?? null,
+          role:      "contributor",
+          joinedAt:  serverTimestamp(),
+          status:    "pending",
+        })
+      }))
+    }
 
     return NextResponse.json({ id: tsRef.id, inviteCode })
   } catch (e) {

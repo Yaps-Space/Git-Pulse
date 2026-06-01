@@ -171,17 +171,14 @@ export function TeamSpaceMemberTable({ members, myRole, classId, onMutate, showS
                     </TableCell>
                     <TableCell>
                       <span
-                        className="flex items-center gap-1.5 w-fit px-2.5 py-1 rounded-full text-xs font-medium"
+                        className="flex items-center gap-1.5 w-fit px-2.5 py-1 rounded-sm text-xs font-medium"
                         style={{
-                          background: (STATUS_COLOR[member.status] ?? "#888") + "18",
-                          color:      STATUS_COLOR[member.status] ?? "#888",
+                          background: STATUS_COLOR[member.status] ?? "#888",
                         }}
                       >
-                        {member.status === "analyzing" ? (
+                         {member.status === "analyzing" ? (
                           <span className="w-2 h-2 rounded-full border border-current border-t-transparent animate-spin" />
-                        ) : (
-                          <span className="w-1.5 h-1.5 rounded-full" style={{ background: STATUS_COLOR[member.status] ?? "#888" }} />
-                        )}
+                        ) : null}
                         {STATUS_LABEL[member.status] ?? member.status}
                       </span>
                     </TableCell>

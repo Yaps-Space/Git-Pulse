@@ -22,11 +22,11 @@ export function InviteCodeButton({ inviteCode, className }: Props) {
   return (
     <Button
       variant="outline"
-      className={cn("gap-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors", className)}
+      className={cn("gap-2 border-gray-200 bg-white text-gray-700 hover:bg-[#00D964] transition-colors", className)}
       onClick={copy}
     >
       {copied
-        ? <Check className="w-4 h-4 flex-shrink-0 text-green-500" />
+        ? <Check className="w-4 h-4 flex-shrink-0 text-gray-900" />
         : <Copy className="w-4 h-4 flex-shrink-0" />
       }
       Kode: <span className="font-mono font-bold tracking-widest">{inviteCode}</span>

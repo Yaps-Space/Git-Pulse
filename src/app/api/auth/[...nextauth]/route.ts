@@ -1,6 +1,8 @@
 import NextAuth from "next-auth"
 import GithubProvider from "next-auth/providers/github"
-import type { NextAuthOptions } from "next-auth"
+import type { NextAuthOptions, Session, User } from "next-auth"
+import type { JWT } from "next-auth/jwt"
+import type { Account, Profile } from "next-auth"
 import { db } from "@/shared/lib/firebase"
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
 
@@ -15,18 +17,19 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   callbacks: {
-    async signIn({ user, profile }: any) {
+    async signIn({ user, profile }: { user: User; account: Account | null; profile?: Profile }) {
       try {
-        const userId  = profile?.id?.toString() || user.id
-        const userRef = doc(db, "users", userId)
-        const userSnap = await getDoc(userRef)
+        const githubProfile = profile as (Profile & { id?: number; login?: string }) | undefined
+        const userId        = githubProfile?.id?.toString() || user.id
+        const userRef       = doc(db, "users", userId)
+        const userSnap      = await getDoc(userRef)
 
         if (!userSnap.exists()) {
           await setDoc(userRef, {
             name:      user.name,
             email:     user.email,
             image:     user.image,
-            username:  profile?.login,
+            username:  githubProfile?.login,
             createdAt: serverTimestamp(),
           })
         }
@@ -35,18 +38,19 @@ export const authOptions: NextAuthOptions = {
       }
       return true
     },
-    async jwt({ token, account, profile }: any) {
+    async jwt({ token, account, profile }: { token: JWT; account: Account | null; profile?: Profile }) {
       if (account) {
-        token.accessToken = account.access_token
-        token.id          = profile?.id?.toString() || token.sub
-        token.username    = profile?.login
+        const githubProfile = profile as (Profile & { id?: number; login?: string }) | undefined
+        token.accessToken   = account.access_token
+        token.id            = githubProfile?.id?.toString() || token.sub
+        token.username      = githubProfile?.login
       }
       return token
     },
-    async session({ session, token }: any) {
-      session.accessToken = token.accessToken
-      session.user.id     = token.id || token.sub
-      session.user.username  = token.username
+    async session({ session, token }: { session: Session; token: JWT }) {
+      session.accessToken   = token.accessToken as string
+      session.user.id       = (token.id ?? token.sub) as string
+      session.user.username = token.username as string
       return session
     }
   },

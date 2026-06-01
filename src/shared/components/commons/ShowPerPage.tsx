@@ -26,8 +26,8 @@ export function ShowPerPage({
 }: ShowPerPageProps) {
   if (variant === "mobile") {
     return (
-      <div className="flex items-center justify-between px-4 py-3 bg-white rounded-xl border border-gray-200">
-        <span className="text-sm text-gray-400">Show</span>
+      <div className="flex items-center justify-between px-4 py-3 bg-white rounded-lg border border-gray-200 h-10">
+        <span className="text-sm text-gray-400">Show: </span>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-1.5 text-sm text-gray-700 outline-none">

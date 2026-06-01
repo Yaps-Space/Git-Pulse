@@ -40,7 +40,7 @@ export function RepoDetailMobile({ repo }: Props) {
             {repo.analyzedAt && (
               <span className="flex items-center gap-1 text-xs text-gray-400">
                 <Clock className="w-3 h-3" />
-                {new Date(repo.analyzedAt).toLocaleDateString("id-ID")}
+                  Dianalisis {new Date(repo.analyzedAt).toLocaleDateString("id-ID")}
               </span>
             )}
           </div>

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Users, GitBranch } from "lucide-react"
+import { Users, GitBranch, ChevronRight } from "lucide-react"
 import { useTeamSpaces } from "../hooks/useTeamSpaces"
 import { ROLE_COLOR, ROLE_TEXT, ROLE_LABEL } from "../constants/TeamSpaceConfig"
 import TeamSpaceSearchActions from "./TeamSpaceActions"
@@ -47,17 +47,23 @@ export default function TeamSpaceListView() {
                 {ts.description ?? ""}
               </p>
 
-              <div className="flex items-center gap-4 mt-auto">
-                <div className="flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-gray-400" />
-                  <span className="text-xs text-gray-400">{ts.memberCount} Anggota</span>
-                </div>
-                {ts.repoName && (
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <GitBranch className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                    <span className="text-xs text-gray-400 truncate">{ts.repoName}</span>
+              <div className="flex items-center justify-between gap-2 mt-auto">
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <Users className="w-3.5 h-3.5 text-gray-400" />
+                    <span className="text-xs text-gray-400">{ts.memberCount} Anggota</span>
                   </div>
-                )}
+                  {ts.repoName && (
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <GitBranch className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      <span className="text-xs text-gray-400 truncate">{ts.repoName}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-1 text-xs font-medium text-gray-400 flex-shrink-0">
+                  Lihat Detail
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </div>
               </div>
             </Link>
           ))}

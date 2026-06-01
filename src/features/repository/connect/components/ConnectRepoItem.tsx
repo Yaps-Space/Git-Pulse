@@ -64,11 +64,11 @@ export function ConnectRepoItem({ repo, connecting, onConnect, variant = "defaul
           <Button
             onClick={() => onConnect(repo)}
             disabled={isConnecting}
-            className="flex-shrink-0 w-24 font-semibold gap-2 bg-[#00D964] hover:bg-[#00c057] text-gray-900 disabled:bg-gray-100 disabled:text-gray-400 disabled:opacity-100"
+            className="flex-shrink-0 w-28 rounded-md font-semibold gap-2 bg-[#00D964] hover:bg-[#00c057] text-gray-900 disabled:bg-gray-100 disabled:text-gray-400 disabled:opacity-100"
           >
             {isConnecting ? (
               <>
-                <div className="w-3.5 h-3.5 rounded-full border-2 border-gray-300 border-t-gray-400 animate-spin" />
+                <div className="w-3.5 h-3.5 rounded-md border-2 border-gray-300 border-t-gray-400 animate-spin" />
                 <span>Proses...</span>
               </>
             ) : "Connect"}
@@ -122,11 +122,11 @@ export function ConnectRepoItem({ repo, connecting, onConnect, variant = "defaul
       <Button
         onClick={() => onConnect(repo)}
         disabled={isConnecting}
-        className="ml-4 flex-shrink-0 w-28 font-semibold gap-2 bg-[#00D964] hover:bg-[#00c057] text-gray-900 disabled:bg-gray-100 disabled:text-gray-400 disabled:opacity-100"
+        className="ml-4 flex-shrink-0 w-28 rounded-md font-semibold gap-2 bg-[#00D964] hover:bg-[#00c057] text-gray-900 disabled:bg-gray-100 disabled:text-gray-400 disabled:opacity-100"
       >
         {isConnecting ? (
           <>
-            <div className="w-3.5 h-3.5 rounded-full border-2 border-gray-300 border-t-gray-400 animate-spin" />
+            <div className="w-3.5 h-3.5 rounded-md border-2 border-gray-300 border-t-gray-400 animate-spin" />
             <span>Proses...</span>
           </>
         ) : "Connect"}

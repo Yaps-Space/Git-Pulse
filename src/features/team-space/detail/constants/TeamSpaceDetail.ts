@@ -1,9 +1,9 @@
 export const STATUS_COLOR: Record<string, string> = {
-  Active:    "#3FB950",
-  Passive:   "#F9C74F",
-  Inactive:  "#F85149",
-  pending:   "#888888",
-  analyzing: "#6265FE",
+  Active:    "#00D964",
+  Passive:   "#FFDF61",
+  Inactive:  "#FF9898",
+  pending:   "#EBEBEB",
+  analyzing: "#B6BBFF",
 }
 
 export const STATUS_LABEL: Record<string, string> = {
