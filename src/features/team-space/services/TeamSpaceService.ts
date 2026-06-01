@@ -4,9 +4,10 @@ interface Repo {
 }
 
 interface CreateTeamSpaceData {
-  name:        string;
-  description: string;
+  name:         string;
+  description:  string;
   repoFullName: string;
+  importLogins: string[];
 }
 
 export async function createTeamSpace(data: CreateTeamSpaceData) {
@@ -31,4 +32,16 @@ export async function fetchRepos(): Promise<Repo[]> {
   const res = await fetch("/api/repo/list")
   const data = await res.json()
   return data.repos ?? []
+}
+
+export interface Contributor {
+  login:        string;
+  avatar_url:   string;
+  isRegistered: boolean;
+}
+
+export async function fetchRepoContributors(repoFullName: string): Promise<Contributor[]> {
+  const res  = await fetch(`/api/repo/contributors?repo=${encodeURIComponent(repoFullName)}`)
+  const data = await res.json()
+  return data.contributors ?? []
 }
