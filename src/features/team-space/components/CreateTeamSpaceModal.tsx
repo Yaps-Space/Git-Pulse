@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { X, Check } from "lucide-react"
 import Image from "next/image"
 import {
@@ -28,7 +29,8 @@ interface Repo {
 }
 
 export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void }) {
-  const router = useRouter()
+  const router              = useRouter()
+  const { data: session }   = useSession()
   const [name,          setName]          = useState("")
   const [description,   setDescription]   = useState("")
   const [repoFullName,  setRepoFullName]  = useState("")
@@ -53,16 +55,20 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
       .finally(() => setLoadingContributors(false))
   }, [repoFullName])
 
+  const registeredNonOwner = contributors.filter(c =>
+    c.isRegistered && c.login.toLowerCase() !== session?.user?.username?.toLowerCase()
+  )
+
+  const allSelected = registeredNonOwner.length > 0 &&
+    selectedLogins.size === registeredNonOwner.length
+
   const toggleAll = () => {
     if (allSelected) {
       setSelectedLogins(new Set())
     } else {
-      setSelectedLogins(new Set(contributors.filter(c => c.isRegistered).map(c => c.login)))
+      setSelectedLogins(new Set(registeredNonOwner.map(c => c.login)))
     }
   }
-
-  const allSelected = contributors.filter(c => c.isRegistered).length > 0 &&
-    selectedLogins.size === contributors.filter(c => c.isRegistered).length
 
   const toggleOne = (login: string) => {
     setSelectedLogins(prev => {
@@ -148,7 +154,7 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium text-gray-700">Import Member</Label>
-                {contributors.length > 0 && (
+                {registeredNonOwner.length > 0 && (
                   <button
                     onClick={toggleAll}
                     className="text-xs text-gray-400 hover:text-gray-700 transition-colors"
@@ -165,29 +171,36 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
               ) : (
                 <div className="border border-gray-200 rounded-lg overflow-hidden max-h-48 overflow-y-auto">
                   {contributors.map(c => {
+                    const isOwner  = c.login.toLowerCase() === session?.user?.username?.toLowerCase()
                     const selected = selectedLogins.has(c.login)
+                    const disabled = isOwner || !c.isRegistered
+
                     return (
                       <button
                         key={c.login}
-                        onClick={() => c.isRegistered && toggleOne(c.login)}
-                        disabled={!c.isRegistered}
+                        onClick={() => !disabled && toggleOne(c.login)}
+                        disabled={disabled}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 transition-colors border-b border-gray-100 last:border-0 ${
-                          c.isRegistered
-                            ? "hover:bg-gray-50 cursor-pointer"
-                            : "opacity-50 cursor-not-allowed bg-gray-50"
+                          disabled
+                            ? "opacity-50 cursor-not-allowed bg-gray-50"
+                            : "hover:bg-gray-50 cursor-pointer"
                         }`}
                       >
                         <Image src={c.avatar_url} alt={c.login} width={28} height={28} className="rounded-full flex-shrink-0" />
                         <div className="flex-1 text-left min-w-0">
                           <span className="text-sm text-gray-900 block">@{c.login}</span>
-                          {!c.isRegistered && (
+                          {isOwner ? (
+                            <span className="text-[10px] text-[#00D964]">(Anda)</span>
+                          ) : !c.isRegistered ? (
                             <span className="text-[10px] text-gray-400">Belum terdaftar di GitPulse</span>
-                          )}
+                          ) : null}
                         </div>
                         <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 border transition-colors ${
-                          selected ? "bg-[#00D964] border-[#00D964]" : "border-gray-300"
+                          isOwner        ? "bg-gray-200 border-gray-200" :
+                          selected       ? "bg-[#00D964] border-[#00D964]" :
+                                           "border-gray-300"
                         }`}>
-                          {selected && <Check className="w-3 h-3 text-white" />}
+                          {selected && !isOwner && <Check className="w-3 h-3 text-white" />}
                         </div>
                       </button>
                     )
