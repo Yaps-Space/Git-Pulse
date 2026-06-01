@@ -29,7 +29,7 @@ export async function POST(
     // Hapus team space
     await deleteDoc(doc(db, "teamSpaces", classId))
     return NextResponse.json({ success: true })
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Failed" }, { status: 500 })
   }
 }

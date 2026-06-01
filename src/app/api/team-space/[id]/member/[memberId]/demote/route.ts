@@ -15,7 +15,7 @@ export async function POST(
   try {
     await updateDoc(doc(db, "memberships", memberId), { role: "contributor" })
     return NextResponse.json({ success: true })
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Failed" }, { status: 500 })
   }
 }
