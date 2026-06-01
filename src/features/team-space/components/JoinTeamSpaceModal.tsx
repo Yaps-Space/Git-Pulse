@@ -16,6 +16,8 @@ import { joinTeamSpace } from "../services/TeamSpaceService"
 
 type Tab = "code" | "qr"
 
+const SCANNER_DIV_ID = "qr-scanner-div"
+
 export default function JoinTeamSpaceModal({ onClose }: { onClose: () => void }) {
   const router                      = useRouter()
   const [tab,       setTab]         = useState<Tab>("code")
@@ -26,7 +28,6 @@ export default function JoinTeamSpaceModal({ onClose }: { onClose: () => void })
   const [cameras,   setCameras]     = useState<{ id: string; label: string }[]>([])
   const [cameraIdx, setCameraIdx]   = useState(0)
   const scannerRef                  = useRef<InstanceType<typeof import("html5-qrcode").Html5Qrcode> | null>(null)
-  const scannerDivId                = "qr-scanner-div"
 
   const stopScanner = useCallback(async () => {
     if (scannerRef.current) {
@@ -56,8 +57,18 @@ export default function JoinTeamSpaceModal({ onClose }: { onClose: () => void })
 
   const startScanner = useCallback(async (camId: string) => {
     await stopScanner()
+
+    // Tunggu sampai element ada di DOM
+    await new Promise<void>(resolve => {
+      const check = () => {
+        if (document.getElementById(SCANNER_DIV_ID)) resolve()
+        else setTimeout(check, 50)
+      }
+      check()
+    })
+
     const { Html5Qrcode } = await import("html5-qrcode")
-    const scanner         = new Html5Qrcode(scannerDivId)
+    const scanner         = new Html5Qrcode(SCANNER_DIV_ID)
     scannerRef.current    = scanner
     setScanning(true)
     try {
@@ -180,7 +191,7 @@ export default function JoinTeamSpaceModal({ onClose }: { onClose: () => void })
         ) : (
           <div className="flex flex-col gap-3 mt-2">
             <div className="relative w-full rounded-xl overflow-hidden bg-black" style={{ height: 300 }}>
-              <div id={scannerDivId} className="w-full h-full" />
+              <div id={SCANNER_DIV_ID} className="w-full h-full" />
 
               {!scanning && (
                 <div className="absolute inset-0 flex items-center justify-center">
