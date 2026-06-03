@@ -4,6 +4,7 @@ import { RepoDetailHeader }     from "./RepoDetailHeader"
 import { RepoProductivityCard } from "./RepoProductivityCard"
 import { RepoHealthCard }       from "./RepoHealthCard"
 import { RepoRecommendations }  from "./RepoRecommendations"
+import { RepoTeamSpaceCard }    from "./RepoTeamSpaceCard"
 import { RepoDetail }           from "../types/RepoDetail"
 import { useRefreshRepo }       from "../hooks/useRefreshRepo"
 
@@ -24,6 +25,7 @@ export function RepoDetailView({ repo }: Props) {
       </div>
 
       <RepoRecommendations recommendations={repo.healthRecommendations} refreshing={loading} />
+      <RepoTeamSpaceCard repoFullName={repo.fullName} />
     </div>
   )
 }

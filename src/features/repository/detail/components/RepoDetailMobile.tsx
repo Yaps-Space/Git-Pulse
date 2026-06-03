@@ -5,6 +5,7 @@ import { MobilePageHeader }     from "@/shared/components/commons/MobilePageHead
 import { RepoProductivityCard } from "./RepoProductivityCard"
 import { RepoHealthCard }       from "./RepoHealthCard"
 import { RepoRecommendations }  from "./RepoRecommendations"
+import { RepoTeamSpaceCard }    from "./RepoTeamSpaceCard"
 import { RefreshButton }        from "./RefreshButton"
 import { DisconnectButton }     from "./DisconnectButton"
 import { RepoDetail }           from "../types/RepoDetail"
@@ -40,7 +41,7 @@ export function RepoDetailMobile({ repo }: Props) {
             {repo.analyzedAt && (
               <span className="flex items-center gap-1 text-xs text-gray-400">
                 <Clock className="w-3 h-3" />
-                  Dianalisis {new Date(repo.analyzedAt).toLocaleDateString("id-ID")}
+                Dianalisis {new Date(repo.analyzedAt).toLocaleDateString("id-ID")}
               </span>
             )}
           </div>
@@ -49,22 +50,14 @@ export function RepoDetailMobile({ repo }: Props) {
 
       <div className="px-4 pt-5 pb-6 flex flex-col gap-3">
         <div className="flex gap-2">
-          <DisconnectButton
-            id={repo.id}
-            fullName={repo.fullName}
-            className="flex-1 h-11 justify-center"
-          />
-          <RefreshButton
-            fullName={repo.fullName}
-            refreshing={loading}
-            onRefresh={refresh}
-            className="flex-1 h-11 justify-center"
-          />
+          <DisconnectButton id={repo.id} fullName={repo.fullName} className="flex-1 h-11 justify-center" />
+          <RefreshButton    fullName={repo.fullName} refreshing={loading} onRefresh={refresh} className="flex-1 h-11 justify-center" />
         </div>
 
         <RepoProductivityCard repo={repo} refreshing={loading} />
         <RepoHealthCard       repo={repo} refreshing={loading} />
         <RepoRecommendations  recommendations={repo.healthRecommendations} refreshing={loading} />
+        <RepoTeamSpaceCard    repoFullName={repo.fullName} />
       </div>
     </div>
   )
