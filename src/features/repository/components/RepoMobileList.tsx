@@ -32,15 +32,15 @@ export function RepoMobileList({ repos, search, sortKey, sortDir, pageSize, onPa
     <div className="px-4 pt-5 pb-6 flex flex-col gap-3">
       <div className="bg-white rounded-xl border border-gray-100 px-4 py-3">
         <ShowPerPage
-            variant="mobile"
-            value={pageSize}
-            onChange={handlePageSize}
+          variant="mobile"
+          value={pageSize}
+          onChange={handlePageSize}
         />
         <Pagination
-            variant="mobile"
-            page={page}
-            totalPages={totalPages}
-            onChange={setPage}
+          variant="mobile"
+          page={page}
+          totalPages={totalPages}
+          onChange={setPage}
         />
       </div>
 
@@ -50,15 +50,13 @@ export function RepoMobileList({ repos, search, sortKey, sortDir, pageSize, onPa
           <p className="text-sm text-gray-400">Klik + untuk mulai menganalisis</p>
         </div>
       ) : (
-        <>
-          {paginated.map((repo, idx) => (
-            <RepoMobileCard
-              key={repo.id}
-              repo={repo}
-              index={(page - 1) * pageSize + idx + 1}
-            />
-          ))}
-        </>
+        paginated.map((repo, idx) => (
+          <RepoMobileCard
+            key={repo.id}
+            repo={repo}
+            index={(page - 1) * pageSize + idx + 1}
+          />
+        ))
       )}
     </div>
   )
