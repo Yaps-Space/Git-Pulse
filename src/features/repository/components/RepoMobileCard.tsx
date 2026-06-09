@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import { ChevronRight } from "lucide-react"
 import { Repo } from "../types"
 import { PRODUCTIVITY_COLOR, PRODUCTIVITY_BG, GRADE_COLOR } from "../constants"
+import { capitalizeFirst } from "@/shared/helpers"
 
 interface Props {
   repo:  Repo
@@ -36,11 +37,11 @@ export function RepoMobileCard({ repo, index }: Props) {
           <span
             className="text-xs px-2.5 py-0.5 rounded-full font-medium"
             style={{
-              background: PRODUCTIVITY_BG[repo.productivityState]   ?? "#88888818",
-              color:      PRODUCTIVITY_COLOR[repo.productivityState] ?? "#888",
+              background: PRODUCTIVITY_BG[capitalizeFirst(repo.productivityState)]   ?? "#88888818",
+              color:      PRODUCTIVITY_COLOR[capitalizeFirst(repo.productivityState)] ?? "#888",
             }}
           >
-            {repo.productivityState || "-"}
+            {capitalizeFirst(repo.productivityState) || "-"}
           </span>
         </div>
 
