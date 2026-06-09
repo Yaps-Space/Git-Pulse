@@ -96,17 +96,27 @@ export async function POST(
     )
 
     const ML_URL = process.env.NEXT_PUBLIC_ML_SERVICE_URL || "http://127.0.0.1:8000"
-    const mlRes  = await fetch(`${ML_URL}/predict/member`, {
+    const mlRes  = await fetch(`${ML_URL}/predict/contributor`, {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify({ commit_velocity: commitVelocity, contribution_share: contributionShare, activity_consistency: activityConsistency, active_weeks_ratio: activeWeeksRatio }),
+      body:    JSON.stringify({
+        commit_count:     stats.commits,
+        contribution_pct: contributionShare * 100,
+        active_weeks:     weeks.size,
+        active_ratio:     activeWeeksRatio,
+      }),
     })
     const mlData = await mlRes.json() as MlPredictResponse
 
     await updateDoc(doc(db, "memberships", memberId), {
-      memberStatus: mlData.memberStatus, commitVelocity, contributionShare,
-      activityConsistency, activeWeeksRatio, commitsPerMonth,
-      recommendation: mlData.recommendation, analyzedAt: new Date(),
+      memberStatus:        mlData.status,
+      commitVelocity,
+      contributionShare,
+      activityConsistency,
+      activeWeeksRatio,
+      commitsPerMonth,
+      recommendation:      mlData.recommendation,
+      analyzedAt:          new Date(),
     })
 
     return NextResponse.json({ success: true })

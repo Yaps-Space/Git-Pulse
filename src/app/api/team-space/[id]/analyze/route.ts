@@ -95,17 +95,27 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
         }).length
       )
 
-      const mlRes  = await fetch(`${ML_URL}/predict/member`, {
+      const mlRes  = await fetch(`${ML_URL}/predict/contributor`, {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ commit_velocity: commitVelocity, contribution_share: contributionShare, activity_consistency: activityConsistency, active_weeks_ratio: activeWeeksRatio }),
+        body:    JSON.stringify({
+          commit_count:     stats.commits,
+          contribution_pct: contributionShare * 100,
+          active_weeks:     weeks.size,
+          active_ratio:     activeWeeksRatio,
+        }),
       })
       const mlData = await mlRes.json() as MlPredictResponse
 
       await updateDoc(doc(db, "memberships", member.membershipId), {
-        memberStatus: mlData.memberStatus, commitVelocity, contributionShare,
-        activityConsistency, activeWeeksRatio, commitsPerMonth,
-        recommendation: mlData.recommendation, analyzedAt: new Date(),
+        memberStatus:        mlData.status,
+        commitVelocity,
+        contributionShare,
+        activityConsistency,
+        activeWeeksRatio,
+        commitsPerMonth,
+        recommendation:      mlData.recommendation,
+        analyzedAt:          new Date(),
       })
     }
 

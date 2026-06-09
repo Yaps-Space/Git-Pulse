@@ -17,6 +17,6 @@ export interface MembershipDoc {
 }
 
 export interface MlPredictResponse {
-  memberStatus:   string
+  status:         string
   recommendation: string
 }
