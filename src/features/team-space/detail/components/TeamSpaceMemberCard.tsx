@@ -8,6 +8,7 @@ import { STATUS_COLOR, STATUS_LABEL }        from "../constants/TeamSpaceDetail"
 import { canManageMembers }                  from "../helpers/permissions"
 import { EditRoleDialog }                    from "./EditRoleDialog"
 import { TeamMember }                        from "../../types/TeamSpace"
+import { capitalizeFirst } from "@/shared/helpers"
 
 interface Props {
   member:       TeamMember
@@ -87,12 +88,12 @@ export function TeamSpaceMemberCard({ member, index, myRole, classId, onAnalyze,
             <span className="text-xs text-gray-400">Status</span>
             <span
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-xs font-medium"
-              style={{ background: STATUS_COLOR[member.status] ?? "#888" }}
+              style={{ background: STATUS_COLOR[capitalizeFirst(member.status)] ?? "#888" }}
             >
               {member.status === "analyzing" ? (
                 <span className="w-2 h-2 rounded-full border border-current border-t-transparent animate-spin" />
               ) : null}
-              {STATUS_LABEL[member.status] ?? member.status}
+              {STATUS_LABEL[capitalizeFirst(member.status)] ?? capitalizeFirst(member.status)}
             </span>
           </div>
         </div>
