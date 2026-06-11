@@ -1,3 +1,11 @@
+export interface HealthBreakdownItem {
+  score:        number
+  weight:       number
+  contribution: number
+  details:      Record<string, unknown>
+  missing:      string[]
+}
+
 export interface RepoDetail {
   id:                    string
   fullName:              string
@@ -15,7 +23,7 @@ export interface RepoDetail {
   healthScore:           number
   healthGrade:           string
   healthLabel:           string
-  healthBreakdown:       Record<string, number>
+  healthBreakdown:       Record<string, HealthBreakdownItem>  // ← diubah
   healthRecommendations: string[]
   analyzedAt:            number | null
 }
