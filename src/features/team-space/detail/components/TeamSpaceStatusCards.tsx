@@ -10,7 +10,7 @@ interface Props {
 export function TeamSpaceStatusCards({ members }: Props) {
   const stats = STATUS_STATS_CONFIG.map(s => ({
     ...s,
-    count: members.filter(m => m.status === s.key).length,
+    count: members.filter(m => s.keys.includes(m.status)).length,
     color: STATUS_COLOR[s.key] ?? "#888",
   }))
 

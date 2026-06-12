@@ -1,10 +1,8 @@
 import { RepoDetail } from "../types/RepoDetail";
 
 export const HEALTH_BREAKDOWN_ITEMS = (repo: RepoDetail) => [
-  { label: "Dokumentasi",      value: repo.healthBreakdown?.dokumentasi     ?? 0, max: 15 },
-  { label: "Issue Management", value: repo.healthBreakdown?.issueManagement ?? 0, max: 20 },
-  { label: "Commit Activity",  value: repo.healthBreakdown?.commitActivity  ?? 0, max: 25 },
-  { label: "Konsistensi",      value: repo.healthBreakdown?.konsistensi     ?? 0, max: 20 },
-  { label: "Popularitas",      value: repo.healthBreakdown?.popularitas     ?? 0, max: 10 },
-  { label: "Recency",          value: repo.healthBreakdown?.recency         ?? 0, max: 10 },
+  { label: "Dokumentasi & Community", value: repo.healthBreakdown?.community_score  ?? 0, max: 100 },
+  { label: "Popularitas",             value: repo.healthBreakdown?.popularity_score ?? 0, max: 100 },
+  { label: "Issue Management",        value: repo.healthBreakdown?.issue_score      ?? 0, max: 100 },
+  { label: "Velocity Stability",      value: repo.healthBreakdown?.velocity_score   ?? 0, max: 100 },
 ]

@@ -16,6 +16,7 @@ import { Repo, SortKey, SortDir } from "../types"
 import { PRODUCTIVITY_COLOR, PRODUCTIVITY_BG, GRADE_COLOR } from "../constants"
 import { sortRepos } from "../helpers"
 import { SORTABLE_COLUMNS } from "../constants/Sortable"
+import { capitalizeFirst } from "@/shared/helpers"
 
 interface Props {
   repos:    Repo[]
@@ -24,10 +25,10 @@ interface Props {
 }
 
 export function RepoTable({ repos, search, pageSize }: Props) {
-  const router           = useRouter()
-  const [page, setPage]  = useState(1)
-  const [sortKey, setSortKey] = useState<SortKey>("analyzedAt")
-  const [sortDir, setSortDir] = useState<SortDir>("desc")
+  const router                        = useRouter()
+  const [page,    setPage]            = useState(1)
+  const [sortKey, setSortKey]         = useState<SortKey>("analyzedAt")
+  const [sortDir, setSortDir]         = useState<SortDir>("desc")
 
   const handleSort = (key: SortKey) => {
     if (key === sortKey) {
@@ -46,11 +47,8 @@ export function RepoTable({ repos, search, pageSize }: Props) {
   const totalPages = Math.ceil(sorted.length / pageSize)
   const paginated  = sorted.slice((page - 1) * pageSize, page * pageSize)
 
-  const isSortable = (label: string) =>
-    SORTABLE_COLUMNS.some(c => c.label === label)
-
-  const getSortKey = (label: string) =>
-    SORTABLE_COLUMNS.find(c => c.label === label)?.key
+  const isSortable = (label: string) => SORTABLE_COLUMNS.some(c => c.label === label)
+  const getSortKey = (label: string) => SORTABLE_COLUMNS.find(c => c.label === label)?.key
 
   return (
     <div className="bg-white rounded-xl overflow-hidden">
@@ -75,9 +73,7 @@ export function RepoTable({ repos, search, pageSize }: Props) {
                     >
                       <div className="flex items-center gap-1.5 select-none">
                         {h}
-                        {key && (
-                          <RepoSortIcon col={key} sortKey={sortKey} sortDir={sortDir} />
-                        )}
+                        {key && <RepoSortIcon col={key} sortKey={sortKey} sortDir={sortDir} />}
                       </div>
                     </TableHead>
                   )
@@ -97,11 +93,11 @@ export function RepoTable({ repos, search, pageSize }: Props) {
                     <span
                       className="px-3 py-1 rounded-sm text-xs font-medium inline-flex items-center justify-center w-18"
                       style={{
-                        background: PRODUCTIVITY_BG[repo.productivityState]   ?? "#88888818",
-                        color:      PRODUCTIVITY_COLOR[repo.productivityState] ?? "#888",
+                        background: PRODUCTIVITY_BG[capitalizeFirst(repo.productivityState)]   ?? "#88888818",
+                        color:      PRODUCTIVITY_COLOR[capitalizeFirst(repo.productivityState)] ?? "#888",
                       }}
                     >
-                      {repo.productivityState || "-"}
+                      {capitalizeFirst(repo.productivityState) || "-"}
                     </span>
                   </TableCell>
                   <TableCell>

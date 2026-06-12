@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { RepoDetail } from "../types/RepoDetail"
 import { PRODUCTIVITY_BG, PRODUCTIVITY_COLOR } from "../../constants"
 import { PRODUCTIVITY_ITEMS } from "../constants/Productivity"
+import { capitalizeFirst } from "@/shared/helpers"
 
 interface Props {
   repo:        RepoDetail
@@ -37,11 +38,11 @@ export function RepoProductivityCard({ repo, refreshing }: Props) {
         <span
           className="px-3 py-1 rounded-md text-sm"
           style={{
-            background: PRODUCTIVITY_BG[repo.productivityState]   ?? "#88888818",
-            color:      PRODUCTIVITY_COLOR[repo.productivityState] ?? "#888",
+            background: PRODUCTIVITY_BG[capitalizeFirst(repo.productivityState)]   ?? "#88888818",
+            color:      PRODUCTIVITY_COLOR[capitalizeFirst(repo.productivityState)] ?? "#888",
           }}
         >
-          {repo.productivityState}
+          {capitalizeFirst(repo.productivityState) || "-"}
         </span>
       </CardHeader>
       <CardContent>

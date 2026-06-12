@@ -23,6 +23,7 @@ import { sortMembers }                       from "../helpers/sortMembers"
 import { TeamMember }                        from "../../types/TeamSpace"
 import { TeamSpaceDetail }                   from "../types/TeamSpaceDetail"
 import { SortKey, SortDir }                  from "../types/TeamSpaceMember"
+import { capitalizeFirst } from "@/shared/helpers"
 
 interface Props {
   members:             TeamMember[]
@@ -173,13 +174,13 @@ export function TeamSpaceMemberTable({ members, myRole, classId, onMutate, showS
                       <span
                         className="flex items-center gap-1.5 w-fit px-2.5 py-1 rounded-sm text-xs font-medium"
                         style={{
-                          background: STATUS_COLOR[member.status] ?? "#888",
+                          background: STATUS_COLOR[capitalizeFirst(member.status)] ?? "#888",
                         }}
                       >
                          {member.status === "analyzing" ? (
                           <span className="w-2 h-2 rounded-full border border-current border-t-transparent animate-spin" />
                         ) : null}
-                        {STATUS_LABEL[member.status] ?? member.status}
+                        {STATUS_LABEL[capitalizeFirst(member.status)] ?? capitalizeFirst(member.status)}
                       </span>
                     </TableCell>
                     <TableCell>

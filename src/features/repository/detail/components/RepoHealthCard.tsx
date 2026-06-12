@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { RepoDetail } from "../types/RepoDetail"
 import { GRADE_COLOR } from "../../constants"
 import { HEALTH_BREAKDOWN_ITEMS } from "../constants/HealthCard"
+import { capitalizeFirst } from "@/shared/helpers"
 
 interface Props {
   repo:        RepoDetail
@@ -24,18 +25,26 @@ export function RepoHealthCard({ repo, refreshing }: Props) {
           <span className="text-2xl font-bold" style={{ color: GRADE_COLOR[repo.healthGrade] ?? "#888" }}>
             {repo.healthScore}
           </span>
-          <span className="text-2xl font-bold" style={{ color: GRADE_COLOR[repo.healthGrade] ?? "#888" }}>
-            {repo.healthGrade}
+          <span
+            className="px-3 py-1 rounded-md text-sm font-semibold"
+            style={{
+              background: (GRADE_COLOR[repo.healthGrade] ?? "#888") + "22",
+              color:      GRADE_COLOR[repo.healthGrade] ?? "#888",
+            }}
+          >
+            {repo.healthGrade} · {capitalizeFirst(repo.healthLabel)}
           </span>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-5">
           {HEALTH_BREAKDOWN_ITEMS(repo).map((item, i) => (
             <div key={i}>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs text-gray-800">{item.label}</span>
-                <span className="text-xs font-semibold text-gray-700">{item.value}/{item.max}</span>
+                <span className="text-xs font-semibold text-gray-700">
+                  {Math.round(item.value)}/{item.max}
+                </span>
               </div>
               <div className="w-full rounded-full h-1.5 bg-gray-100">
                 <div

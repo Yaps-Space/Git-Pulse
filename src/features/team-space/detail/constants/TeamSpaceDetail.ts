@@ -1,6 +1,6 @@
 export const STATUS_COLOR: Record<string, string> = {
   Active:    "#00D964",
-  Passive:   "#FFDF61",
+  Moderate:   "#FFDF61",
   Inactive:  "#FF9898",
   pending:   "#EBEBEB",
   analyzing: "#B6BBFF",
@@ -8,16 +8,16 @@ export const STATUS_COLOR: Record<string, string> = {
 
 export const STATUS_LABEL: Record<string, string> = {
   Active:    "Active",
-  Passive:   "Passive",
+  Moderate:   "Moderate",
   Inactive:  "Inactive",
   pending:   "Belum Dianalisis",
   analyzing: "Sedang Dianalisis",
 }
 
 export const STATUS_STATS_CONFIG = [
-  { key: "Active",   label: "Active",   description: "Total account aktif"       },
-  { key: "Passive",  label: "Passive",  description: "Total account pasif"       },
-  { key: "Inactive", label: "Inactive", description: "Total account tidak aktif" },
+  { key: "Active",   label: "Active",   description: "Total account aktif",       keys: ["Active",   "ACTIVE"]   },
+  { key: "Moderate",  label: "Moderate",  description: "Total account moderate",       keys: ["Moderate",  "MODERATE"] },
+  { key: "Inactive", label: "Inactive", description: "Total account tidak aktif", keys: ["Inactive", "INACTIVE"] },
 ]
 
 export const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"]
