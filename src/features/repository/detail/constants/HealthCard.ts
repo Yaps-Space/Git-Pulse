@@ -1,24 +1,40 @@
-import { RepoDetail } from "../types/RepoDetail";
-
-export const HEALTH_BREAKDOWN_ITEMS = (repo: RepoDetail) => [
-  {
-    label: "Community & Docs",
-    value: repo.healthBreakdown?.community?.contribution        ?? 0,
-    max:   30,
+export const BREAKDOWN_CONFIG = {
+  community: {
+    label:    "Community & Docs",
+    max:      30,
+    detailKeys: [
+      { key: "has_readme",       label: "README" },
+      { key: "has_license",      label: "License" },
+      { key: "has_contributing", label: "CONTRIBUTING.md" },
+      { key: "has_description",  label: "Deskripsi repo" },
+      { key: "has_coc",          label: "Code of Conduct" },
+    ],
   },
-  {
-    label: "Popularitas",
-    value: repo.healthBreakdown?.popularity?.contribution       ?? 0,
-    max:   25,
+  popularity: {
+    label:    "Popularitas",
+    max:      25,
+    detailKeys: [
+      { key: "stars",       label: "Stars",      format: (v: number) => v.toLocaleString() },
+      { key: "forks_count", label: "Forks",      format: (v: number) => v.toLocaleString() },
+      { key: "star_score",  label: "Star score", format: (v: number) => `${v.toFixed(1)} / 100` },
+      { key: "fork_score",  label: "Fork score", format: (v: number) => `${v.toFixed(1)} / 100` },
+    ],
   },
-  {
-    label: "Issue Management",
-    value: repo.healthBreakdown?.issueManagement?.contribution  ?? 0,
-    max:   25,
+  issueManagement: {
+    label:    "Issue Management",
+    max:      25,
+    detailKeys: [
+      { key: "avg_issue_close_time_days", label: "Rata-rata close time", format: (v: number) => `${v} hari` },
+      { key: "open_issues_count",         label: "Open issues",          format: (v: number) => v.toString() },
+      { key: "benchmark_hours",           label: "Benchmark",            format: () => "30 hari" },
+    ],
   },
-  {
-    label: "Velocity / Konsistensi",
-    value: repo.healthBreakdown?.velocity?.contribution         ?? 0,
-    max:   20,
+  velocity: {
+    label:    "Velocity",
+    max:      20,
+    detailKeys: [
+      { key: "velocity_stability", label: "Stability index", format: (v: number) => v.toFixed(2) },
+      { key: "interpretation",     label: "Status",          format: (v: string) => v },
+    ],
   },
-]
+} as const
