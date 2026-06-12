@@ -24,7 +24,7 @@ export function DashboardLayout({ name }: Props) {
 
   if (loadingRepos || loadingTeams) return <PageSkeleton />
 
-  const activeRepos = repos.filter(r => r.productivityState === "Active").length
+  const activeRepos = repos.filter(r => r.productivityState === "ACTIVE").length
   const avgHealth   = repos.length > 0
     ? Math.round(repos.reduce((sum, r) => sum + (r.healthScore ?? 0), 0) / repos.length)
     : 0
