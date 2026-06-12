@@ -1,8 +1,40 @@
-import { RepoDetail } from "../types/RepoDetail";
-
-export const HEALTH_BREAKDOWN_ITEMS = (repo: RepoDetail) => [
-  { label: "Dokumentasi & Community", value: repo.healthBreakdown?.community_score  ?? 0, max: 100 },
-  { label: "Popularitas",             value: repo.healthBreakdown?.popularity_score ?? 0, max: 100 },
-  { label: "Issue Management",        value: repo.healthBreakdown?.issue_score      ?? 0, max: 100 },
-  { label: "Velocity Stability",      value: repo.healthBreakdown?.velocity_score   ?? 0, max: 100 },
-]
+export const BREAKDOWN_CONFIG = {
+  community: {
+    label:    "Community & Docs",
+    max:      30,
+    detailKeys: [
+      { key: "has_readme",       label: "README" },
+      { key: "has_license",      label: "License" },
+      { key: "has_contributing", label: "CONTRIBUTING.md" },
+      { key: "has_description",  label: "Deskripsi repo" },
+      { key: "has_coc",          label: "Code of Conduct" },
+    ],
+  },
+  popularity: {
+    label:    "Popularitas",
+    max:      25,
+    detailKeys: [
+      { key: "stars",       label: "Stars",      format: (v: number) => v.toLocaleString() },
+      { key: "forks_count", label: "Forks",      format: (v: number) => v.toLocaleString() },
+      { key: "star_score",  label: "Star score", format: (v: number) => `${v.toFixed(1)} / 100` },
+      { key: "fork_score",  label: "Fork score", format: (v: number) => `${v.toFixed(1)} / 100` },
+    ],
+  },
+  issueManagement: {
+    label:    "Issue Management",
+    max:      25,
+    detailKeys: [
+      { key: "avg_issue_close_time_days", label: "Rata-rata close time", format: (v: number) => `${v} hari` },
+      { key: "open_issues_count",         label: "Open issues",          format: (v: number) => v.toString() },
+      { key: "benchmark_hours",           label: "Benchmark",            format: () => "30 hari" },
+    ],
+  },
+  velocity: {
+    label:    "Velocity",
+    max:      20,
+    detailKeys: [
+      { key: "velocity_stability", label: "Stability index", format: (v: number) => v.toFixed(2) },
+      { key: "interpretation",     label: "Status",          format: (v: string) => v },
+    ],
+  },
+} as const
