@@ -58,7 +58,7 @@ export function DashboardRepoSnapshot({ repos }: Props) {
                   </span>
                   {repo.analyzedAt && (
                     <span className="flex items-center gap-0.5 text-xs text-gray-400">
-                      <Clock className="w-3 h-3" />{timeAgo(repo.analyzedAt)}
+                      <Clock className="w-3 h-3" />Dianalisis {timeAgo(repo.analyzedAt)}
                     </span>
                   )}
                 </div>

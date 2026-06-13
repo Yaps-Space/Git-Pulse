@@ -41,7 +41,7 @@ function BreakdownRow({
     <div className="rounded-lg border border-gray-100 overflow-hidden">
       <button
         onClick={() => setOpen(v => !v)}
-        className="w-full px-3 py-2.5 flex flex-col gap-1.5 hover:bg-gray-50 transition-colors text-left"
+        className="w-full px-3 py-2 flex flex-col gap-1.5 hover:bg-gray-50 transition-colors text-left"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
@@ -113,7 +113,7 @@ export function RepoHealthCard({ repo, refreshing }: Props) {
         </div>
       )}
 
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <CardHeader className="flex flex-row items-center justify-between pb-0">
         <div>
           <CardTitle className="text-base font-bold">Health Score</CardTitle>
           <p className="text-xs text-gray-400 mt-0.5">{repo.healthLabel}</p>

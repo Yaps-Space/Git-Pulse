@@ -59,8 +59,8 @@ export function RepoProductivityCard({ repo, refreshing }: Props) {
         </div>
 
         {repo.productivityRec && (
-          <div className="mt-4 p-3 rounded-xl bg-[#83ECA7] flex items-start gap-2">
-            <Lightbulb className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <div className="mt-4 p-3 rounded-lg flex items-start gap-2 border border-[#00D96433] bg-[#00D9640D]">
+            <Lightbulb className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#00D964]" />
             <p className="text-sm text-gray-800">{repo.productivityRec}</p>
           </div>
         )}

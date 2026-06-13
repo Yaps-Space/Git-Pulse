@@ -23,9 +23,10 @@ export function RepoDetailView({ repo }: Props) {
         <RepoProductivityCard repo={repo} refreshing={loading} />
         <RepoHealthCard       repo={repo} refreshing={loading} />
       </div>
-
-      <RepoRecommendations recommendations={repo.healthRecommendations} refreshing={loading} />
-      <RepoTeamSpaceCard repoFullName={repo.fullName} />
+      <div className="grid grid-cols-2 gap-4">
+        <RepoRecommendations recommendations={repo.healthRecommendations} refreshing={loading} />
+        <RepoTeamSpaceCard repoFullName={repo.fullName} />
+      </div>
     </div>
   )
 }
