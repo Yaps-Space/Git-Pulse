@@ -10,6 +10,7 @@ import { TeamSpaceStatusCards }    from "./TeamSpaceStatusCards"
 import { TeamSpaceMemberTable }    from "./TeamSpaceMemberTable"
 import { ContributorsChart }       from "./ContributorsChart"
 import TeamSpaceFooterActions      from "./TeamSpaceFooterActions"
+import { TeamSpaceRepoHealthCard } from "./TeamSpaceRepoHealthCard"
 
 interface Props {
   id: string
@@ -26,7 +27,7 @@ export default function TeamSpaceDetailView({ id }: Props) {
     : detail.members.filter(m => m.userId === detail.myMembership.userId)
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col">
       <div className="flex items-start justify-between">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
@@ -62,24 +63,43 @@ export default function TeamSpaceDetailView({ id }: Props) {
         )}
       </div>
 
-      {isEvaluator && <TeamSpaceStatusCards members={detail.members} />}
+      {/* Repo Health Stats */}
+      <div className="mt-4 mb-2"> 
+        <TeamSpaceRepoHealthCard
+          healthScore       ={detail.healthScore}
+          healthGrade       ={detail.healthGrade}
+          productivityState ={detail.productivityState}
+          repoFullName      ={detail.repoFullName}
+          repoId            ={detail.repoId}
+        />
+      </div>
 
-      <TeamSpaceMemberTable
-        members={visibleMembers}
-        myRole={detail.myRole}
-        ownerId={detail.ownerId}
-        classId={detail.id}
-        onMutate={refresh}
-        showSearchAndFilter={isEvaluator}
-      />
+      {isEvaluator && (
+        <div className="mb-4">
+         <TeamSpaceStatusCards members={detail.members} />
+        </div>
+      )}
+
+      <div className="mb-4">
+        <TeamSpaceMemberTable
+          members={visibleMembers}
+          myRole={detail.myRole}
+          ownerId={detail.ownerId}
+          classId={detail.id}
+          onMutate={refresh}
+          showSearchAndFilter={isEvaluator}
+        />
+      </div>
 
       <ContributorsChart members={visibleMembers} repoCommitsPerMonth={detail.repoCommitsPerMonth} />
 
-      <TeamSpaceFooterActions
-        classId={detail.id}
-        myRole={detail.myRole}
-        createdAt={detail.createdAt}
-      />
+      <div className="mt-4">
+        <TeamSpaceFooterActions
+          classId={detail.id}
+          myRole={detail.myRole}
+          createdAt={detail.createdAt}
+        />
+      </div>
     </div>
   )
 }

@@ -11,6 +11,7 @@ import { TeamSpaceMemberList }     from "./TeamSpaceMemberList"
 import { ContributorsChart }       from "./ContributorsChart"
 import TeamSpaceFooterActions      from "./TeamSpaceFooterActions"
 import { TeamSpaceDetail }         from "../types/TeamSpaceDetail"
+import { TeamSpaceRepoHealthCard } from "./TeamSpaceRepoHealthCard"
 
 interface Props {
   detail:   TeamSpaceDetail
@@ -27,9 +28,9 @@ export function TeamSpaceDetailMobile({ detail, onMutate }: Props) {
     <div className="min-h-screen">
       <MobilePageHeader title={detail.name} backHref="/team-space">
         <div className="flex flex-col gap-1">
-            {detail.description && (
-                <p className="text-xs text-gray-400 truncate">{detail.description}</p>
-            )}
+          {detail.description && (
+            <p className="text-xs text-gray-400 truncate">{detail.description}</p>
+          )}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1">
@@ -52,34 +53,53 @@ export function TeamSpaceDetailMobile({ detail, onMutate }: Props) {
         </div>
       </MobilePageHeader>
 
-      <div className="px-4 pt-5 pb-6 flex flex-col gap-4">
+      <div className="px-4 pt-5 pb-6 flex flex-col">
         {isEvaluator && (
-            <div className="flex gap-2">
-                <InviteCodeButton inviteCode={detail.inviteCode} className="flex-1 h-10 justify-center" />
-                <QRButton inviteCode={detail.inviteCode} teamName={detail.name} className="flex-1 h-10 justify-center" />
-            </div>
+          <div className="flex gap-2">
+            <InviteCodeButton inviteCode={detail.inviteCode} className="flex-1 h-10 justify-center" />
+            <QRButton inviteCode={detail.inviteCode} teamName={detail.name} className="flex-1 h-10 justify-center" />
+          </div>
         )}
 
-        {isEvaluator && <TeamSpaceStatusCards members={detail.members} />}
+        {/* Repo Health Stats */}
+        <div className="mt-4 mb-2">
+          <TeamSpaceRepoHealthCard
+            healthScore       ={detail.healthScore}
+            healthGrade       ={detail.healthGrade}
+            productivityState ={detail.productivityState}
+            repoFullName      ={detail.repoFullName}
+            repoId            ={detail.repoId}
+          />
+        </div>
 
-        <TeamSpaceMemberList
-          members={visibleMembers}
-          myRole={detail.myRole}
-          classId={detail.id}
-          onMutate={onMutate}
-          showSearchAndFilter={isEvaluator}
-        />
+        {isEvaluator &&  (
+          <div className="mb-4">
+            <TeamSpaceStatusCards members={detail.members} />
+          </div>
+        )}
+
+        <div className="mb-4">
+          <TeamSpaceMemberList
+            members={visibleMembers}
+            myRole={detail.myRole}
+            classId={detail.id}
+            onMutate={onMutate}
+            showSearchAndFilter={isEvaluator}
+          />
+        </div>  
 
         <ContributorsChart
           members={visibleMembers}
           repoCommitsPerMonth={detail.repoCommitsPerMonth ?? Array(12).fill(0)}
         />
 
-        <TeamSpaceFooterActions
-          classId={detail.id}
-          myRole={detail.myRole}
-          createdAt={detail.createdAt}
-        />
+        <div className="mt-4">
+          <TeamSpaceFooterActions
+            classId={detail.id}
+            myRole={detail.myRole}
+            createdAt={detail.createdAt}
+          />
+        </div>
       </div>
     </div>
   )
