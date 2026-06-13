@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Users, GitBranch, Search, UserPlus, Plus, ChevronRight } from "lucide-react"
 import { useTeamSpaces } from "../hooks/useTeamSpaces"
 import { ROLE_COLOR, ROLE_TEXT, ROLE_LABEL } from "../constants/TeamSpaceConfig"
+import { TeamSpaceRepoStats } from "./TeamSpaceRepoStats"
 import { Input } from "@/shared/components/ui/input"
 import { Button } from "@/shared/components/ui/button"
 import { EmptyState } from "./EmptyTeamSpace"
@@ -37,29 +38,23 @@ export default function TeamSpaceListMobile() {
                 className="pl-9 h-10 bg-white/10 border-white/10 text-white placeholder:text-gray-400 text-sm"
               />
             </div>
-
             <Button
-              variant="outline"
-              size="icon"
+              variant="outline" size="icon"
               className={cn(
                 "h-10 w-10 border-white/10 transition-colors flex-shrink-0",
-                showJoin
-                  ? "bg-[#00D964] text-gray-900 border-[#00D964]"
-                  : "bg-white/10 text-white hover:bg-[#00D964] hover:text-gray-900 hover:border-[#00D964]"
+                showJoin ? "bg-[#00D964] text-gray-900 border-[#00D964]"
+                         : "bg-white/10 text-white hover:bg-[#00D964] hover:text-gray-900 hover:border-[#00D964]"
               )}
               onClick={() => setShowJoin(true)}
             >
               <UserPlus className="w-4 h-4" />
             </Button>
-
             <Button
-              variant="outline"
-              size="icon"
+              variant="outline" size="icon"
               className={cn(
                 "h-10 w-10 border-white/10 transition-colors flex-shrink-0",
-                showCreate
-                  ? "bg-[#00D964] text-gray-900 border-[#00D964]"
-                  : "bg-white/10 text-white hover:bg-[#00D964] hover:text-gray-900 hover:border-[#00D964]"
+                showCreate ? "bg-[#00D964] text-gray-900 border-[#00D964]"
+                           : "bg-white/10 text-white hover:bg-[#00D964] hover:text-gray-900 hover:border-[#00D964]"
               )}
               onClick={() => setShowCreate(true)}
             >
@@ -76,11 +71,15 @@ export default function TeamSpaceListMobile() {
               <Link
                 key={ts.id}
                 href={`/team-space/${ts.id}`}
-                className="bg-white rounded-2xl p-5 flex flex-col border border-gray-100 active:shadow-md transition-shadow min-h-[120px]"
+                className="bg-white rounded-2xl p-5 flex flex-col gap-3 border border-gray-100 active:shadow-md transition-shadow"
               >
-                <div className="flex items-start justify-between mb-1.5">
+                {/* Header */}
+                <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold text-base text-gray-900 truncate">{ts.name}</h3>
+                    <p className="text-xs text-gray-400 truncate mt-0.5 min-h-[1rem]">
+                      {ts.description ?? ""}
+                    </p>
                   </div>
                   <span
                     className="ml-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold flex-shrink-0"
@@ -91,11 +90,15 @@ export default function TeamSpaceListMobile() {
                   </span>
                 </div>
 
-                <p className="text-sm text-gray-400 truncate mb-3 min-h-[1.25rem]">
-                  {ts.description ?? ""}
-                </p>
+                {/* Repo Stats */}
+                <TeamSpaceRepoStats
+                  healthScore       ={ts.healthScore}
+                  healthGrade       ={ts.healthGrade}
+                  productivityState ={ts.productivityState}
+                />
 
-                <div className="flex items-center justify-between gap-2 mt-auto">
+                {/* Footer */}
+                <div className="flex items-center justify-between gap-2 pt-1 border-t border-gray-50">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       <Users className="w-3.5 h-3.5 text-gray-400" />
@@ -108,7 +111,7 @@ export default function TeamSpaceListMobile() {
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 text-xs font-medium text-gray-400 flex-shrink-0">
+                  <div className="flex items-center gap-0.5 text-xs font-medium text-gray-400 flex-shrink-0">
                     Lihat Detail
                     <ChevronRight className="w-3.5 h-3.5" />
                   </div>
