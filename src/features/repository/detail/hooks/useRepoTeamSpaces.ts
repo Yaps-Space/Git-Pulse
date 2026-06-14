@@ -1,10 +1,11 @@
 import useSWR from "swr"
 
 interface TeamSpace {
-  id:       string
-  name:     string
-  role:     string
-  repoName: string
+  id:          string
+  name:        string
+  description: string | null
+  role:        string
+  repoName:    string
 }
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
