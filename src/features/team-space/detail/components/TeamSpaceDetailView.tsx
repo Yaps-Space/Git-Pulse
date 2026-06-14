@@ -33,7 +33,7 @@ export default function TeamSpaceDetailView({ id }: Props) {
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-bold text-gray-900">{detail.name}</h2>
             <span
-              className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs"
               style={{ background: ROLE_COLOR[detail.myRole] ?? "#eee", color: ROLE_TEXT[detail.myRole] ?? "#333" }}
             >
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: ROLE_TEXT[detail.myRole] ?? "#333" }} />

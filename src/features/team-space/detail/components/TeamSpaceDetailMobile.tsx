@@ -43,7 +43,7 @@ export function TeamSpaceDetailMobile({ detail, onMutate }: Props) {
               </div>
             </div>
             <span
-              className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+              className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs"
               style={{ background: ROLE_COLOR[detail.myRole] ?? "#eee", color: ROLE_TEXT[detail.myRole] ?? "#333" }}
             >
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: ROLE_TEXT[detail.myRole] ?? "#333" }} />

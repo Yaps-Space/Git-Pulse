@@ -1,17 +1,17 @@
 export const STATUS_COLOR: Record<string, string> = {
-  Active:    "#00D964",
+  Active:    "#83ECA7",
   Moderate:   "#FFDF61",
-  Inactive:  "#FF9898",
+  Inactive:  "#FF9898", 
   Pending:   "#EBEBEB",
-  Analyzing: "#B6BBFF",
+  Analyzing: "#EBEBEB",
 }
 
 export const STATUS_LABEL: Record<string, string> = {
   Active:    "Active",
   Moderate:   "Moderate",
   Inactive:  "Inactive",
-  Pending:   "Belum Dianalisis",
-  Analyzing: "Sedang Dianalisis",
+  Pending:   "Pending",
+  Analyzing: "Analyzing",
 }
 
 export const STATUS_STATS_CONFIG = [
