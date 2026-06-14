@@ -50,7 +50,7 @@ export default function TeamSpaceFooterActions({ classId, myRole, createdAt }: P
       <div className="bg-white rounded-2xl p-5 flex items-center justify-between border border-gray-100">
         <div className="flex items-center gap-2 text-sm text-gray-400">
           <LogOut className="w-4 h-4" />
-          {myRole === "owner" ? createdLabel : "Kamu adalah anggota dari Team Space ini"}
+          {myRole === "owner" ? createdLabel : "You are a member of Team Space"}
         </div>
 
         {myRole !== "owner" && (
@@ -60,7 +60,7 @@ export default function TeamSpaceFooterActions({ classId, myRole, createdAt }: P
             onClick={() => setShowConfirm("leave")}
           >
             <LogOut className="w-4 h-4" />
-            Keluar dari Team Space
+            Leave Team
           </Button>
         )}
         {myRole === "owner" && (

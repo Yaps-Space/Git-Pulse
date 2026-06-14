@@ -4,7 +4,7 @@ import Image from "next/image"
 import { useState } from "react"
 import { Edit2, BarChart2 } from "lucide-react"
 import { ROLE_COLOR, ROLE_TEXT, ROLE_LABEL } from "../../constants/TeamSpaceConfig"
-import { STATUS_COLOR, STATUS_LABEL }        from "../constants/TeamSpaceDetail"
+import { CONSISTENCY_LABEL, STATUS_COLOR, STATUS_LABEL } from "../constants/TeamSpaceDetail"
 import { canManageMembers }                  from "../helpers/permissions"
 import { EditRoleDialog }                    from "./EditRoleDialog"
 import { TeamMember }                        from "../../types/TeamSpace"
@@ -83,6 +83,14 @@ export function TeamSpaceMemberCard({ member, index, myRole, classId, onAnalyze,
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-400">Kontribusi</span>
             <span className="text-xs font-semibold text-gray-700">{(member.contributionShare * 100).toFixed(1)}%</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-400">Konsistensi</span>
+            <span className="text-xs font-semibold text-gray-700">{CONSISTENCY_LABEL(member.activityConsistency)}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-400">Active Weeks</span>
+            <span className="text-xs font-semibold text-gray-700">{Math.round(member.activeWeeksRatio * 100)}%</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-400">Status</span>
