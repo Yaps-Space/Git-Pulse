@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { Check, ChevronDown } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -9,16 +10,16 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/components/ui/select"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu"
 import { Button } from "@/shared/components/ui/button"
 import { AlertTriangle } from "lucide-react"
 import { ROLE_LABEL } from "../../constants/TeamSpaceConfig"
 import { canKick } from "../helpers/permissions"
+import { cn } from "@/shared/lib/utils"
 
 const ROLES = ["owner", "evaluator", "contributor"] as const
 type Role = typeof ROLES[number]
@@ -100,22 +101,39 @@ export function EditRoleDialog({ open, onClose, memberId, memberName, currentRol
             <div className="flex flex-col gap-4 py-2">
               <div className="flex flex-col gap-1.5">
                 <p className="text-sm text-gray-700">Role</p>
-                <Select
-                  value={selected}
-                  onValueChange={val => setSelected(val as Role)}
-                  disabled={isOwnerRow || loading !== null}
-                >
-                  <SelectTrigger className="w-full rounded-lg !h-10 text-sm px-3 border border-input [&>span]:text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      disabled={isOwnerRow || loading !== null}
+                      className={cn(
+                        "w-full flex items-center justify-between h-10 px-3 rounded-lg border border-input text-sm transition-colors",
+                        isOwnerRow || loading !== null
+                          ? "opacity-50 cursor-not-allowed bg-gray-50"
+                          : "hover:bg-accent cursor-pointer"
+                      )}
+                    >
+                      <span>{ROLE_LABEL[selected] ?? selected}</span>
+                      <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
                     {availableRoles.map(role => (
-                      <SelectItem key={role} value={role}>
+                      <DropdownMenuItem
+                        key={role}
+                        onClick={() => setSelected(role)}
+                        className="flex items-center gap-2 text-sm cursor-pointer"
+                      >
+                        <Check
+                          className={cn(
+                            "w-4 h-4 flex-shrink-0",
+                            selected === role ? "opacity-100 text-[#00D964]" : "opacity-0"
+                          )}
+                        />
                         {ROLE_LABEL[role] ?? role}
-                      </SelectItem>
+                      </DropdownMenuItem>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 {isOwnerRow && (
                   <p className="text-xs text-gray-400">Role owner tidak dapat diubah.</p>
                 )}

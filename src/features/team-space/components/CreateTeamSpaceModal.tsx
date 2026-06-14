@@ -15,13 +15,20 @@ import { Button } from "@/shared/components/ui/button"
 import { Input }  from "@/shared/components/ui/input"
 import { Label }  from "@/shared/components/ui/label"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/components/ui/select"
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/shared/components/ui/popover"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/shared/components/ui/command"
 import { createTeamSpace, fetchRepos, fetchRepoContributors, Contributor } from "../services/TeamSpaceService"
+import { cn } from "@/shared/lib/utils"
 
 interface Repo {
   id:       string;
@@ -40,6 +47,7 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
   const [contributors,  setContributors]  = useState<Contributor[]>([])
   const [loadingContributors, setLoadingContributors] = useState(false)
   const [selectedLogins, setSelectedLogins] = useState<Set<string>>(new Set())
+  const [repoOpen,      setRepoOpen]      = useState(false)
 
   useEffect(() => {
     fetchRepos()
@@ -63,11 +71,8 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
     selectedLogins.size === registeredNonOwner.length
 
   const toggleAll = () => {
-    if (allSelected) {
-      setSelectedLogins(new Set())
-    } else {
-      setSelectedLogins(new Set(registeredNonOwner.map(c => c.login)))
-    }
+    if (allSelected) setSelectedLogins(new Set())
+    else setSelectedLogins(new Set(registeredNonOwner.map(c => c.login)))
   }
 
   const toggleOne = (login: string) => {
@@ -112,7 +117,9 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
 
         <div className="flex flex-col gap-4 mt-2">
           <div className="flex flex-col gap-1.5">
-            <Label className="text-sm font-medium text-gray-700">Nama Team Space</Label>
+            <Label className="text-sm font-medium text-gray-700">
+              Nama Team Space <span className="text-[#BB230B]">*</span>
+            </Label>
             <Input
               value={name}
               onChange={e => setName(e.target.value)}
@@ -132,20 +139,58 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label className="text-sm font-medium text-gray-700">Repository</Label>
+            <Label className="text-sm font-medium text-gray-700">
+              Repository <span className="text-[#BB230B]">*</span>
+            </Label>
             {loadingRepos ? (
               <p className="text-sm text-gray-400">Memuat repo...</p>
             ) : (
-              <Select value={repoFullName} onValueChange={setRepoFullName}>
-                <SelectTrigger className="w-full rounded-lg !h-10 text-sm px-3 border border-input [&>span]:text-sm">
-                  <SelectValue placeholder="Pilih repository" />
-                </SelectTrigger>
-                <SelectContent>
-                  {repos.map((r) => (
-                    <SelectItem key={r.id} value={r.fullName}>{r.fullName}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={repoOpen} onOpenChange={setRepoOpen} modal={false}>
+                <PopoverTrigger asChild>
+                  <button
+                    className={cn(
+                      "w-full flex items-center justify-between h-10 px-3 rounded-lg border border-input text-sm",
+                      !repoFullName && "text-muted-foreground"
+                    )}
+                  >
+                    <span className="truncate">
+                      {repoFullName || "Pilih repository"}
+                    </span>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Cari repository..." className="h-9 text-sm" />
+                    <CommandList>
+                      <CommandEmpty className="py-3 text-center text-sm text-gray-400">
+                        Repository tidak ditemukan
+                      </CommandEmpty>
+                      <CommandGroup>
+                        {repos.map(r => (
+                          <CommandItem
+                            key={r.id}
+                            value={r.fullName}
+                            onSelect={(val: string) => {
+                              const matched = repos.find(repo => repo.fullName.toLowerCase() === val.toLowerCase())
+                              setRepoFullName(matched?.fullName ?? val)
+                              setRepoOpen(false)
+                            }}
+                            className="text-sm"
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4 flex-shrink-0",
+                                repoFullName === r.fullName ? "opacity-100 text-[#00D964]" : "opacity-0"
+                              )}
+                            />
+                            {r.fullName}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             )}
             <p className="text-xs text-gray-400">Hanya repo yang sudah diconnect</p>
           </div>
@@ -196,9 +241,9 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
                           ) : null}
                         </div>
                         <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 border transition-colors ${
-                          isOwner        ? "bg-gray-200 border-gray-200" :
-                          selected       ? "bg-[#00D964] border-[#00D964]" :
-                                           "border-gray-300"
+                          isOwner  ? "bg-gray-200 border-gray-200" :
+                          selected ? "bg-[#00D964] border-[#00D964]" :
+                                     "border-gray-300"
                         }`}>
                           {selected && !isOwner && <Check className="w-3 h-3 text-white" />}
                         </div>
