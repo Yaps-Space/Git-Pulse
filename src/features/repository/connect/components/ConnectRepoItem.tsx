@@ -37,7 +37,7 @@ export function ConnectRepoItem({ repo, connecting, onConnect, variant = "defaul
 
         <div className="flex items-center gap-2 flex-wrap">
           <span className={`text-xs px-2 py-0.5 rounded-full ${
-            repo.private ? "bg-orange-50 text-orange-400" : "bg-gray-100 text-gray-500"
+            repo.private ? "bg-gray-100 text-gray-500" : "bg-[#BEF3DF]/25 text-[#00D964]"
           }`}>
             {repo.private ? "Private" : "Public"}
           </span>
@@ -92,7 +92,7 @@ export function ConnectRepoItem({ repo, connecting, onConnect, variant = "defaul
           <div className="flex items-center gap-2 flex-wrap">
             <p className="font-medium text-sm text-gray-800">{repo.full_name}</p>
             <span className={`text-xs px-2 py-0.5 rounded-full ${
-              repo.private ? "bg-orange-50 text-orange-400" : "bg-gray-100 text-gray-500"
+            repo.private ? "bg-gray-100 text-gray-500" : "bg-[#BEF3DF]/25 text-[#00D964]"
             }`}>
               {repo.private ? "Private" : "Public"}
             </span>

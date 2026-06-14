@@ -1,7 +1,7 @@
 "use client"
 
 import { Users, GitBranch } from "lucide-react"
-import { useTeamSpaceDetail } from "../hooks/useTeamSpaceDetail"
+import { useTeamSpaceDetail }      from "../hooks/useTeamSpaceDetail"
 import { ROLE_COLOR, ROLE_TEXT, ROLE_LABEL } from "../../constants/TeamSpaceConfig"
 import { canViewAllMembers }       from "../helpers/permissions"
 import { InviteCodeButton }        from "./InviteCodeButton"
@@ -10,6 +10,8 @@ import { TeamSpaceStatusCards }    from "./TeamSpaceStatusCards"
 import { TeamSpaceMemberTable }    from "./TeamSpaceMemberTable"
 import { ContributorsChart }       from "./ContributorsChart"
 import TeamSpaceFooterActions      from "./TeamSpaceFooterActions"
+import { TeamSpaceRepoHealthCard } from "./TeamSpaceRepoHealthCard"
+import { ContributionCard }      from "./ContributionCard"
 
 interface Props {
   id: string
@@ -26,13 +28,13 @@ export default function TeamSpaceDetailView({ id }: Props) {
     : detail.members.filter(m => m.userId === detail.myMembership.userId)
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div className="flex items-start justify-between">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-bold text-gray-900">{detail.name}</h2>
             <span
-              className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs"
               style={{ background: ROLE_COLOR[detail.myRole] ?? "#eee", color: ROLE_TEXT[detail.myRole] ?? "#333" }}
             >
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: ROLE_TEXT[detail.myRole] ?? "#333" }} />
@@ -62,23 +64,41 @@ export default function TeamSpaceDetailView({ id }: Props) {
         )}
       </div>
 
-      {isEvaluator && <TeamSpaceStatusCards members={detail.members} />}
+      {/* Repo Health Stats */}
+      <div className="">
+        <TeamSpaceRepoHealthCard
+          healthScore       ={detail.healthScore}
+          healthGrade       ={detail.healthGrade}
+          productivityState ={detail.productivityState}
+          repoFullName      ={detail.repoFullName}
+          repoId            ={detail.repoId}
+        />
+        {isEvaluator && (
+          <div className="mt-2">
+            <TeamSpaceStatusCards members={detail.members} />
+          </div>
+        )}
+      </div>
 
-      <TeamSpaceMemberTable
-        members={visibleMembers}
-        myRole={detail.myRole}
-        ownerId={detail.ownerId}
-        classId={detail.id}
-        onMutate={refresh}
-        showSearchAndFilter={isEvaluator}
-      />
+      {isEvaluator ? (     
+        <TeamSpaceMemberTable
+          members={visibleMembers}
+          myRole={detail.myRole}
+          ownerId={detail.ownerId}
+          classId={detail.id}
+          onMutate={refresh}            
+          showSearchAndFilter={isEvaluator}
+        /> 
+      ) : (
+        <ContributionCard member={detail.myMembership} classId={detail.id} onMutate={refresh} />
+      )}
 
       <ContributorsChart members={visibleMembers} repoCommitsPerMonth={detail.repoCommitsPerMonth} />
 
       <TeamSpaceFooterActions
         classId={detail.id}
         myRole={detail.myRole}
-        createdAt={detail.createdAt}
+        createdAt={detail.createdAt}    
       />
     </div>
   )

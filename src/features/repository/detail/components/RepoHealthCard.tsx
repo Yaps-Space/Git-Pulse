@@ -15,9 +15,9 @@ interface Props {
 type BreakdownKey = keyof typeof BREAKDOWN_CONFIG
 
 function barColor(ratio: number) {
-  if (ratio >= 0.7) return "#3FB950"
-  if (ratio >= 0.4) return "#F9C74F"
-  return "#F85149"
+  if (ratio >= 0.7) return "#00D964"
+  if (ratio >= 0.4) return "#FFDF61"
+  return "#BB230B"
 }
 
 function BreakdownRow({
@@ -47,7 +47,7 @@ function BreakdownRow({
           <div className="flex items-center gap-1.5">
             <span className="text-xs font-medium text-gray-800">{config.label}</span>
             {missing.length > 0 && (
-              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-red-50 text-red-500">
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-red-50 text-[#BB230B]">
                 {missing.length} missing
               </span>
             )}
@@ -90,8 +90,8 @@ function BreakdownRow({
                 <span className="text-[11px] text-gray-500 truncate">{dk.label}</span>
                 {isBool ? (
                   raw
-                    ? <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-                    : <XCircle      className="w-3.5 h-3.5 text-red-400   flex-shrink-0" />
+                    ? <CheckCircle2 className="w-3.5 h-3.5 text-[#00D964] flex-shrink-0" />
+                    : <XCircle      className="w-3.5 h-3.5 text-[#BB230B]   flex-shrink-0" />
                 ) : (
                   <span className="text-[11px] font-semibold text-gray-700 flex-shrink-0">{display}</span>
                 )}

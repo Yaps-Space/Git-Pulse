@@ -1,7 +1,7 @@
 export const ROLE_COLOR: Record<string, string> = {
-  owner:       "#6265FE",
-  evaluator:   "#B6BBFF",
-  contributor: "#BEF3DF",
+  owner:       "#B1C5FF",
+  evaluator:   "#F3BEBE",
+  contributor: "#FFF2B6",
 }
 
 export const ROLE_TEXT: Record<string, string> = {

@@ -30,7 +30,7 @@ export function AccountProfileCard({ name, username, email, avatar, createdAt }:
         </>
       )}
 
-      <div className={isMobile ? "space-y-3" : "space-y-4 mb-7.5"}>
+      <div className={isMobile ? "space-y-3" : "space-y-4 mb-17"}>
         {INFO_ITEMS(username, email, createdAt).map(({ icon: Icon, label, value }) => (
           <div key={label} className="flex items-center gap-3">
             <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -44,7 +44,7 @@ export function AccountProfileCard({ name, username, email, avatar, createdAt }:
         ))}
       </div>
 
-      <Separator className={isMobile ? "my-4" : "my-7.5"} />
+      <Separator className={isMobile ? "my-4" : "mt-5 mb-6"} />
 
       <Button
         asChild

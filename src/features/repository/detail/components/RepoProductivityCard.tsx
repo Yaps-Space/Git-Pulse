@@ -15,8 +15,8 @@ interface Props {
 export function RepoProductivityCard({ repo, refreshing }: Props) {
   const trendLabel = repo.commitTrend > 0.01 ? "Meningkat"
     : repo.commitTrend < -0.01 ? "Menurun" : "Stabil"
-  const trendColor = repo.commitTrend > 0.01 ? "#3FB950"
-    : repo.commitTrend < -0.01 ? "#F85149" : "#000000"
+  const trendColor = repo.commitTrend > 0.01 ? "#00D964"
+    : repo.commitTrend < -0.01 ? "#BB230B" : "#000000"
   const TrendIcon  = repo.commitTrend > 0.01 ? TrendingUp
     : repo.commitTrend < -0.01 ? TrendingDown : Minus
 

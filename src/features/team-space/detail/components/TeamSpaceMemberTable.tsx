@@ -15,7 +15,7 @@ import { Input }       from "@/shared/components/ui/input"
 import { ShowPerPage } from "@/shared/components/commons/ShowPerPage"
 import { Pagination }  from "@/shared/components/commons/Pagination"
 import { ROLE_COLOR, ROLE_TEXT, ROLE_LABEL } from "../../constants/TeamSpaceConfig"
-import { STATUS_COLOR, STATUS_LABEL }        from "../constants/TeamSpaceDetail"
+import { CONSISTENCY_LABEL, STATUS_COLOR, STATUS_LABEL }  from "../constants/TeamSpaceDetail"
 import { SORTABLE_MEMBER_COLUMNS }           from "../constants/SortableMember"
 import { MemberSortIcon }                    from "./MemberSortIcon"
 import MemberActions                         from "./MemberActions"
@@ -34,7 +34,7 @@ interface Props {
   showSearchAndFilter: boolean
 }
 
-const COLUMNS = ["No", "Anggota", "Role", "Frekuensi Commits", "Kontribusi", "Status", "Actions"]
+const COLUMNS = ["No", "Anggota", "Role", "Frekuensi Commits", "Kontribusi", "Konsistensi", "Active Weeks", "Status", "Actions"]
 
 export function TeamSpaceMemberTable({ members, myRole, classId, onMutate, showSearchAndFilter }: Props) {
   const [search,   setSearch]   = useState("")
@@ -170,14 +170,18 @@ export function TeamSpaceMemberTable({ members, myRole, classId, onMutate, showS
                     <TableCell className="text-sm text-gray-700">
                       {(member.contributionShare * 100).toFixed(1)}%
                     </TableCell>
+                    <TableCell className="text-sm text-gray-700">
+                      {CONSISTENCY_LABEL(member.activityConsistency)}
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-700">
+                      {Math.round(member.activeWeeksRatio * 100)}%
+                    </TableCell>
                     <TableCell>
                       <span
                         className="flex items-center gap-1.5 w-fit px-2.5 py-1 rounded-sm text-xs font-medium"
-                        style={{
-                          background: STATUS_COLOR[capitalizeFirst(member.status)] ?? "#888",
-                        }}
+                        style={{ background: STATUS_COLOR[capitalizeFirst(member.status)] ?? "#888" }}
                       >
-                         {member.status === "analyzing" ? (
+                        {member.status === "analyzing" ? (
                           <span className="w-2 h-2 rounded-full border border-current border-t-transparent animate-spin" />
                         ) : null}
                         {STATUS_LABEL[capitalizeFirst(member.status)] ?? capitalizeFirst(member.status)}

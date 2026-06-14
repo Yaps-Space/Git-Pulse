@@ -84,18 +84,47 @@ export async function GET(
       repoCommitsPerMonth = Array(12).fill(0)
     }
 
+    // ── Join repositories untuk health & productivity ──────────
+    let repoId            : string | null = null
+    let healthScore                       = 0
+    let healthGrade                       = "-"
+    let productivityState                 = "-"
+
+    try {
+      const repoSnap = await getDocs(
+        query(
+          collection(db, "repositories"),
+          where("userId",   "==", session.user.id),
+          where("fullName", "==", ts.repoFullName)
+        )
+      )
+      if (!repoSnap.empty) {
+        const repo    = repoSnap.docs[0].data() as DocumentData
+        repoId            = repoSnap.docs[0].id
+        healthScore       = repo.healthScore       ?? 0
+        healthGrade       = repo.healthGrade       ?? "-"
+        productivityState = repo.productivityState ?? "-"
+      }
+    } catch {
+      // repo belum dianalisis, biarkan default
+    }
+
     const detail: TeamSpaceDetail = {
       id,
-      name:         ts.name          as string,
-      description:  (ts.description  as string) || null,
-      repoFullName: ts.repoFullName   as string,
-      ownerId:      ts.ownerId        as string,
-      inviteCode:   ts.inviteCode     as string,
-      createdAt:    ts.createdAt?.seconds ? (ts.createdAt.seconds as number) * 1000 : null,
-      myRole:       myMembership.role,
+      name:               ts.name         as string,
+      description:        (ts.description as string) || null,
+      repoFullName:       ts.repoFullName  as string,
+      repoId,
+      ownerId:            ts.ownerId       as string,
+      inviteCode:         ts.inviteCode    as string,
+      createdAt:          ts.createdAt?.seconds ? (ts.createdAt.seconds as number) * 1000 : null,
+      myRole:             myMembership.role,
       myMembership,
       members,
       repoCommitsPerMonth,
+      healthScore,
+      healthGrade,
+      productivityState,
     }
 
     return NextResponse.json(detail)

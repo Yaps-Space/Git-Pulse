@@ -20,8 +20,10 @@ export function RepoDetailHeader({ repo, refreshing, onRefresh }: Props) {
           <p className="text-sm text-gray-500">{repo.description}</p>
         )}
         <div className="flex items-center gap-4 mt-1">
-          {repo.isPrivate && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-orange-50 text-orange-400">Private</span>
+          {repo.isPrivate ? (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Private</span>
+          ) : (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-[#BEF3DF]/25 text-[#00D964]">Public</span>
           )}
           {repo.language && (
             <span className="text-xs text-gray-400">{repo.language}</span>

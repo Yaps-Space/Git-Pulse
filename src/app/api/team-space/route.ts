@@ -45,13 +45,39 @@ export async function GET() {
           query(collection(db, "memberships"), where("classId", "==", m.classId))
         )
 
+        // Join dengan repositories untuk health & productivity
+        let healthScore       = 0
+        let healthGrade       = "-"
+        let productivityState = "-"
+
+        try {
+          const repoSnap = await getDocs(
+            query(
+              collection(db, "repositories"),
+              where("userId",   "==", session.user.id),
+              where("fullName", "==", ts.repoFullName)
+            )
+          )
+          if (!repoSnap.empty) {
+            const repo    = repoSnap.docs[0].data() as DocumentData
+            healthScore       = repo.healthScore       ?? 0
+            healthGrade       = repo.healthGrade       ?? "-"
+            productivityState = repo.productivityState ?? "-"
+          }
+        } catch {
+          // repo belum dianalisis, biarkan default
+        }
+
         return {
-          id:          m.classId,
-          name:        ts.name        as string,
-          description: ts.description as string | null,
-          repoName:    ts.repoFullName as string,
-          role:        m.role,
-          memberCount: memberSnap.size,
+          id:               m.classId,
+          name:             ts.name        as string,
+          description:      ts.description as string | null,
+          repoName:         ts.repoFullName as string,
+          role:             m.role,
+          memberCount:      memberSnap.size,
+          healthScore,
+          healthGrade,
+          productivityState,
         }
       })
     )
