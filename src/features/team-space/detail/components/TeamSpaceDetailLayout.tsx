@@ -23,7 +23,7 @@ export function TeamSpaceDetailLayout({ id }: Props) {
   )
 
   return (
-    <PageShell title="Team Space" detail={detail.name}>
+    <PageShell title="Team Space" detail={detail.name} backHref="/team-space">
       <TeamSpaceDetailView id={id} />
     </PageShell>
   );
