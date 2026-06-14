@@ -101,7 +101,7 @@ export function EditRoleDialog({ open, onClose, memberId, memberName, currentRol
           <>
             <DialogHeader>
               <DialogTitle className="flex items-center justify-center text-lg font-semibold">
-                Edit Anggota
+                Edit Member
               </DialogTitle>
             </DialogHeader>
 
@@ -142,15 +142,15 @@ export function EditRoleDialog({ open, onClose, memberId, memberName, currentRol
                   </DropdownMenuContent>
                 </DropdownMenu>
                 {isOwnerRow && (
-                  <p className="text-xs text-gray-400">Role owner tidak dapat diubah.</p>
+                  <p className="text-xs text-gray-400">The Owner role cannot be changed.</p>
                 )}
               </div>
 
               {showKick && (
                 <div className="border border-gray-200 rounded-lg p-3 flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Remove Anggota</p>
-                    <p className="text-xs text-gray-400">Keluarkan {memberName} dari team ini</p>
+                    <p className="text-sm font-medium text-gray-900">Remove Member</p>
+                    <p className="text-xs text-gray-400">Remove {memberName} from this team</p>
                   </div>
                   <Button
                     onClick={() => setView("confirm-kick")}
@@ -188,13 +188,13 @@ export function EditRoleDialog({ open, onClose, memberId, memberName, currentRol
               </div>
               <DialogHeader>
                 <DialogTitle className="flex items-center justify-center text-lg font-semibold">
-                  Keluarkan Anggota
+                  Remove Member
                 </DialogTitle>
               </DialogHeader>
               <p className="text-sm text-gray-500 text-center">
-                Apakah kamu yakin ingin mengeluarkan{" "}
+                Are you sure you want to remove {" "}
                 <span className="font-semibold text-gray-900">{memberName}</span>{" "}
-                dari team ini?
+                from this team?
               </p>
             </div>
 

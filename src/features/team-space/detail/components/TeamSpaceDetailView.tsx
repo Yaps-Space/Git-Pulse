@@ -1,7 +1,7 @@
 "use client"
 
 import { Users, GitBranch } from "lucide-react"
-import { useTeamSpaceDetail } from "../hooks/useTeamSpaceDetail"
+import { useTeamSpaceDetail }      from "../hooks/useTeamSpaceDetail"
 import { ROLE_COLOR, ROLE_TEXT, ROLE_LABEL } from "../../constants/TeamSpaceConfig"
 import { canViewAllMembers }       from "../helpers/permissions"
 import { InviteCodeButton }        from "./InviteCodeButton"
@@ -11,6 +11,7 @@ import { TeamSpaceMemberTable }    from "./TeamSpaceMemberTable"
 import { ContributorsChart }       from "./ContributorsChart"
 import TeamSpaceFooterActions      from "./TeamSpaceFooterActions"
 import { TeamSpaceRepoHealthCard } from "./TeamSpaceRepoHealthCard"
+import { ContributionCard }      from "./ContributionCard"
 
 interface Props {
   id: string
@@ -27,7 +28,7 @@ export default function TeamSpaceDetailView({ id }: Props) {
     : detail.members.filter(m => m.userId === detail.myMembership.userId)
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-4">
       <div className="flex items-start justify-between">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
@@ -64,7 +65,7 @@ export default function TeamSpaceDetailView({ id }: Props) {
       </div>
 
       {/* Repo Health Stats */}
-      <div className="mt-4 mb-2"> 
+      <div className="">
         <TeamSpaceRepoHealthCard
           healthScore       ={detail.healthScore}
           healthGrade       ={detail.healthGrade}
@@ -72,34 +73,33 @@ export default function TeamSpaceDetailView({ id }: Props) {
           repoFullName      ={detail.repoFullName}
           repoId            ={detail.repoId}
         />
+        {isEvaluator && (
+          <div className="mt-2">
+            <TeamSpaceStatusCards members={detail.members} />
+          </div>
+        )}
       </div>
 
-      {isEvaluator && (
-        <div className="mb-4">
-         <TeamSpaceStatusCards members={detail.members} />
-        </div>
-      )}
-
-      <div className="mb-4">
+      {isEvaluator ? (     
         <TeamSpaceMemberTable
           members={visibleMembers}
           myRole={detail.myRole}
           ownerId={detail.ownerId}
           classId={detail.id}
-          onMutate={refresh}
+          onMutate={refresh}            
           showSearchAndFilter={isEvaluator}
-        />
-      </div>
+        /> 
+      ) : (
+        <ContributionCard member={detail.myMembership} classId={detail.id} onMutate={refresh} />
+      )}
 
       <ContributorsChart members={visibleMembers} repoCommitsPerMonth={detail.repoCommitsPerMonth} />
 
-      <div className="mt-4">
-        <TeamSpaceFooterActions
-          classId={detail.id}
-          myRole={detail.myRole}
-          createdAt={detail.createdAt}
-        />
-      </div>
+      <TeamSpaceFooterActions
+        classId={detail.id}
+        myRole={detail.myRole}
+        createdAt={detail.createdAt}    
+      />
     </div>
   )
 }

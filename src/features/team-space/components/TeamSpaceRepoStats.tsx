@@ -23,7 +23,7 @@ export function TeamSpaceRepoStats({ healthScore, healthGrade, productivityState
     <div className="flex flex-col gap-1.5">
       {/* Health Score */}
       <div
-        className="flex items-center justify-between px-3 py-2 rounded-md border border-gray-200"
+        className="flex items-center justify-between px-3 py-2 rounded-md bg-gray-50"
       >
         <span className="text-xs text-gray-500">Health Score</span>
         <div className="flex items-center gap-1.5">
@@ -47,7 +47,7 @@ export function TeamSpaceRepoStats({ healthScore, healthGrade, productivityState
 
       {/* Productivity State */}
       <div
-        className="flex items-center justify-between px-3 py-2 rounded-md border border-gray-200"
+        className="flex items-center justify-between px-3 py-2 rounded-md bg-gray-50"
       >
         <span className="text-xs text-gray-500">
           Status
