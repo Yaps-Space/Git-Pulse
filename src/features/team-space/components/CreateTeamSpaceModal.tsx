@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { X, Check } from "lucide-react"
+import { X, Check, ChevronDown } from "lucide-react"
 import Image from "next/image"
 import {
   Dialog,
@@ -149,13 +149,14 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
                 <PopoverTrigger asChild>
                   <button
                     className={cn(
-                      "w-full flex items-center justify-between h-10 px-3 rounded-lg border border-input text-sm",
+                      "w-full flex items-center justify-between h-10 px-3 rounded-lg border border-input text-sm transition-colors hover:bg-accent",
                       !repoFullName && "text-muted-foreground"
                     )}
                   >
                     <span className="truncate">
                       {repoFullName || "Pilih repository"}
                     </span>
+                    <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0 ml-2" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
