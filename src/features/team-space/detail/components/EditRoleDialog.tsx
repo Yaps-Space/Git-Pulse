@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Check, ChevronDown } from "lucide-react"
 import {
@@ -42,6 +42,13 @@ export function EditRoleDialog({ open, onClose, memberId, memberName, currentRol
   const [view,     setView]     = useState<View>("edit")
   const [selected, setSelected] = useState<Role>(currentRole as Role)
   const [loading,  setLoading]  = useState<"save" | "kick" | null>(null)
+
+  useEffect(() => {
+    if (open) {
+      setSelected(currentRole as Role)
+      setView("edit")
+    }
+  }, [open, currentRole])
 
   const isOwnerRow = currentRole === "owner"
   const showKick   = canKick(myRole, currentRole)
