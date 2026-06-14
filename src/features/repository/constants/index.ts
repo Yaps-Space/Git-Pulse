@@ -14,6 +14,6 @@ export const GRADE_COLOR: Record<string, string> = {
 
 export const PRODUCTIVITY_BG: Record<string, string> = {
   Active:   "#83ECA7",
-  Moderate: "#B6BBFF",
+  Moderate: "#FFDF61",
   Inactive: "#FF9898",
 }
