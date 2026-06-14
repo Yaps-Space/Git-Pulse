@@ -5,19 +5,21 @@ import { useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
 
 type PageShellProps = {
-  title: string
-  tabs?: ReactNode
-  detail?: ReactNode
+  title:    string
+  tabs?:    ReactNode
+  detail?:  ReactNode
   oneBack?: () => void
+  backHref?: string
   children: ReactNode
 }
 
-export function PageShell({ title, tabs, detail, oneBack, children }: PageShellProps) {
+export function PageShell({ title, tabs, detail, oneBack, backHref, children }: PageShellProps) {
   const router = useRouter()
 
   const handleBack = () => {
-    if (oneBack) oneBack()
-    else router.back()
+    if (oneBack)       oneBack()
+    else if (backHref) router.push(backHref)
+    else               router.back()
   }
 
   return (

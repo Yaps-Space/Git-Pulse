@@ -28,7 +28,7 @@ export function RepoDetailLayout({ id }: Props) {
   if (isMobile) return <RepoDetailMobile repo={repo} />
 
   return (
-    <PageShell title="Repository" detail={repo.fullName}>
+    <PageShell title="Repository" detail={repo.fullName} backHref="/repository">
       <RepoDetailView repo={repo} />
     </PageShell>
   )
