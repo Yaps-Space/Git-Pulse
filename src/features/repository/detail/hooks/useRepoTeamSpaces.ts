@@ -5,7 +5,7 @@ interface TeamSpace {
   name:        string
   description: string | null
   role:        string
-  repoName:    string
+  repoNames:   string[]
 }
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
@@ -18,6 +18,6 @@ export function useRepoTeamSpaces(repoFullName: string) {
   })
 
   return {
-    teamSpaces: data.filter(t => t.repoName === repoFullName),
+    teamSpaces: data.filter(t => t.repoNames.includes(repoFullName)),
   }
 }

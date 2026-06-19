@@ -2,10 +2,10 @@ import useSWR from "swr"
 import { TeamSpace } from "../types/TeamSpace"
 
 interface UseTeamSpacesResult {
-  teamSpaces: TeamSpace[];
-  loading:    boolean;
-  error:      string | null;
-  refresh:    () => void;
+  teamSpaces: TeamSpace[]
+  loading:    boolean
+  error:      string | null
+  refresh:    () => void
 }
 
 const fetcher = (url: string): Promise<TeamSpace[]> => fetch(url).then(r => r.json())
