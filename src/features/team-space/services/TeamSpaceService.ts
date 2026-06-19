@@ -1,13 +1,13 @@
 interface Repo {
-  id:       string;
-  fullName: string;
+  id:       string
+  fullName: string
 }
 
 interface CreateTeamSpaceData {
-  name:         string;
-  description:  string;
-  repoFullName: string;
-  importLogins: string[];
+  name:          string
+  description:   string
+  repoFullNames: string[]
+  importLogins:  string[]
 }
 
 export async function createTeamSpace(data: CreateTeamSpaceData) {
@@ -35,9 +35,9 @@ export async function fetchRepos(): Promise<Repo[]> {
 }
 
 export interface Contributor {
-  login:        string;
-  avatar_url:   string;
-  isRegistered: boolean;
+  login:        string
+  avatar_url:   string
+  isRegistered: boolean
 }
 
 export async function fetchRepoContributors(repoFullName: string): Promise<Contributor[]> {

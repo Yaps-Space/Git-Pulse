@@ -31,23 +31,24 @@ import { createTeamSpace, fetchRepos, fetchRepoContributors, Contributor } from 
 import { cn } from "@/shared/lib/utils"
 
 interface Repo {
-  id:       string;
-  fullName: string;
+  id:       string
+  fullName: string
 }
 
 export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void }) {
-  const router              = useRouter()
-  const { data: session }   = useSession()
-  const [name,          setName]          = useState("")
-  const [description,   setDescription]   = useState("")
-  const [repoFullName,  setRepoFullName]  = useState("")
-  const [repos,         setRepos]         = useState<Repo[]>([])
-  const [loading,       setLoading]       = useState(false)
-  const [loadingRepos,  setLoadingRepos]  = useState(true)
-  const [contributors,  setContributors]  = useState<Contributor[]>([])
-  const [loadingContributors, setLoadingContributors] = useState(false)
-  const [selectedLogins, setSelectedLogins] = useState<Set<string>>(new Set())
-  const [repoOpen,      setRepoOpen]      = useState(false)
+  const router            = useRouter()
+  const { data: session } = useSession()
+
+  const [name,               setName]               = useState("")
+  const [description,        setDescription]        = useState("")
+  const [selectedRepos,      setSelectedRepos]      = useState<string[]>([])
+  const [repos,              setRepos]              = useState<Repo[]>([])
+  const [loading,            setLoading]            = useState(false)
+  const [loadingRepos,       setLoadingRepos]       = useState(true)
+  const [contributors,       setContributors]       = useState<Contributor[]>([])
+  const [loadingContributors,setLoadingContributors]= useState(false)
+  const [selectedLogins,     setSelectedLogins]     = useState<Set<string>>(new Set())
+  const [repoOpen,           setRepoOpen]           = useState(false)
 
   useEffect(() => {
     fetchRepos()
@@ -55,13 +56,19 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
       .finally(() => setLoadingRepos(false))
   }, [])
 
+  // Fetch contributors dari semua repo yang dipilih (gabungan unik)
   useEffect(() => {
-    if (!repoFullName) { setContributors([]); setSelectedLogins(new Set()); return }
+    if (selectedRepos.length === 0) { setContributors([]); setSelectedLogins(new Set()); return }
     setLoadingContributors(true)
-    fetchRepoContributors(repoFullName)
-      .then(setContributors)
+
+    Promise.all(selectedRepos.map(r => fetchRepoContributors(r)))
+      .then(results => {
+        const merged = new Map<string, Contributor>()
+        results.flat().forEach(c => { if (!merged.has(c.login)) merged.set(c.login, c) })
+        setContributors(Array.from(merged.values()))
+      })
       .finally(() => setLoadingContributors(false))
-  }, [repoFullName])
+  }, [selectedRepos])
 
   const registeredNonOwner = contributors.filter(c =>
     c.isRegistered && c.login.toLowerCase() !== session?.user?.username?.toLowerCase()
@@ -84,15 +91,23 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
     })
   }
 
+  const toggleRepo = (fullName: string) => {
+    setSelectedRepos(prev =>
+      prev.includes(fullName)
+        ? prev.filter(r => r !== fullName)
+        : [...prev, fullName]
+    )
+  }
+
   const handleSubmit = async () => {
-    if (!name || !repoFullName) return
+    if (!name || selectedRepos.length === 0) return
     setLoading(true)
     try {
       const data = await createTeamSpace({
         name,
         description,
-        repoFullName,
-        importLogins: Array.from(selectedLogins),
+        repoFullNames: selectedRepos,
+        importLogins:  Array.from(selectedLogins),
       })
       if (data.id) {
         router.push(`/team-space/${data.id}`)
@@ -149,12 +164,20 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
                 <PopoverTrigger asChild>
                   <button
                     className={cn(
-                      "w-full flex items-center justify-between h-10 px-3 rounded-lg border border-input text-sm transition-colors hover:bg-accent",
-                      !repoFullName && "text-muted-foreground"
+                      "w-full flex items-center justify-between min-h-10 px-3 py-2 rounded-lg border border-input text-sm transition-colors hover:bg-accent text-left",
+                      selectedRepos.length === 0 && "text-muted-foreground"
                     )}
                   >
-                    <span className="truncate">
-                      {repoFullName || "Pilih repository"}
+                    <span className="flex flex-wrap gap-1 flex-1 min-w-0">
+                      {selectedRepos.length === 0 ? (
+                        "Pilih repository"
+                      ) : (
+                        selectedRepos.map(r => (
+                          <span key={r} className="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-md truncate max-w-[160px]">
+                            {r}
+                          </span>
+                        ))
+                      )}
                     </span>
                     <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0 ml-2" />
                   </button>
@@ -173,15 +196,14 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
                             value={r.fullName}
                             onSelect={(val: string) => {
                               const matched = repos.find(repo => repo.fullName.toLowerCase() === val.toLowerCase())
-                              setRepoFullName(matched?.fullName ?? val)
-                              setRepoOpen(false)
+                              if (matched) toggleRepo(matched.fullName)
                             }}
                             className="text-sm"
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4 flex-shrink-0",
-                                repoFullName === r.fullName ? "opacity-100 text-[#00D964]" : "opacity-0"
+                                selectedRepos.includes(r.fullName) ? "opacity-100 text-[#00D964]" : "opacity-0"
                               )}
                             />
                             {r.fullName}
@@ -193,10 +215,14 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
                 </PopoverContent>
               </Popover>
             )}
-            <p className="text-xs text-gray-400">Hanya repo yang sudah diconnect</p>
+            <p className="text-xs text-gray-400">
+              {selectedRepos.length > 0
+                ? `${selectedRepos.length} repository dipilih`
+                : "Hanya repo yang sudah diconnect. Bisa pilih lebih dari satu."}
+            </p>
           </div>
 
-          {repoFullName && (
+          {selectedRepos.length > 0 && (
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium text-gray-700">Import Member</Label>
@@ -272,7 +298,7 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
           <Button
             className="flex-1 h-10 rounded-lg bg-[#00D964] hover:bg-[#00c057] text-gray-900 font-bold"
             onClick={handleSubmit}
-            disabled={loading || !name || !repoFullName}
+            disabled={loading || !name || selectedRepos.length === 0}
           >
             {loading ? "Membuat..." : "Create"}
           </Button>
