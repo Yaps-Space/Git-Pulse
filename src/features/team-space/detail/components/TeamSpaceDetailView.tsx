@@ -49,9 +49,11 @@ export default function TeamSpaceDetailView({ id }: Props) {
               <Users className="w-3.5 h-3.5 text-gray-400" />
               <span className="text-xs text-gray-400">{detail.members.length} Anggota</span>
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <GitBranch className="w-3.5 h-3.5 text-gray-400" />
-              <span className="text-xs text-gray-400">{detail.repoFullName}</span>
+              {detail.repoFullNames.map((name, i) => (
+                <span key={i} className="text-xs text-gray-400">{name}{i < detail.repoFullNames.length - 1 ? "," : ""}</span>
+              ))}
             </div>
           </div>
         </div>
@@ -64,31 +66,32 @@ export default function TeamSpaceDetailView({ id }: Props) {
         )}
       </div>
 
-      {/* Repo Health Stats */}
-      <div className="">
-        <TeamSpaceRepoHealthCard
-          healthScore       ={detail.healthScore}
-          healthGrade       ={detail.healthGrade}
-          productivityState ={detail.productivityState}
-          repoFullName      ={detail.repoFullName}
-          repoId            ={detail.repoId}
-        />
+      {/* Repo Health Stats — satu card per repo */}
+      <div className="flex flex-col gap-2">
+        {detail.repoHealthList.map((rh) => (
+          <TeamSpaceRepoHealthCard
+            key={rh.repoFullName}
+            healthScore       ={rh.healthScore}
+            healthGrade       ={rh.healthGrade}
+            productivityState ={rh.productivityState}
+            repoFullName      ={rh.repoFullName}
+            repoId            ={rh.repoId}
+          />
+        ))}
         {isEvaluator && (
-          <div className="mt-2">
-            <TeamSpaceStatusCards members={detail.members} />
-          </div>
+          <TeamSpaceStatusCards members={detail.members} />
         )}
       </div>
 
-      {isEvaluator ? (     
+      {isEvaluator ? (
         <TeamSpaceMemberTable
           members={visibleMembers}
           myRole={detail.myRole}
           ownerId={detail.ownerId}
           classId={detail.id}
-          onMutate={refresh}            
+          onMutate={refresh}
           showSearchAndFilter={isEvaluator}
-        /> 
+        />
       ) : (
         <ContributionCard member={detail.myMembership} classId={detail.id} onMutate={refresh} />
       )}
@@ -98,7 +101,7 @@ export default function TeamSpaceDetailView({ id }: Props) {
       <TeamSpaceFooterActions
         classId={detail.id}
         myRole={detail.myRole}
-        createdAt={detail.createdAt}    
+        createdAt={detail.createdAt}
       />
     </div>
   )

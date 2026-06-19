@@ -92,9 +92,9 @@ export default function TeamSpaceListMobile() {
 
                 {/* Repo Stats */}
                 <TeamSpaceRepoStats
-                  healthScore       ={ts.healthScore}
-                  healthGrade       ={ts.healthGrade}
-                  productivityState ={ts.productivityState}
+                  avgHealthScore     ={ts.avgHealthScore}
+                  avgHealthGrade     ={ts.avgHealthGrade}
+                  productivityStates ={ts.productivityStates}
                 />
 
                 {/* Footer */}
@@ -104,10 +104,14 @@ export default function TeamSpaceListMobile() {
                       <Users className="w-3.5 h-3.5 text-gray-400" />
                       <span className="text-xs text-gray-400">{ts.memberCount} Anggota</span>
                     </div>
-                    {ts.repoName && (
+                    {ts.repoNames.length > 0 && (
                       <div className="flex items-center gap-1.5 min-w-0">
                         <GitBranch className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                        <span className="text-xs text-gray-400 truncate">{ts.repoName}</span>
+                        <span className="text-xs text-gray-400 truncate">
+                          {ts.repoNames.length === 1
+                            ? ts.repoNames[0]
+                            : `${ts.repoNames[0]} +${ts.repoNames.length - 1}`}
+                        </span>
                       </div>
                     )}
                   </div>
