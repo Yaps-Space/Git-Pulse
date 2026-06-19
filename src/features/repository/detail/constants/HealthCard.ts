@@ -10,16 +10,6 @@ export const BREAKDOWN_CONFIG = {
       { key: "has_coc",          label: "Code of Conduct" },
     ],
   },
-  popularity: {
-    label:    "Popularitas",
-    max:      25,
-    detailKeys: [
-      { key: "stars",       label: "Stars",      format: (v: number) => v.toLocaleString() },
-      { key: "forks_count", label: "Forks",      format: (v: number) => v.toLocaleString() },
-      { key: "star_score",  label: "Star score", format: (v: number) => `${v.toFixed(1)} / 100` },
-      { key: "fork_score",  label: "Fork score", format: (v: number) => `${v.toFixed(1)} / 100` },
-    ],
-  },
   issueManagement: {
     label:    "Issue Management",
     max:      25,
@@ -35,6 +25,16 @@ export const BREAKDOWN_CONFIG = {
     detailKeys: [
       { key: "velocity_stability", label: "Stability index", format: (v: number) => v.toFixed(2) },
       { key: "interpretation",     label: "Status",          format: (v: string) => v },
+    ],
+  },
+  popularity: {
+    label:    "Popularitas",
+    max:      25,
+    detailKeys: [
+      { key: "stars",       label: "Stars",      format: (v: number) => v.toLocaleString() },
+      { key: "forks_count", label: "Forks",      format: (v: number) => v.toLocaleString() },
+      { key: "star_score",  label: "Star score", format: (v: number) => `${v.toFixed(1)} / 100` },
+      { key: "fork_score",  label: "Fork score", format: (v: number) => `${v.toFixed(1)} / 100` },
     ],
   },
 } as const
