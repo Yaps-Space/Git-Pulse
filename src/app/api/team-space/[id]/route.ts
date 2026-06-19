@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/shared/lib/firebase"
 import { collection, query, where, getDocs, doc, getDoc, DocumentData } from "firebase/firestore"
 import { TeamMember } from "@/features/team-space/types/TeamSpace"
-import { TeamSpaceDetail } from "@/features/team-space/detail/types/TeamSpaceDetail"
+import { TeamSpaceDetail, RepoHealth } from "@/features/team-space/detail/types/TeamSpaceDetail"
 import { GithubCommit } from "@/features/team-space/detail/types/analyzeTypes"
 
 export async function GET(
@@ -54,77 +54,107 @@ export async function GET(
     const myMembership = members.find(m => m.userId === session.user.id)
     if (!myMembership) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
-    let repoCommitsPerMonth = Array(12).fill(0)
-    try {
-      const since    = new Date(now)
-      since.setFullYear(since.getFullYear() - 1)
-      const sinceStr = since.toISOString()
+    /** Support legacy single-repo (repoFullName) and new multi-repo (repoFullNames) */
+    const repoFullNames: string[] = Array.isArray(ts.repoFullNames)
+      ? ts.repoFullNames
+      : ts.repoFullName ? [ts.repoFullName as string] : []
 
-      let repoCommits: string[] = []
-      let page                  = 1
-      while (true) {
-        const res  = await fetch(
-          `https://api.github.com/repos/${ts.repoFullName}/commits?per_page=100&page=${page}&since=${sinceStr}&sha=main`,
-          { headers: { Authorization: `Bearer ${session.accessToken}` } }
-        )
-        const data = await res.json() as GithubCommit[]
-        if (!Array.isArray(data) || data.length === 0) break
-        repoCommits = [...repoCommits, ...data.map((c: GithubCommit) => c.commit?.author?.date || "")]
-        if (data.length < 100) break
-        page++
+    const since    = new Date(now)
+    since.setFullYear(since.getFullYear() - 1)
+    const sinceStr = since.toISOString()
+
+    /**
+     * Fetch commit dates per repo and map them into monthly buckets.
+     * Result: { "owner/repo": [0, 3, 5, ...] } — 12 values, oldest to newest.
+     */
+    const repoCommitsPerMonth: Record<string, number[]> = {}
+
+    for (const repoName of repoFullNames) {
+      const monthlyCounts = Array(12).fill(0)
+
+      try {
+        let page = 1
+        while (true) {
+          const res  = await fetch(
+            `https://api.github.com/repos/${repoName}/commits?per_page=100&page=${page}&since=${sinceStr}&sha=main`,
+            { headers: { Authorization: `Bearer ${session.accessToken}` } }
+          )
+          const data = await res.json() as GithubCommit[]
+          if (!Array.isArray(data) || data.length === 0) break
+
+          data.forEach((c: GithubCommit) => {
+            const date = c.commit?.author?.date
+            if (!date) return
+            const d        = new Date(date)
+            const matchIdx = last12Months.findIndex(
+              m => m.year === d.getFullYear() && m.month === d.getMonth()
+            )
+            if (matchIdx !== -1) monthlyCounts[matchIdx]++
+          })
+
+          if (data.length < 100) break
+          page++
+        }
+      } catch {
+        // Keep monthlyCounts as zeros if fetch fails for this repo
       }
 
-      repoCommits.forEach((date) => {
-        if (!date) return
-        const d        = new Date(date)
-        const matchIdx = last12Months.findIndex(m => m.year === d.getFullYear() && m.month === d.getMonth())
-        if (matchIdx !== -1) repoCommitsPerMonth[matchIdx]++
-      })
-    } catch {
-      repoCommitsPerMonth = Array(12).fill(0)
+      repoCommitsPerMonth[repoName] = monthlyCounts
     }
 
-    // ── Join repositories untuk health & productivity ──────────
-    let repoId            : string | null = null
-    let healthScore                       = 0
-    let healthGrade                       = "-"
-    let productivityState                 = "-"
-
-    try {
-      const repoSnap = await getDocs(
-        query(
-          collection(db, "repositories"),
-          where("userId",   "==", session.user.id),
-          where("fullName", "==", ts.repoFullName)
+    /** Fetch health score and productivity state for each linked repository */
+    const repoHealthList: RepoHealth[] = []
+    for (const repoName of repoFullNames) {
+      try {
+        const repoSnap = await getDocs(
+          query(
+            collection(db, "repositories"),
+            where("userId",   "==", session.user.id),
+            where("fullName", "==", repoName)
+          )
         )
-      )
-      if (!repoSnap.empty) {
-        const repo    = repoSnap.docs[0].data() as DocumentData
-        repoId            = repoSnap.docs[0].id
-        healthScore       = repo.healthScore       ?? 0
-        healthGrade       = repo.healthGrade       ?? "-"
-        productivityState = repo.productivityState ?? "-"
+        if (!repoSnap.empty) {
+          const repo = repoSnap.docs[0].data() as DocumentData
+          repoHealthList.push({
+            repoFullName:      repoName,
+            repoId:            repoSnap.docs[0].id,
+            healthScore:       repo.healthScore       ?? 0,
+            healthGrade:       repo.healthGrade       ?? "-",
+            productivityState: repo.productivityState ?? "-",
+          })
+        } else {
+          repoHealthList.push({
+            repoFullName: repoName,
+            repoId:       null,
+            healthScore:       0,
+            healthGrade:       "-",
+            productivityState: "-",
+          })
+        }
+      } catch {
+        repoHealthList.push({
+          repoFullName: repoName,
+          repoId:       null,
+          healthScore:       0,
+          healthGrade:       "-",
+          productivityState: "-",
+        })
       }
-    } catch {
-      // repo belum dianalisis, biarkan default
     }
 
     const detail: TeamSpaceDetail = {
       id,
-      name:               ts.name         as string,
-      description:        (ts.description as string) || null,
-      repoFullName:       ts.repoFullName  as string,
-      repoId,
-      ownerId:            ts.ownerId       as string,
-      inviteCode:         ts.inviteCode    as string,
-      createdAt:          ts.createdAt?.seconds ? (ts.createdAt.seconds as number) * 1000 : null,
-      myRole:             myMembership.role,
+      name:                ts.name         as string,
+      description:         (ts.description as string) || null,
+      repoFullNames,
+      ownerId:             ts.ownerId       as string,
+      inviteCode:          ts.inviteCode    as string,
+      createdAt:           ts.createdAt?.seconds ? (ts.createdAt.seconds as number) * 1000 : null,
+      myRole:              myMembership.role,
       myMembership,
       members,
       repoCommitsPerMonth,
-      healthScore,
-      healthGrade,
-      productivityState,
+      repoHealthList,
     }
 
     return NextResponse.json(detail)

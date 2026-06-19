@@ -17,6 +17,14 @@ function generateInviteCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase()
 }
 
+function avgGrade(score: number): string {
+  if (score >= 75) return "A"
+  if (score >= 60) return "B"
+  if (score >= 45) return "C"
+  if (score >= 30) return "D"
+  return "E"
+}
+
 export async function GET() {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -45,39 +53,52 @@ export async function GET() {
           query(collection(db, "memberships"), where("classId", "==", m.classId))
         )
 
-        // Join dengan repositories untuk health & productivity
-        let healthScore       = 0
-        let healthGrade       = "-"
-        let productivityState = "-"
+        // Handle legacy (string) dan baru (array)
+        const repoNames: string[] = Array.isArray(ts.repoFullNames)
+          ? ts.repoFullNames
+          : ts.repoFullName ? [ts.repoFullName as string] : []
 
-        try {
-          const repoSnap = await getDocs(
-            query(
-              collection(db, "repositories"),
-              where("userId",   "==", session.user.id),
-              where("fullName", "==", ts.repoFullName)
+        // Join ke semua repo
+        let totalHealth         = 0
+        let healthCount         = 0
+        const productivityStates: string[] = []
+
+        await Promise.all(repoNames.map(async (repoFullName) => {
+          try {
+            const repoSnap = await getDocs(
+              query(
+                collection(db, "repositories"),
+                where("userId",   "==", session.user.id),
+                where("fullName", "==", repoFullName)
+              )
             )
-          )
-          if (!repoSnap.empty) {
-            const repo    = repoSnap.docs[0].data() as DocumentData
-            healthScore       = repo.healthScore       ?? 0
-            healthGrade       = repo.healthGrade       ?? "-"
-            productivityState = repo.productivityState ?? "-"
+            if (!repoSnap.empty) {
+              const repo = repoSnap.docs[0].data() as DocumentData
+              totalHealth += repo.healthScore ?? 0
+              healthCount++
+              if (repo.productivityState) {
+                productivityStates.push(repo.productivityState as string)
+              }
+            }
+          } catch {
+            // skip
           }
-        } catch {
-          // repo belum dianalisis, biarkan default
-        }
+        }))
+
+        const avgHealthScore = healthCount > 0
+          ? Math.round((totalHealth / healthCount) * 10) / 10  // round ke 1 desimal
+          : 0
 
         return {
-          id:               m.classId,
-          name:             ts.name        as string,
-          description:      ts.description as string | null,
-          repoName:         ts.repoFullName as string,
-          role:             m.role,
-          memberCount:      memberSnap.size,
-          healthScore,
-          healthGrade,
-          productivityState,
+          id:                 m.classId,
+          name:               ts.name        as string,
+          description:        ts.description as string | null,
+          repoNames,
+          role:               m.role,
+          memberCount:        memberSnap.size,
+          avgHealthScore,
+          avgHealthGrade:     avgGrade(avgHealthScore),
+          productivityStates,
         }
       })
     )
@@ -93,19 +114,19 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const { name, description, repoFullName, importLogins } = await req.json()
-  if (!name || !repoFullName) return NextResponse.json({ error: "Missing fields" }, { status: 400 })
+  const { name, description, repoFullNames, importLogins } = await req.json()
+  if (!name || !repoFullNames?.length) return NextResponse.json({ error: "Missing fields" }, { status: 400 })
 
   try {
     const inviteCode = generateInviteCode()
 
     const tsRef = await addDoc(collection(db, "teamSpaces"), {
       name,
-      description:  description || null,
-      repoFullName,
-      ownerId:      session.user.id,
+      description:   description || null,
+      repoFullNames,
+      ownerId:       session.user.id,
       inviteCode,
-      createdAt:    serverTimestamp(),
+      createdAt:     serverTimestamp(),
     })
 
     await addDoc(collection(db, "memberships"), {
