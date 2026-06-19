@@ -17,6 +17,7 @@ export function TeamSpaceRepoHealthCard({
   healthScore,
   healthGrade,
   productivityState,
+  repoFullName,
   repoId,
 }: Props) {
   const stateDisplay = capitalizeFirst(productivityState)
@@ -29,6 +30,7 @@ export function TeamSpaceRepoHealthCard({
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
         <div className="flex items-center gap-1.5">
           <span className="text-sm font-semibold text-white">Repository Health</span>
+          <span className="text-xs text-gray-400">· {repoFullName}</span>
         </div>
         {repoId && (
           <Link
