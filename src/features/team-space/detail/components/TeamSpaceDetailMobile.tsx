@@ -40,7 +40,11 @@ export function TeamSpaceDetailMobile({ detail, onMutate }: Props) {
               </div>
               <div className="flex items-center gap-1 min-w-0">
                 <GitBranch className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                <span className="text-xs text-gray-400 truncate">{detail.repoFullName}</span>
+                <span className="text-xs text-gray-400 truncate">
+                  {detail.repoFullNames.length === 1
+                    ? detail.repoFullNames[0]
+                    : `${detail.repoFullNames[0]} +${detail.repoFullNames.length - 1}`}
+                </span>
               </div>
             </div>
             <span
@@ -62,27 +66,28 @@ export function TeamSpaceDetailMobile({ detail, onMutate }: Props) {
           </div>
         )}
 
-        {/* Repo Health Stats */}
-        <div className="">
-          <TeamSpaceRepoHealthCard
-            healthScore       ={detail.healthScore}
-            healthGrade       ={detail.healthGrade}
-            productivityState ={detail.productivityState}
-            repoFullName      ={detail.repoFullName}
-            repoId            ={detail.repoId}
-          />
+        {/* Repo Health Stats — satu card per repo */}
+        <div className="flex flex-col gap-2">
+          {detail.repoHealthList.map((rh) => (
+            <TeamSpaceRepoHealthCard
+              key={rh.repoFullName}
+              healthScore       ={rh.healthScore}
+              healthGrade       ={rh.healthGrade}
+              productivityState ={rh.productivityState}
+              repoFullName      ={rh.repoFullName}
+              repoId            ={rh.repoId}
+            />
+          ))}
           {isEvaluator && (
-          <div className="mt-2">
             <TeamSpaceStatusCards members={detail.members} />
-          </div>
-        )}
+          )}
         </div>
 
         {isEvaluator ? (
           <TeamSpaceMemberList
             members={visibleMembers}
             myRole={detail.myRole}
-            classId={detail.id}              
+            classId={detail.id}
             onMutate={onMutate}
             showSearchAndFilter={isEvaluator}
           />
