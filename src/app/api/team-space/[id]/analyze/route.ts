@@ -36,40 +36,51 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
       members.map(m => updateDoc(doc(db, "memberships", m.membershipId), { memberStatus: "analyzing" }))
     )
 
-    const repoFullName = ts.repoFullName as string
-    const headers      = { Authorization: `Bearer ${session.accessToken}` }
+    // ── Support legacy repoFullName (string) dan baru repoFullNames (array) ──
+    const repoFullNames: string[] = Array.isArray(ts.repoFullNames)
+      ? ts.repoFullNames
+      : ts.repoFullName ? [ts.repoFullName as string] : []
+
+    const headers = { Authorization: `Bearer ${session.accessToken}` }
 
     const since    = new Date()
     since.setFullYear(since.getFullYear() - 1)
     const sinceStr = since.toISOString()
 
-    let allCommits: GithubCommit[] = []
-    let commitPage                 = 1
-    while (true) {
-      const res  = await fetch(
-        `https://api.github.com/repos/${repoFullName}/commits?per_page=100&page=${commitPage}&since=${sinceStr}&sha=main`,
-        { headers }
-      )
-      const data = await res.json() as GithubCommit[]
-      if (!Array.isArray(data) || data.length === 0) break
-      allCommits = [...allCommits, ...data]
-      if (data.length < 100) break
-      commitPage++
-    }
-
-    const totalCommits = allCommits.length
     const last12Months = getLastNMonths(12)
 
+    // memberStats diakumulasi dari semua repo (Opsi B)
     const memberStats: Record<string, { commits: number; dates: string[] }> = {}
-    allCommits.forEach((c: GithubCommit) => {
-      const login = c.author?.login?.toLowerCase()
-        || c.commit?.author?.email?.toLowerCase()
-        || c.commit?.author?.name?.toLowerCase()
-      if (!login) return
-      if (!memberStats[login]) memberStats[login] = { commits: 0, dates: [] }
-      memberStats[login].commits++
-      memberStats[login].dates.push(c.commit?.author?.date || "")
-    })
+    let totalCommits = 0
+
+    for (const repoFullName of repoFullNames) {
+      let commitPage = 1
+
+      while (true) {
+        const res  = await fetch(
+          `https://api.github.com/repos/${repoFullName}/commits?per_page=100&page=${commitPage}&since=${sinceStr}&sha=main`,
+          { headers }
+        )
+        const data = await res.json() as GithubCommit[]
+        if (!Array.isArray(data) || data.length === 0) break
+
+        totalCommits += data.length
+
+        data.forEach((c: GithubCommit) => {
+          const login =
+            c.author?.login?.toLowerCase() ||
+            c.commit?.author?.email?.toLowerCase() ||
+            c.commit?.author?.name?.toLowerCase()
+          if (!login) return
+          if (!memberStats[login]) memberStats[login] = { commits: 0, dates: [] }
+          memberStats[login].commits++
+          memberStats[login].dates.push(c.commit?.author?.date || "")
+        })
+
+        if (data.length < 100) break
+        commitPage++
+      }
+    }
 
     const ML_URL = process.env.NEXT_PUBLIC_ML_SERVICE_URL || "http://127.0.0.1:8000"
 
@@ -86,7 +97,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
         return Math.floor((date.getTime() - startOfYear.getTime()) / (7 * 86400000))
       }))
       const activeWeeksRatio    = Math.min(weeks.size / 52, 1)
-      const activityConsistency = stats.commits > 0 ? Math.random() * 2 + 0.5 : 5.0
+      const activityConsistency = stats.commits > 0 ? weeks.size / 52 : 0  // fix: hapus Math.random()
 
       const commitsPerMonth = last12Months.map(({ year, month }) =>
         stats.dates.filter((d: string) => {
