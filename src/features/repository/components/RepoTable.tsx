@@ -17,6 +17,10 @@ import { PRODUCTIVITY_COLOR, PRODUCTIVITY_BG, GRADE_COLOR } from "../constants"
 import { sortRepos } from "../helpers"
 import { SORTABLE_COLUMNS } from "../constants/Sortable"
 import { capitalizeFirst } from "@/shared/helpers"
+import { Button } from "@/shared/components/ui/button"
+import { RotateCw } from "lucide-react"
+import { useSWRConfig } from "swr"
+import { analyzeRepo } from "@/features/repository/detail/services/repoService"
 
 interface Props {
   repos:    Repo[]
@@ -49,6 +53,8 @@ export function RepoTable({ repos, search, pageSize }: Props) {
 
   const isSortable = (label: string) => SORTABLE_COLUMNS.some(c => c.label === label)
   const getSortKey = (label: string) => SORTABLE_COLUMNS.find(c => c.label === label)?.key
+  const { mutate } = useSWRConfig()
+  const [refreshing, setRefreshing] = useState<string | null>(null)
 
   return (
     <div className="bg-white rounded-xl overflow-hidden">
@@ -117,12 +123,34 @@ export function RepoTable({ repos, search, pageSize }: Props) {
                     {repo.analyzedAt ? new Date(repo.analyzedAt).toLocaleDateString("id-ID") : "-"}
                   </TableCell>
                   <TableCell>
-                    <button
-                      onClick={() => router.push(`/repository/${repo.id}`)}
-                      className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
-                    >
-                      Lihat Detail
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        className="text-sm text-gray-500 hover:text-gray-900"
+                        onClick={async () => {
+                          setRefreshing(repo.fullName)
+                          try {
+                            await analyzeRepo(repo.fullName)
+                            await mutate("/api/repo/list")
+                          } catch (e) {
+                            console.error(e)
+                          } finally {
+                            setRefreshing(null)
+                          }
+                        }}
+                        disabled={refreshing !== null}
+                      >
+                        <RotateCw className={`w-4 h-4 mr-2 ${refreshing === repo.fullName ? "animate-spin" : ""}`} />
+                        {refreshing === repo.fullName ? "Memperbarui..." : "Perbarui"}
+                      </Button>
+
+                      <button
+                        onClick={() => router.push(`/repository/${repo.id}`)}
+                        className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
+                      >
+                        Lihat Detail
+                      </button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
