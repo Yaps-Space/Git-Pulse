@@ -2,12 +2,11 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
 import { AccountProfileCard } from "./AccountProfileCard";
-import { AccountTeamsCard } from "./AccountTeamsCard";
 import { AccountLogoutCard } from "./AccountLogoutCard";
 import { AccountData } from "../types/Account";
 import { MobilePageHeader } from "@/shared/components/commons/MobilePageHeader";
 
-export function AccountLayoutMobile({ name, username, email, avatar, createdAt }: AccountData) {
+export function AccountLayoutMobile({ name, username, email, avatar, createdAt, linkedProviders }: AccountData) {
   const initials = name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
   return (
@@ -27,13 +26,13 @@ export function AccountLayoutMobile({ name, username, email, avatar, createdAt }
 
       <div className="px-4 pt-5 pb-6 space-y-4">
         <AccountProfileCard
-          name      ={name}
-          username  ={username}
-          email     ={email}
-          avatar    ={avatar}
-          createdAt ={createdAt}
+          name            ={name}
+          username        ={username}
+          email           ={email}
+          avatar          ={avatar}
+          createdAt       ={createdAt}
+          linkedProviders ={linkedProviders}
         />
-        <AccountTeamsCard />
         <AccountLogoutCard />
       </div>
     </div>
