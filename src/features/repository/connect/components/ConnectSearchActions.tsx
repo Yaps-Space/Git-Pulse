@@ -16,12 +16,14 @@ interface Props {
   search:     string
   pageSize:   number
   filter:     string
+  provider:   "github" | "gitlab"
   onSearch:   (val: string) => void
   onPageSize: (val: number) => void
   onFilter:   (val: string) => void
+  onProvider: (p: "github" | "gitlab") => void
 }
 
-export function ConnectSearchActions({ search, pageSize, filter, onSearch, onPageSize, onFilter }: Props) {
+export function ConnectSearchActions({ search, pageSize, filter, provider, onSearch, onPageSize, onFilter, onProvider }: Props) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex-1 relative">
@@ -32,6 +34,21 @@ export function ConnectSearchActions({ search, pageSize, filter, onSearch, onPag
           placeholder="Search"
           className="pl-9 h-10 bg-white border-gray-200 text-sm"
         />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => onProvider("github")}
+          className={`h-10 px-3 rounded-lg border ${provider === "github" ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 bg-white text-gray-700"} text-sm`}
+        >
+          GitHub
+        </button>
+        <button
+          onClick={() => onProvider("gitlab")}
+          className={`h-10 px-3 rounded-lg border ${provider === "gitlab" ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 bg-white text-gray-700"} text-sm`}
+        >
+          GitLab
+        </button>
       </div>
 
       <ShowPerPage value={pageSize} onChange={onPageSize} />

@@ -12,7 +12,7 @@ import { ConnectRepoList } from "./ConnectRepoList"
 import { ConnectMobile } from "./ConnectMobile"
 import { useConnectedRepos } from "../hooks/useConnectedRepos"
 import { GithubRepo } from "../types"
-import { fetchGithubRepos } from "../services"
+import { fetchProviderRepos } from "../services"
 import { analyzeRepo } from "../../detail/services/repoService"
 
 export function ConnectRepoPage() {
@@ -28,18 +28,18 @@ export function ConnectRepoPage() {
   const [connecting, setConnecting] = useState<string | null>(null)
   const [search,     setSearch]     = useState("")
   const [filter,     setFilter]     = useState("all")
+  const [provider,   setProvider]   = useState<"github" | "gitlab">("github")
   const [error,      setError]      = useState("")
   const [pageSize,   setPageSize]   = useState(10)
   const [page,       setPage]       = useState(1)
 
   const loadRepos = useCallback(async () => {
-    if (!session?.accessToken) return
     setLoading(true)
     try {
       let allRepos: GithubRepo[] = []
       let currentPage            = 1
       while (true) {
-        const data  = await fetchGithubRepos(currentPage, filter)
+        const data  = await fetchProviderRepos(currentPage, filter, provider)
         const batch = data.repos ?? []
         allRepos    = [...allRepos, ...batch]
         if (batch.length < 20) break
@@ -51,7 +51,7 @@ export function ConnectRepoPage() {
     } finally {
       setLoading(false)
     }
-  }, [session?.accessToken, filter])
+  }, [filter, provider])
 
   useEffect(() => {
     setPage(1)
@@ -74,7 +74,7 @@ export function ConnectRepoPage() {
     setConnecting(repo.full_name)
     setError("")
     try {
-      const result = await analyzeRepo(repo.full_name)
+      const result = await analyzeRepo(repo.full_name, { provider, repoId: repo.id })
       if (result.success) {
         router.push("/repository")
       } else {
@@ -106,6 +106,8 @@ export function ConnectRepoPage() {
       onPageChange={setPage}
       onConnect={handleConnect}
       onDismissError={() => setError("")}
+      provider={provider}
+      onProvider={(p) => { setProvider(p); setPage(1) }}
     />
   )
 
@@ -116,6 +118,8 @@ export function ConnectRepoPage() {
           search={search}
           pageSize={pageSize}
           filter={filter}
+          provider={provider}
+          onProvider={(p) => { setProvider(p); setPage(1) }}
           onSearch={handleSearch}
           onPageSize={handlePageSize}
           onFilter={handleFilter}

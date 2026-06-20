@@ -1,7 +1,7 @@
 "use client"
 
 import { Star, GitFork, Clock } from "lucide-react"
-import Image from "next/image"
+import { Avatar, AvatarImage, AvatarFallback } from "@/shared/components/ui/avatar"
 import { Button } from "@/shared/components/ui/button"
 import { GithubRepo } from "../types"
 import { timeAgo } from "../helpers"
@@ -20,13 +20,13 @@ export function ConnectRepoItem({ repo, connecting, onConnect, variant = "defaul
     return (
       <div className="bg-white rounded-2xl p-5 flex flex-col gap-3 border border-gray-100">
         <div className="flex items-center gap-3">
-          <Image
-            src={repo.owner.avatar_url}
-            alt={repo.owner.login}
-            width={32}
-            height={32}
-            className="rounded-full flex-shrink-0"
-          />
+          <Avatar className="w-8 h-8">
+            {repo.owner.avatar_url ? (
+              <AvatarImage src={repo.owner.avatar_url} alt={repo.owner.login} />
+            ) : (
+              <AvatarFallback>{(repo.owner.login || "").slice(0, 2).toUpperCase()}</AvatarFallback>
+            )}
+          </Avatar>
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-sm text-gray-900 truncate">{repo.full_name}</p>
             {repo.description && (
@@ -81,13 +81,13 @@ export function ConnectRepoItem({ repo, connecting, onConnect, variant = "defaul
   return (
     <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
       <div className="flex items-center gap-4 flex-1 min-w-0">
-        <Image
-          src={repo.owner.avatar_url}
-          alt={repo.owner.login}
-          width={36}
-          height={36}
-          className="rounded-full flex-shrink-0"
-        />
+        <Avatar className="w-9 h-9">
+          {repo.owner.avatar_url ? (
+            <AvatarImage src={repo.owner.avatar_url} alt={repo.owner.login} />
+          ) : (
+            <AvatarFallback>{(repo.owner.login || "").slice(0, 2).toUpperCase()}</AvatarFallback>
+          )}
+        </Avatar>
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="font-medium text-sm text-gray-800">{repo.full_name}</p>
