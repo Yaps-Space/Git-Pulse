@@ -50,12 +50,16 @@ export function DashboardRepoSnapshot({ repos }: Props) {
                 <p className="text-sm font-semibold text-gray-900 truncate">{repo.fullName}</p>
                 <div className="flex items-center gap-3 mt-0.5">
                   {repo.language && <span className="text-xs text-gray-400">{repo.language}</span>}
-                  <span className="flex items-center gap-0.5 text-xs text-gray-400">
-                    <Star className="w-3 h-3" />{repo.stars}
-                  </span>
-                  <span className="flex items-center gap-0.5 text-xs text-gray-400">
-                    <GitFork className="w-3 h-3" />{repo.forks}
-                  </span>
+                  {!repo.isPrivate && (
+                    <>
+                      <span className="flex items-center gap-0.5 text-xs text-gray-400">
+                        <Star className="w-3 h-3" />{repo.stars}
+                      </span>
+                      <span className="flex items-center gap-0.5 text-xs text-gray-400">
+                        <GitFork className="w-3 h-3" />{repo.forks}
+                      </span>
+                    </>
+                  )}
                   {repo.analyzedAt && (
                     <span className="flex items-center gap-0.5 text-xs text-gray-400">
                       <Clock className="w-3 h-3" />Dianalisis {timeAgo(repo.analyzedAt)}
