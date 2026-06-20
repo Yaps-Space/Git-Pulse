@@ -28,24 +28,14 @@ export function TeamSpaceDetailMobile({ detail, onMutate }: Props) {
   return (
     <div className="min-h-screen">
       <MobilePageHeader title={detail.name} backHref="/team-space">
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1.5">
           {detail.description && (
             <p className="text-xs text-gray-400 truncate">{detail.description}</p>
           )}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1">
-                <Users className="w-3 h-3 text-gray-400" />
-                <span className="text-xs text-gray-400">{detail.members.length} Anggota</span>
-              </div>
-              <div className="flex items-center gap-1 min-w-0">
-                <GitBranch className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                <span className="text-xs text-gray-400 truncate">
-                  {detail.repoFullNames.length === 1
-                    ? detail.repoFullNames[0]
-                    : `${detail.repoFullNames[0]} +${detail.repoFullNames.length - 1}`}
-                </span>
-              </div>
+            <div className="flex items-center gap-1">
+              <Users className="w-3 h-3 text-gray-400" />
+              <span className="text-xs text-gray-400">{detail.members.length} Anggota</span>
             </div>
             <span
               className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs"
@@ -54,6 +44,16 @@ export function TeamSpaceDetailMobile({ detail, onMutate }: Props) {
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: ROLE_TEXT[detail.myRole] ?? "#333" }} />
               {ROLE_LABEL[detail.myRole] ?? detail.myRole}
             </span>
+          </div>
+          <div className="flex items-start gap-1 min-w-0">
+            <GitBranch className="w-3 h-3 text-gray-400 flex-shrink-0 mt-0.5" />
+            <div className="flex flex-wrap gap-x-1.5 gap-y-0.5 min-w-0">
+              {detail.repoFullNames.map((name, i) => (
+                <span key={i} className="text-xs text-gray-400 truncate max-w-[200px]">
+                  {name}{i < detail.repoFullNames.length - 1 ? "," : ""}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </MobilePageHeader>
