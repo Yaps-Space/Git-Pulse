@@ -15,7 +15,9 @@ import {
 } from "@/shared/components/ui/dropdown-menu"
 import { FILTER_OPTIONS } from "../constants/ConnectFilter"
 import { cn } from "@/shared/lib/utils"
-import { GithubRepo } from "../types"
+import { GithubRepo, Provider } from "@/features/repository/types"
+
+type FetchState = "idle" | "loading" | "no_token" | "expired" | "empty" | "ok"
 
 interface Props {
   search:         string
@@ -25,15 +27,19 @@ interface Props {
   totalPages:     number
   paginated:      GithubRepo[]
   connecting:     string | null
+  fetchState:     FetchState
   error:          string
+  successMsg:     string
+  githubConnected: boolean
+  gitlabConnected: boolean
   onSearch:       (val: string) => void
   onFilter:       (val: string) => void
   onPageSize:     (val: number) => void
   onPageChange:   (val: number) => void
   onConnect:      (repo: GithubRepo) => void
   onDismissError: () => void
-  provider:       "github" | "gitlab"
-  onProvider:     (p: "github" | "gitlab") => void
+  provider:       Provider
+  onProvider:     (p: Provider) => void
 }
 
 export function ConnectMobile({
@@ -129,6 +135,7 @@ export function ConnectMobile({
           page={page}
           totalPages={totalPages}
           connecting={connecting}
+          provider={provider}
           onConnect={onConnect}
           onPageChange={onPageChange}
         />
