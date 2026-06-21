@@ -16,4 +16,5 @@ export interface DashboardRepo {
   commitsPerMonth:   number[]
   prPerMonth:        number[]
   issuesPerMonth:    number[]
+  isPrivate:         boolean
 }

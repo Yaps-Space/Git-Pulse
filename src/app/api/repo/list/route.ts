@@ -20,6 +20,7 @@ export async function GET() {
         healthScore:       data.healthScore       ?? 0,
         healthGrade:       data.healthGrade       ?? "-",
         analyzedAt:        data.analyzedAt?.seconds ? data.analyzedAt.seconds * 1000 : null,
+        isPrivate:         data.isPrivate         ?? false, 
       }
     })
     return NextResponse.json({ repos })

@@ -15,7 +15,9 @@ import {
 } from "@/shared/components/ui/dropdown-menu"
 import { FILTER_OPTIONS } from "../constants/ConnectFilter"
 import { cn } from "@/shared/lib/utils"
-import { GithubRepo } from "../types"
+import { GithubRepo, Provider } from "@/features/repository/types"
+
+type FetchState = "idle" | "loading" | "no_token" | "expired" | "empty" | "ok"
 
 interface Props {
   search:         string
@@ -25,19 +27,26 @@ interface Props {
   totalPages:     number
   paginated:      GithubRepo[]
   connecting:     string | null
+  fetchState:     FetchState
   error:          string
+  successMsg:     string
+  githubConnected: boolean
+  gitlabConnected: boolean
   onSearch:       (val: string) => void
   onFilter:       (val: string) => void
   onPageSize:     (val: number) => void
   onPageChange:   (val: number) => void
   onConnect:      (repo: GithubRepo) => void
   onDismissError: () => void
+  provider:       Provider
+  onProvider:     (p: Provider) => void
 }
 
 export function ConnectMobile({
   search, filter, pageSize, page, totalPages, paginated,
   connecting, error,
   onSearch, onFilter, onPageSize, onPageChange, onConnect, onDismissError,
+  provider, onProvider,
 }: Props) {
   return (
     <div className="min-h-screen">
@@ -51,6 +60,20 @@ export function ConnectMobile({
               placeholder="Search..."
               className="pl-9 h-10 bg-white/10 border-white/10 text-white placeholder:text-gray-400 text-sm"
             />
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onProvider("github")}
+              className={`h-10 px-3 rounded-lg border ${provider === "github" ? "border-gray-900 bg-gray-900 text-white" : "border-white/10 bg-white/10 text-white"} text-sm`}
+            >
+              GH
+            </button>
+            <button
+              onClick={() => onProvider("gitlab")}
+              className={`h-10 px-3 rounded-lg border ${provider === "gitlab" ? "border-gray-900 bg-gray-900 text-white" : "border-white/10 bg-white/10 text-white"} text-sm`}
+            >
+              GL
+            </button>
           </div>
 
           <DropdownMenu>
@@ -112,6 +135,7 @@ export function ConnectMobile({
           page={page}
           totalPages={totalPages}
           connecting={connecting}
+          provider={provider}
           onConnect={onConnect}
           onPageChange={onPageChange}
         />

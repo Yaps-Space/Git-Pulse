@@ -135,9 +135,17 @@ export function RepoHealthCard({ repo, refreshing }: Props) {
       </CardHeader>
 
       <CardContent className="flex flex-col gap-2">
-        {(Object.keys(BREAKDOWN_CONFIG) as BreakdownKey[]).map(key => (
-          <BreakdownRow key={key} categoryKey={key} repo={repo} />
-        ))}
+        {(Object.keys(BREAKDOWN_CONFIG) as BreakdownKey[])
+          .filter(key =>
+            // Hide popularity breakdown for private repos or when popularity data is missing
+            key !== "popularity"
+              ? true
+              : (!!repo.healthBreakdown?.popularity && !repo.isPrivate)
+          )
+          .map(key => (
+            <BreakdownRow key={key} categoryKey={key} repo={repo} />
+          ))
+        }
       </CardContent>
     </Card>
   )

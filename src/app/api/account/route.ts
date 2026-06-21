@@ -10,9 +10,10 @@ export async function GET() {
 
   try {
     const snap = await getDoc(doc(db, "users", session.user.id))
+    const data = snap.exists() ? snap.data() : {}
 
-    const createdAt = snap.exists() && snap.data().createdAt?.seconds
-      ? new Date(snap.data().createdAt.seconds * 1000).toLocaleDateString("id-ID", {
+    const createdAt = data.createdAt?.seconds
+      ? new Date(data.createdAt.seconds * 1000).toLocaleDateString("id-ID", {
           day:   "numeric",
           month: "long",
           year:  "numeric",
@@ -20,11 +21,13 @@ export async function GET() {
       : "-"
 
     return NextResponse.json({
-      name:      session.user.name      ?? "",
-      username:  session.user.username  ?? "",
-      email:     session.user.email     ?? "",
-      avatar:    session.user.image     ?? "",
+      name:        data.name        ?? session.user.name     ?? "",
+      username:    data.username    ?? session.user.username ?? "",
+      email:       data.email       ?? session.user.email    ?? "",
+      avatar:      data.image       ?? session.user.image    ?? "",
       createdAt,
+      hasPassword:     !!data.passwordHash,
+      linkedProviders: data.linkedProviders ?? {},
     })
   } catch (e) {
     console.error(e)

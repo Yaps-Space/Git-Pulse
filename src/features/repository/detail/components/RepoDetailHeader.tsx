@@ -28,12 +28,16 @@ export function RepoDetailHeader({ repo, refreshing, onRefresh }: Props) {
           {repo.language && (
             <span className="text-xs text-gray-400">{repo.language}</span>
           )}
-          <span className="flex items-center gap-1 text-xs text-gray-400">
-            <Star className="w-3 h-3" />{repo.stars}
-          </span>
-          <span className="flex items-center gap-1 text-xs text-gray-400">
-            <GitFork className="w-3 h-3" />{repo.forks}
-          </span>
+          {!repo.isPrivate && (
+            <>
+              <span className="flex items-center gap-1 text-xs text-gray-400">
+                <Star className="w-3 h-3" />{repo.stars}
+              </span>
+              <span className="flex items-center gap-1 text-xs text-gray-400">
+                <GitFork className="w-3 h-3" />{repo.forks}
+              </span>
+            </>
+          )}
           {repo.analyzedAt && (
             <span className="flex items-center gap-1 text-xs text-gray-400">
               <Clock className="w-3 h-3" />
