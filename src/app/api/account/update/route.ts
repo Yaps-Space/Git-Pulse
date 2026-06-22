@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/shared/lib/auth"
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/shared/lib/firebase"
-import { doc, getDoc, updateDoc } from "firebase/firestore"
+import { collection, query, where, getDocs, doc, getDoc, updateDoc } from "firebase/firestore"
 import bcrypt from "bcryptjs"
 
 export async function PATCH(req: NextRequest) {
@@ -22,24 +22,28 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "User tidak ditemukan." }, { status: 404 })
     }
 
-    const userData  = userSnap.data()
+    const userData                          = userSnap.data()
     const updateData: Record<string, unknown> = {}
 
-    // Update nama
     if (name !== undefined) {
       if (!name.trim()) {
         return NextResponse.json({ error: "Nama tidak boleh kosong." }, { status: 400 })
       }
       updateData.name = name.trim()
+
+      const membershipsSnap = await getDocs(
+        query(collection(db, "memberships"), where("userId", "==", session.user.id))
+      )
+      await Promise.all(
+        membershipsSnap.docs.map(d => updateDoc(d.ref, { userName: name.trim() }))
+      )
     }
 
-    // Update password
     if (newPassword !== undefined) {
       if (newPassword.length < 8) {
         return NextResponse.json({ error: "Password baru minimal 8 karakter." }, { status: 400 })
       }
 
-      // Kalau user sudah punya password → wajib verifikasi password lama
       if (userData.passwordHash) {
         if (!currentPassword) {
           return NextResponse.json({ error: "Password saat ini wajib diisi." }, { status: 400 })
@@ -49,7 +53,6 @@ export async function PATCH(req: NextRequest) {
           return NextResponse.json({ error: "Password saat ini salah." }, { status: 400 })
         }
       }
-      // Kalau OAuth user (belum punya password) → langsung set tanpa verifikasi
 
       updateData.passwordHash = await bcrypt.hash(newPassword, 12)
     }
