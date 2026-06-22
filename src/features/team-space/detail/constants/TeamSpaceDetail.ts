@@ -1,22 +1,24 @@
 export const STATUS_COLOR: Record<string, string> = {
-  Active:    "#83ECA7",
+  Active:     "#83ECA7",
   Moderate:   "#FFDF61",
-  Inactive:  "#FF9898", 
-  Pending:   "#EBEBEB",
-  Analyzing: "#EBEBEB",
+  Inactive:   "#FF9898",
+  Pending:    "#dbcdff",
+  Analyzing:  "#bdbaba",
+  Not_joined: "#EBEBEB",
 }
 
 export const STATUS_LABEL: Record<string, string> = {
-  Active:    "Active",
+  Active:     "Active",
   Moderate:   "Moderate",
-  Inactive:  "Inactive",
-  Pending:   "Pending",
-  Analyzing: "Analyzing",
+  Inactive:   "Inactive",
+  Pending:    "Pending",
+  Analyzing:  "Analyzing",
+  Not_joined: "Belum Join",
 }
 
 export const STATUS_STATS_CONFIG = [
   { key: "Active",   label: "Active",   description: "Total account aktif",       keys: ["Active",   "ACTIVE"]   },
-  { key: "Moderate",  label: "Moderate",  description: "Total account moderate",       keys: ["Moderate",  "MODERATE"] },
+  { key: "Moderate", label: "Moderate", description: "Total account moderate",    keys: ["Moderate", "MODERATE"] },
   { key: "Inactive", label: "Inactive", description: "Total account tidak aktif", keys: ["Inactive", "INACTIVE"] },
 ]
 
@@ -44,8 +46,8 @@ export const getContributionItems = (membership: {
   activityConsistency: number
   activeWeeksRatio:    number
 }) => [
-  { label: "Frekuensi Commits", value: `${membership.commitVelocity.toFixed(1)} / hari`        },
-  { label: "Kontribusi",        value: `${(membership.contributionShare * 100).toFixed(1)}%`   },
-  { label: "Konsistensi",       value: CONSISTENCY_LABEL(membership.activityConsistency)       },
-  { label: "Active Weeks",      value: `${Math.round(membership.activeWeeksRatio * 100)}%`     },
+  { label: "Frekuensi Commits", value: `${membership.commitVelocity.toFixed(1)} / hari`      },
+  { label: "Kontribusi",        value: `${(membership.contributionShare * 100).toFixed(1)}%` },
+  { label: "Konsistensi",       value: CONSISTENCY_LABEL(membership.activityConsistency)     },
+  { label: "Active Weeks",      value: `${Math.round(membership.activeWeeksRatio * 100)}%`   },
 ]
