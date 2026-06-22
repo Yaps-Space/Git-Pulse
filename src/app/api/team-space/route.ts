@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const { name, description, repoFullNames, importLogins } = await req.json()
+  const { name, description, repoFullNames, academicYearId, studyProgramId, projectManager, importMembers } = await req.json()
   if (!name || !repoFullNames?.length) return NextResponse.json({ error: "Missing fields" }, { status: 400 })
 
   try {
@@ -122,46 +122,61 @@ export async function POST(req: NextRequest) {
 
     const tsRef = await addDoc(collection(db, "teamSpaces"), {
       name,
-      description:   description || null,
+      description:    description    || null,
       repoFullNames,
-      ownerId:       session.user.id,
+      academicYearId: academicYearId || null,
+      studyProgramId: studyProgramId || null,
+      projectManager: projectManager || null,
+      ownerId:        session.user.id,
       inviteCode,
-      createdAt:     serverTimestamp(),
+      createdAt:      serverTimestamp(),
     })
 
+    /** Membership owner */
     await addDoc(collection(db, "memberships"), {
-      classId:   tsRef.id,
-      userId:    session.user.id,
-      userName:  session.user.name,
-      userLogin: session.user.username ?? null,
-      userImage: session.user.image,
-      role:      "owner",
-      joinedAt:  serverTimestamp(),
-      status:    "pending",
+      classId:     tsRef.id,
+      userId:      session.user.id,
+      userName:    session.user.name,
+      displayName: null,
+      userLogin:   session.user.username ?? null,
+      userImage:   session.user.image,
+      role:        "owner",
+      joinedAt:    serverTimestamp(),
+      memberStatus: "pending",
     })
 
-    if (Array.isArray(importLogins) && importLogins.length > 0) {
+    /**
+     * Import anggota — userId boleh null kalau belum punya akun GitPulse.
+     * Saat join nanti, sistem cari membership by userLogin dan update userId-nya.
+     */
+    if (Array.isArray(importMembers) && importMembers.length > 0) {
       const ownerLogin = session.user.username?.toLowerCase()
-      const toImport   = (importLogins as string[]).filter(l => l.toLowerCase() !== ownerLogin)
 
-      await Promise.all(toImport.map(async (login: string) => {
-        const usersSnap = await getDocs(
-          query(collection(db, "users"), where("username", "==", login))
-        )
-        if (usersSnap.empty) return
+      await Promise.all(
+        (importMembers as { login: string; displayName: string }[])
+          .filter(m => m.login.toLowerCase() !== ownerLogin)
+          .map(async ({ login, displayName }) => {
+            const usersSnap = await getDocs(
+              query(collection(db, "users"), where("username", "==", login))
+            )
 
-        const userData = usersSnap.docs[0].data()
-        await addDoc(collection(db, "memberships"), {
-          classId:   tsRef.id,
-          userId:    usersSnap.docs[0].id,
-          userName:  userData.name  ?? login,
-          userLogin: login,
-          userImage: userData.image ?? null,
-          role:      "contributor",
-          joinedAt:  serverTimestamp(),
-          status:    "pending",
-        })
-      }))
+            const userData = !usersSnap.empty ? usersSnap.docs[0].data() : null
+            const userId   = !usersSnap.empty ? usersSnap.docs[0].id     : null
+
+            await addDoc(collection(db, "memberships"), {
+              classId:     tsRef.id,
+              userId,
+              userName:    userData?.name  ?? login,
+              displayName: displayName?.trim() || null,
+              userLogin:   login,
+              userImage:   userData?.image ?? null,
+              role:        "contributor",
+              joinedAt:    userId ? serverTimestamp() : null,
+              memberStatus: userId ? "pending" : "not_joined",
+              isOutsider:  false,
+            })
+          })
+      )
     }
 
     return NextResponse.json({ id: tsRef.id, inviteCode })

@@ -6,6 +6,7 @@ import { collection, query, where, getDocs, doc, getDoc, DocumentData } from "fi
 import { TeamMember } from "@/features/team-space/types/TeamSpace"
 import { TeamSpaceDetail, RepoHealth } from "@/features/team-space/detail/types/TeamSpaceDetail"
 import { GithubCommit } from "@/features/team-space/detail/types/analyzeTypes"
+import { getProviderTokens } from "@/shared/lib/getProviderTokens"
 
 export async function GET(
   _req: NextRequest,
@@ -36,49 +37,57 @@ export async function GET(
       const m = d.data() as DocumentData
       return {
         id:                  d.id,
-        userId:              m.userId               as string,
-        userName:            m.userName             as string,
-        userImage:           m.userImage            as string,
-        role:                m.role                 as string,
-        status:              (m.memberStatus        as string) || "pending",
+        userId:              (m.userId      as string)  ?? null,
+        userName:            m.userName                 as string,
+        displayName:         (m.displayName as string)  || null,
+        userLogin:           (m.userLogin   as string)  || null,
+        userImage:           (m.userImage   as string)  || null,
+        role:                m.role                     as string,
+        status:              (m.memberStatus as string)  || "pending",
         commitVelocity:      (m.commitVelocity      as number) || 0,
         contributionShare:   (m.contributionShare   as number) || 0,
         activityConsistency: (m.activityConsistency as number) || 0,
         activeWeeksRatio:    (m.activeWeeksRatio    as number) || 0,
         commitsPerMonth:     (m.commitsPerMonth     as number[]) || Array(12).fill(0),
+        commitsPerMonthByRepo: (m.commitsPerMonthByRepo as Record<string, number[]>) || {},
         recommendation:      (m.recommendation      as string) || null,
         joinedAt:            m.joinedAt?.seconds ? (m.joinedAt.seconds as number) * 1000 : null,
+        isOutsider:          (m.isOutsider          as boolean) || false,
       }
     })
 
     const myMembership = members.find(m => m.userId === session.user.id)
     if (!myMembership) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
-    /** Support legacy single-repo (repoFullName) and new multi-repo (repoFullNames) */
     const repoFullNames: string[] = Array.isArray(ts.repoFullNames)
       ? ts.repoFullNames
       : ts.repoFullName ? [ts.repoFullName as string] : []
+
+    const { githubToken, gitlabToken } = await getProviderTokens(session.user.id)
 
     const since    = new Date(now)
     since.setFullYear(since.getFullYear() - 1)
     const sinceStr = since.toISOString()
 
-    /**
-     * Fetch commit dates per repo and map them into monthly buckets.
-     * Result: { "owner/repo": [0, 3, 5, ...] } — 12 values, oldest to newest.
-     */
     const repoCommitsPerMonth: Record<string, number[]> = {}
 
     for (const repoName of repoFullNames) {
       const monthlyCounts = Array(12).fill(0)
 
       try {
+        const isGitlab = !githubToken && !!gitlabToken
+        const token    = isGitlab ? gitlabToken : githubToken
+        if (!token) { repoCommitsPerMonth[repoName] = monthlyCounts; continue }
+
         let page = 1
         while (true) {
-          const res  = await fetch(
-            `https://api.github.com/repos/${repoName}/commits?per_page=100&page=${page}&since=${sinceStr}&sha=main`,
-            { headers: { Authorization: `Bearer ${session.accessToken}` } }
-          )
+          const url = isGitlab
+            ? `https://gitlab.com/api/v4/projects/${encodeURIComponent(repoName)}/repository/commits?per_page=100&page=${page}&since=${sinceStr}&ref_name=main`
+            : `https://api.github.com/repos/${repoName}/commits?per_page=100&page=${page}&since=${sinceStr}&sha=main`
+
+          const res  = await fetch(url, {
+            headers: { Authorization: isGitlab ? `Bearer ${token}` : `token ${token}` }
+          })
           const data = await res.json() as GithubCommit[]
           if (!Array.isArray(data) || data.length === 0) break
 
@@ -102,7 +111,6 @@ export async function GET(
       repoCommitsPerMonth[repoName] = monthlyCounts
     }
 
-    /** Fetch health score and productivity state for each linked repository */
     const repoHealthList: RepoHealth[] = []
     for (const repoName of repoFullNames) {
       try {
@@ -126,8 +134,8 @@ export async function GET(
           repoHealthList.push({
             repoFullName: repoName,
             repoId:       null,
-            healthScore:       0,
-            healthGrade:       "-",
+            healthScore:  0,
+            healthGrade:  "-",
             productivityState: "-",
           })
         }
@@ -135,11 +143,28 @@ export async function GET(
         repoHealthList.push({
           repoFullName: repoName,
           repoId:       null,
-          healthScore:       0,
-          healthGrade:       "-",
+          healthScore:  0,
+          healthGrade:  "-",
           productivityState: "-",
         })
       }
+    }
+
+    let academicYearLabel:  string | null = null
+    let studyProgramLabel:  string | null = null
+
+    if (ts.academicYearId) {
+      try {
+        const aySnap = await getDoc(doc(db, "academicYears", ts.academicYearId as string))
+        if (aySnap.exists()) academicYearLabel = (aySnap.data() as DocumentData).label as string ?? null
+      } catch { /* silent */ }
+    }
+
+    if (ts.studyProgramId) {
+      try {
+        const spSnap = await getDoc(doc(db, "studyPrograms", ts.studyProgramId as string))
+        if (spSnap.exists()) studyProgramLabel = (spSnap.data() as DocumentData).label as string ?? null
+      } catch { /* silent */ }
     }
 
     const detail: TeamSpaceDetail = {
@@ -153,6 +178,9 @@ export async function GET(
       myRole:              myMembership.role,
       myMembership,
       members,
+      academicYear:        academicYearLabel,
+      studyProgram:        studyProgramLabel,
+      projectManager:      (ts.projectManager as string) || null,
       repoCommitsPerMonth,
       repoHealthList,
     }
