@@ -1,18 +1,22 @@
 "use client"
 
-import { Users, GitBranch } from "lucide-react"
+import { useState } from "react"
+import { Users, GitBranch, Pencil } from "lucide-react"
 import { ROLE_COLOR, ROLE_TEXT, ROLE_LABEL } from "../../constants/TeamSpaceConfig"
 import { InviteCodeButton } from "./InviteCodeButton"
 import { QRButton }         from "./QRButton"
 import { TeamSpaceDetail }  from "../types/TeamSpaceDetail"
+import { EditTeamSpaceModal } from "./EditTeamSpaceModal"
 
 interface Props {
   detail:      TeamSpaceDetail
   isEvaluator: boolean
+  isOwner:     boolean
+  onMutate:    (fn: (data: TeamSpaceDetail) => TeamSpaceDetail) => void
 }
 
-export function TeamSpaceHeader({ detail, isEvaluator }: Props) {
-  const hasAcademic = detail.academicYear || detail.studyProgram || detail.projectManager
+export function TeamSpaceHeader({ detail, isEvaluator, isOwner, onMutate }: Props) {
+  const [showEdit, setShowEdit] = useState(false)
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5">
@@ -56,49 +60,45 @@ export function TeamSpaceHeader({ detail, isEvaluator }: Props) {
           </div>
         </div>
 
-        {isEvaluator && (
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <InviteCodeButton inviteCode={detail.inviteCode} className="h-10" />
-            <QRButton inviteCode={detail.inviteCode} teamName={detail.name} className="h-10" />
-          </div>
-        )}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {isOwner && (
+            <button
+              onClick={() => setShowEdit(true)}
+              className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition-colors"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+          )}
+          {isEvaluator && (
+            <>
+              <InviteCodeButton inviteCode={detail.inviteCode} className="h-10" />
+              <QRButton inviteCode={detail.inviteCode} teamName={detail.name} className="h-10" />
+            </>
+          )}
+        </div>
       </div>
 
-      {hasAcademic && (
-        <>
-          <div className="border-t border-gray-100 mt-4 pt-4 grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3">
-            {detail.projectManager && (
-              <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-semibold text-gray-400 tracking-wider">
-                    Dosen PM
-                  </span>
-                </div>
-                <span className="text-sm font-semibold text-gray-800">{detail.projectManager}</span>
-              </div>
-            )}
-            {detail.studyProgram && (
-              <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-semibold text-gray-400 tracking-wider">
-                    Program Studi
-                  </span>
-                </div>
-                <span className="text-sm font-semibold text-gray-800">{detail.studyProgram}</span>
-              </div>
-            )}
-            {detail.academicYear && (
-              <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-semibold text-gray-400 tracking-wider">
-                    Tahun Ajaran
-                  </span>
-                </div>
-                <span className="text-sm font-semibold text-gray-800">{detail.academicYear}</span>
-              </div>
-            )}
-          </div>
-        </>
+      <div className="border-t border-gray-100 mt-4 pt-4 grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[10px] font-semibold text-gray-400 tracking-wider">Dosen PM</span>
+          <span className="text-sm font-semibold text-gray-800">{detail.projectManager ?? "-"}</span>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[10px] font-semibold text-gray-400 tracking-wider">Program Studi</span>
+          <span className="text-sm font-semibold text-gray-800">{detail.studyProgram ?? "-"}</span>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[10px] font-semibold text-gray-400 tracking-wider">Tahun Ajaran</span>
+          <span className="text-sm font-semibold text-gray-800">{detail.academicYear ?? "-"}</span>
+        </div>
+      </div>
+
+      {showEdit && (
+        <EditTeamSpaceModal
+          detail={detail}
+          onClose={() => setShowEdit(false)}
+          onSaved={updated => onMutate(() => updated)}
+        />
       )}
     </div>
   )
