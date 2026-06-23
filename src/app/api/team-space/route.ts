@@ -9,6 +9,8 @@ import {
   getDocs,
   query,
   where,
+  doc,
+  getDoc,
   DocumentData,
 } from "firebase/firestore"
 import { Membership, TeamResult } from "@/shared/types/api"
@@ -53,14 +55,12 @@ export async function GET() {
           query(collection(db, "memberships"), where("classId", "==", m.classId))
         )
 
-        // Handle legacy (string) dan baru (array)
         const repoNames: string[] = Array.isArray(ts.repoFullNames)
           ? ts.repoFullNames
           : ts.repoFullName ? [ts.repoFullName as string] : []
 
-        // Join ke semua repo
-        let totalHealth         = 0
-        let healthCount         = 0
+        let totalHealth              = 0
+        let healthCount              = 0
         const productivityStates: string[] = []
 
         await Promise.all(repoNames.map(async (repoFullName) => {
@@ -80,14 +80,29 @@ export async function GET() {
                 productivityStates.push(repo.productivityState as string)
               }
             }
-          } catch {
-            // skip
-          }
+          } catch { /* skip */ }
         }))
 
         const avgHealthScore = healthCount > 0
-          ? Math.round((totalHealth / healthCount) * 10) / 10  // round ke 1 desimal
+          ? Math.round((totalHealth / healthCount) * 10) / 10
           : 0
+
+        let academicYear: string | null = null
+        let studyProgram: string | null = null
+
+        if (ts.academicYearId) {
+          try {
+            const aySnap = await getDoc(doc(db, "academicYears", ts.academicYearId as string))
+            if (aySnap.exists()) academicYear = (aySnap.data() as DocumentData).label as string ?? null
+          } catch { /* silent */ }
+        }
+
+        if (ts.studyProgramId) {
+          try {
+            const spSnap = await getDoc(doc(db, "studyPrograms", ts.studyProgramId as string))
+            if (spSnap.exists()) studyProgram = (spSnap.data() as DocumentData).label as string ?? null
+          } catch { /* silent */ }
+        }
 
         return {
           id:                 m.classId,
@@ -98,7 +113,9 @@ export async function GET() {
           memberCount:        memberSnap.size,
           avgHealthScore,
           avgHealthGrade:     avgGrade(avgHealthScore),
-          productivityStates,
+          academicYear,
+          studyProgram,
+          projectManager:     (ts.projectManager as string) || null,
         }
       })
     )
@@ -132,23 +149,18 @@ export async function POST(req: NextRequest) {
       createdAt:      serverTimestamp(),
     })
 
-    /** Membership owner */
     await addDoc(collection(db, "memberships"), {
-      classId:     tsRef.id,
-      userId:      session.user.id,
-      userName:    session.user.name,
-      displayName: null,
-      userLogin:   session.user.username ?? null,
-      userImage:   session.user.image,
-      role:        "owner",
-      joinedAt:    serverTimestamp(),
+      classId:      tsRef.id,
+      userId:       session.user.id,
+      userName:     session.user.name,
+      displayName:  null,
+      userLogin:    session.user.username ?? null,
+      userImage:    session.user.image,
+      role:         "owner",
+      joinedAt:     serverTimestamp(),
       memberStatus: "pending",
     })
 
-    /**
-     * Import anggota — userId boleh null kalau belum punya akun GitPulse.
-     * Saat join nanti, sistem cari membership by userLogin dan update userId-nya.
-     */
     if (Array.isArray(importMembers) && importMembers.length > 0) {
       const ownerLogin = session.user.username?.toLowerCase()
 
@@ -164,16 +176,16 @@ export async function POST(req: NextRequest) {
             const userId   = !usersSnap.empty ? usersSnap.docs[0].id     : null
 
             await addDoc(collection(db, "memberships"), {
-              classId:     tsRef.id,
+              classId:      tsRef.id,
               userId,
-              userName:    userData?.name  ?? login,
-              displayName: displayName?.trim() || null,
-              userLogin:   login,
-              userImage:   userData?.image ?? null,
-              role:        "contributor",
-              joinedAt:    userId ? serverTimestamp() : null,
+              userName:     userData?.name  ?? login,
+              displayName:  displayName?.trim() || null,
+              userLogin:    login,
+              userImage:    userData?.image ?? null,
+              role:         "contributor",
+              joinedAt:     userId ? serverTimestamp() : null,
               memberStatus: userId ? "pending" : "not_joined",
-              isOutsider:  false,
+              isOutsider:   false,
             })
           })
       )

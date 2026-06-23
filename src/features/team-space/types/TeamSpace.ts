@@ -7,7 +7,9 @@ export interface TeamSpace {
   memberCount:        number
   avgHealthScore:     number
   avgHealthGrade:     string
-  productivityStates: string[]
+  academicYear:       string | null
+  studyProgram:       string | null
+  projectManager:     string | null
 }
 
 export interface TeamMember {
