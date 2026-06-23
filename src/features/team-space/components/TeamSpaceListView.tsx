@@ -31,7 +31,6 @@ export default function TeamSpaceListView() {
               href={`/team-space/${ts.id}`}
               className="bg-white rounded-2xl p-6 hover:shadow-md transition-shadow flex flex-col gap-3 border border-gray-100"
             >
-              {/* Header */}
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-base text-gray-900 truncate">{ts.name}</h3>
@@ -48,14 +47,14 @@ export default function TeamSpaceListView() {
                 </span>
               </div>
 
-              {/* Repo Stats */}
               <TeamSpaceRepoStats
-                avgHealthScore     ={ts.avgHealthScore}
-                avgHealthGrade     ={ts.avgHealthGrade}
-                productivityStates ={ts.productivityStates}
+                avgHealthScore={ts.avgHealthScore}
+                avgHealthGrade={ts.avgHealthGrade}
+                academicYear  ={ts.academicYear}
+                studyProgram  ={ts.studyProgram}
+                projectManager={ts.projectManager}
               />
 
-              {/* Footer */}
               <div className="flex items-center justify-between gap-2 mt-auto pt-3 border-t border-gray-50">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="flex items-center gap-1.5 flex-shrink-0">

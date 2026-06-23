@@ -3,12 +3,12 @@
 import Image from "next/image"
 import { useState } from "react"
 import { Edit2, BarChart2 } from "lucide-react"
-import { ROLE_COLOR, ROLE_TEXT, ROLE_LABEL } from "../../constants/TeamSpaceConfig"
+import { ROLE_COLOR, ROLE_TEXT, ROLE_LABEL }      from "../../constants/TeamSpaceConfig"
 import { CONSISTENCY_LABEL, STATUS_COLOR, STATUS_LABEL } from "../constants/TeamSpaceDetail"
-import { canManageMembers }                  from "../helpers/permissions"
-import { EditRoleDialog }                    from "./EditRoleDialog"
-import { TeamMember }                        from "../../types/TeamSpace"
-import { capitalizeFirst } from "@/shared/helpers"
+import { canManageMembers }                        from "../helpers/permissions"
+import { EditRoleDialog }                          from "./EditRoleDialog"
+import { TeamMember }                              from "../../types/TeamSpace"
+import { capitalizeFirst }                         from "@/shared/helpers"
 
 interface Props {
   member:       TeamMember
@@ -23,9 +23,13 @@ interface Props {
 export function TeamSpaceMemberCard({ member, index, myRole, classId, onAnalyze, onKick, onRoleChange }: Props) {
   const [editOpen, setEditOpen] = useState(false)
   const [loading,  setLoading]  = useState(false)
-  const showEdit                = canManageMembers(myRole)
+
+  const showEdit      = canManageMembers(myRole)
+  const cannotAnalyze = member.status === "not_joined"
+  const displayName   = member.displayName ?? member.userName
 
   const handleAnalyze = async () => {
+    if (cannotAnalyze) return
     onAnalyze()
     setLoading(true)
     try {
@@ -41,18 +45,35 @@ export function TeamSpaceMemberCard({ member, index, myRole, classId, onAnalyze,
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-3 min-w-0">
             <span className="text-sm font-bold text-gray-900 flex-shrink-0">{index}.</span>
-            {member.userImage && (
-              <Image src={member.userImage} alt={member.userName} width={36} height={36} className="rounded-full object-cover flex-shrink-0" />
+            {member.userImage ? (
+              <Image
+                src={member.userImage}
+                alt={displayName}
+                width={36}
+                height={36}
+                className="rounded-full object-cover flex-shrink-0"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                <span className="text-sm font-semibold text-gray-500">
+                  {displayName.charAt(0).toUpperCase()}
+                </span>
+              </div>
             )}
-            <div className="flex items-center gap-2 min-w-0">
-              <p className="font-bold text-sm text-gray-900 truncate">{member.userName}</p>
-              <span
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0"
-                style={{ background: ROLE_COLOR[member.role] ?? "#eee", color: ROLE_TEXT[member.role] ?? "#333" }}
-              >
-                <span className="w-1 h-1 rounded-full" style={{ background: ROLE_TEXT[member.role] ?? "#333" }} />
-                {ROLE_LABEL[member.role] ?? member.role}
-              </span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 min-w-0">
+                <p className="font-bold text-sm text-gray-900 truncate">{displayName}</p>
+                <span
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0"
+                  style={{ background: ROLE_COLOR[member.role] ?? "#eee", color: ROLE_TEXT[member.role] ?? "#333" }}
+                >
+                  <span className="w-1 h-1 rounded-full" style={{ background: ROLE_TEXT[member.role] ?? "#333" }} />
+                  {ROLE_LABEL[member.role] ?? member.role}
+                </span>
+              </div>
+              {member.userLogin && (
+                <p className="text-xs text-gray-400">@{member.userLogin}</p>
+              )}
             </div>
           </div>
 
@@ -67,8 +88,8 @@ export function TeamSpaceMemberCard({ member, index, myRole, classId, onAnalyze,
             )}
             <button
               onClick={handleAnalyze}
-              disabled={loading}
-              className="w-8 h-8 flex items-center justify-center rounded-md bg-[#00D964] hover:bg-[#00b853] text-gray-900 transition-colors disabled:opacity-50"
+              disabled={loading || cannotAnalyze}
+              className="w-8 h-8 flex items-center justify-center rounded-md bg-[#00D964] hover:bg-[#00b853] text-gray-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <BarChart2 className="w-3.5 h-3.5" />
             </button>
@@ -98,9 +119,9 @@ export function TeamSpaceMemberCard({ member, index, myRole, classId, onAnalyze,
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-xs font-medium"
               style={{ background: STATUS_COLOR[capitalizeFirst(member.status)] ?? "#888" }}
             >
-              {member.status === "analyzing" ? (
+              {member.status === "analyzing" && (
                 <span className="w-2 h-2 rounded-full border border-current border-t-transparent animate-spin" />
-              ) : null}
+              )}
               {STATUS_LABEL[capitalizeFirst(member.status)] ?? capitalizeFirst(member.status)}
             </span>
           </div>
@@ -112,7 +133,7 @@ export function TeamSpaceMemberCard({ member, index, myRole, classId, onAnalyze,
           open={editOpen}
           onClose={() => setEditOpen(false)}
           memberId={member.id}
-          memberName={member.userName}
+          memberName={displayName}
           currentRole={member.role}
           myRole={myRole}
           classId={classId}

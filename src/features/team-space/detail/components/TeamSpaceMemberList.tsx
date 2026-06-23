@@ -7,10 +7,7 @@ import { Button }      from "@/shared/components/ui/button"
 import { ShowPerPage } from "@/shared/components/commons/ShowPerPage"
 import { Pagination }  from "@/shared/components/commons/Pagination"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu"
 import { TeamSpaceMemberCard }     from "./TeamSpaceMemberCard"
 import { SORTABLE_MEMBER_COLUMNS } from "../constants/SortableMember"
@@ -32,7 +29,7 @@ export function TeamSpaceMemberList({ members, myRole, classId, onMutate, showSe
   const [search,   setSearch]   = useState("")
   const [pageSize, setPageSize] = useState(10)
   const [page,     setPage]     = useState(1)
-  const [sortKey,  setSortKey]  = useState<SortKey>("userName")
+  const [sortKey,  setSortKey]  = useState<SortKey>("displayName")
   const [sortDir,  setSortDir]  = useState<SortDir>("asc")
   const [sortOpen, setSortOpen] = useState(false)
 
@@ -66,7 +63,13 @@ export function TeamSpaceMemberList({ members, myRole, classId, onMutate, showSe
     }))
   }
 
-  const filtered   = members.filter(m => m.userName.toLowerCase().includes(search.toLowerCase()))
+  const filtered = members.filter(m => {
+    const displayName = (m.displayName ?? m.userName).toLowerCase()
+    const login       = (m.userLogin ?? "").toLowerCase()
+    const q           = search.toLowerCase()
+    return displayName.includes(q) || login.includes(q)
+  })
+
   const sorted     = sortMembers(filtered, sortKey, sortDir)
   const totalPages = Math.ceil(sorted.length / pageSize)
   const paginated  = sorted.slice((page - 1) * pageSize, page * pageSize)

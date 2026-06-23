@@ -9,6 +9,8 @@ import {
   getDocs,
   query,
   where,
+  doc,
+  getDoc,
   DocumentData,
 } from "firebase/firestore"
 import { Membership, TeamResult } from "@/shared/types/api"
@@ -53,14 +55,12 @@ export async function GET() {
           query(collection(db, "memberships"), where("classId", "==", m.classId))
         )
 
-        // Handle legacy (string) dan baru (array)
         const repoNames: string[] = Array.isArray(ts.repoFullNames)
           ? ts.repoFullNames
           : ts.repoFullName ? [ts.repoFullName as string] : []
 
-        // Join ke semua repo
-        let totalHealth         = 0
-        let healthCount         = 0
+        let totalHealth              = 0
+        let healthCount              = 0
         const productivityStates: string[] = []
 
         await Promise.all(repoNames.map(async (repoFullName) => {
@@ -80,14 +80,29 @@ export async function GET() {
                 productivityStates.push(repo.productivityState as string)
               }
             }
-          } catch {
-            // skip
-          }
+          } catch { /* skip */ }
         }))
 
         const avgHealthScore = healthCount > 0
-          ? Math.round((totalHealth / healthCount) * 10) / 10  // round ke 1 desimal
+          ? Math.round((totalHealth / healthCount) * 10) / 10
           : 0
+
+        let academicYear: string | null = null
+        let studyProgram: string | null = null
+
+        if (ts.academicYearId) {
+          try {
+            const aySnap = await getDoc(doc(db, "academicYears", ts.academicYearId as string))
+            if (aySnap.exists()) academicYear = (aySnap.data() as DocumentData).label as string ?? null
+          } catch { /* silent */ }
+        }
+
+        if (ts.studyProgramId) {
+          try {
+            const spSnap = await getDoc(doc(db, "studyPrograms", ts.studyProgramId as string))
+            if (spSnap.exists()) studyProgram = (spSnap.data() as DocumentData).label as string ?? null
+          } catch { /* silent */ }
+        }
 
         return {
           id:                 m.classId,
@@ -98,7 +113,9 @@ export async function GET() {
           memberCount:        memberSnap.size,
           avgHealthScore,
           avgHealthGrade:     avgGrade(avgHealthScore),
-          productivityStates,
+          academicYear,
+          studyProgram,
+          projectManager:     (ts.projectManager as string) || null,
         }
       })
     )
@@ -114,7 +131,7 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const { name, description, repoFullNames, importLogins } = await req.json()
+  const { name, description, repoFullNames, academicYearId, studyProgramId, projectManager, importMembers } = await req.json()
   if (!name || !repoFullNames?.length) return NextResponse.json({ error: "Missing fields" }, { status: 400 })
 
   try {
@@ -122,46 +139,56 @@ export async function POST(req: NextRequest) {
 
     const tsRef = await addDoc(collection(db, "teamSpaces"), {
       name,
-      description:   description || null,
+      description:    description    || null,
       repoFullNames,
-      ownerId:       session.user.id,
+      academicYearId: academicYearId || null,
+      studyProgramId: studyProgramId || null,
+      projectManager: projectManager || null,
+      ownerId:        session.user.id,
       inviteCode,
-      createdAt:     serverTimestamp(),
+      createdAt:      serverTimestamp(),
     })
 
     await addDoc(collection(db, "memberships"), {
-      classId:   tsRef.id,
-      userId:    session.user.id,
-      userName:  session.user.name,
-      userLogin: session.user.username ?? null,
-      userImage: session.user.image,
-      role:      "owner",
-      joinedAt:  serverTimestamp(),
-      status:    "pending",
+      classId:      tsRef.id,
+      userId:       session.user.id,
+      userName:     session.user.name,
+      displayName:  null,
+      userLogin:    session.user.username ?? null,
+      userImage:    session.user.image,
+      role:         "owner",
+      joinedAt:     serverTimestamp(),
+      memberStatus: "pending",
     })
 
-    if (Array.isArray(importLogins) && importLogins.length > 0) {
+    if (Array.isArray(importMembers) && importMembers.length > 0) {
       const ownerLogin = session.user.username?.toLowerCase()
-      const toImport   = (importLogins as string[]).filter(l => l.toLowerCase() !== ownerLogin)
 
-      await Promise.all(toImport.map(async (login: string) => {
-        const usersSnap = await getDocs(
-          query(collection(db, "users"), where("username", "==", login))
-        )
-        if (usersSnap.empty) return
+      await Promise.all(
+        (importMembers as { login: string; displayName: string }[])
+          .filter(m => m.login.toLowerCase() !== ownerLogin)
+          .map(async ({ login, displayName }) => {
+            const usersSnap = await getDocs(
+              query(collection(db, "users"), where("username", "==", login))
+            )
 
-        const userData = usersSnap.docs[0].data()
-        await addDoc(collection(db, "memberships"), {
-          classId:   tsRef.id,
-          userId:    usersSnap.docs[0].id,
-          userName:  userData.name  ?? login,
-          userLogin: login,
-          userImage: userData.image ?? null,
-          role:      "contributor",
-          joinedAt:  serverTimestamp(),
-          status:    "pending",
-        })
-      }))
+            const userData = !usersSnap.empty ? usersSnap.docs[0].data() : null
+            const userId   = !usersSnap.empty ? usersSnap.docs[0].id     : null
+
+            await addDoc(collection(db, "memberships"), {
+              classId:      tsRef.id,
+              userId,
+              userName:     userData?.name  ?? login,
+              displayName:  displayName?.trim() || null,
+              userLogin:    login,
+              userImage:    userData?.image ?? null,
+              role:         "contributor",
+              joinedAt:     userId ? serverTimestamp() : null,
+              memberStatus: userId ? "pending" : "not_joined",
+              isOutsider:   false,
+            })
+          })
+      )
     }
 
     return NextResponse.json({ id: tsRef.id, inviteCode })
