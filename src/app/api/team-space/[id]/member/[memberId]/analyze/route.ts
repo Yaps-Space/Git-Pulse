@@ -70,6 +70,61 @@ async function fetchMemberCommitDates(
   return dates
 }
 
+async function fetchRepoTotalCommits(
+  repoFullName: string,
+  sinceStr:     string,
+  githubToken:  string | null,
+  gitlabToken:  string | null,
+): Promise<number> {
+  let total = 0
+
+  if (githubToken) {
+    let page = 1
+    while (true) {
+      const res  = await fetch(
+        `https://api.github.com/repos/${repoFullName}/commits?per_page=100&page=${page}&since=${sinceStr}&sha=main`,
+        { headers: { Authorization: `Bearer ${githubToken}` } }
+      )
+      const data = await res.json() as GithubCommit[]
+      if (!Array.isArray(data) || data.length === 0) break
+      total += data.length
+      if (data.length < 100) break
+      page++
+    }
+  } else if (gitlabToken) {
+    const encodedRepo = encodeURIComponent(repoFullName)
+    let page = 1
+    while (true) {
+      const res  = await fetch(
+        `https://gitlab.com/api/v4/projects/${encodedRepo}/repository/commits?per_page=100&page=${page}&since=${sinceStr}&ref_name=main`,
+        { headers: { Authorization: `Bearer ${gitlabToken}` } }
+      )
+      const data = await res.json() as unknown[]
+      if (!Array.isArray(data) || data.length === 0) break
+      total += data.length
+      if (data.length < 100) break
+      page++
+    }
+  }
+
+  return total
+}
+
+async function callMLPredictor(memberCommitCount: number, contributionShare: number, activeWeeks: number, activeRatio: number): Promise<MlPredictResponse> {
+  const ML_URL = process.env.NEXT_PUBLIC_ML_SERVICE_URL || "http://127.0.0.1:8000"
+  const mlRes  = await fetch(`${ML_URL}/predict/contributor`, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({
+      commit_count:     memberCommitCount,
+      contribution_pct: contributionShare * 100,
+      active_weeks:     activeWeeks,
+      active_ratio:     activeRatio,
+    }),
+  })
+  return mlRes.json() as Promise<MlPredictResponse>
+}
+
 export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string; memberId: string }> }
@@ -105,50 +160,59 @@ export async function POST(
     const last12Months = getLastNMonths(12)
     const loginKey     = (member.userLogin ?? member.userName)?.toLowerCase()
 
-    const allDates: string[] = []
     const datesByRepo: Record<string, string[]> = {}
-    let totalCommits = 0
+    const commitsPerMonthByRepo: Record<string, number[]> = {}
+    const commitVelocityByRepo: Record<string, number> = {}
+    const contributionShareByRepo: Record<string, number> = {}
+    const activityConsistencyByRepo: Record<string, number> = {}
+    const activeWeeksRatioByRepo: Record<string, number> = {}
+    const statusByRepo: Record<string, string> = {}
+    const recommendationByRepo: Record<string, string> = {}
 
     for (const repoFullName of repoFullNames) {
       const memberDates = await fetchMemberCommitDates(
         repoFullName, loginKey, sinceStr, githubToken, gitlabToken
       )
-      allDates.push(...memberDates)
+      const repoTotalCommits = await fetchRepoTotalCommits(
+        repoFullName, sinceStr, githubToken, gitlabToken
+      )
+
       datesByRepo[repoFullName] = memberDates
 
-      if (githubToken) {
-        let page = 1
-        while (true) {
-          const res  = await fetch(
-            `https://api.github.com/repos/${repoFullName}/commits?per_page=100&page=${page}&since=${sinceStr}&sha=main`,
-            { headers: { Authorization: `Bearer ${githubToken}` } }
-          )
-          const data = await res.json() as GithubCommit[]
-          if (!Array.isArray(data) || data.length === 0) break
-          totalCommits += data.length
-          if (data.length < 100) break
-          page++
-        }
-      } else if (gitlabToken) {
-        const encodedRepo = encodeURIComponent(repoFullName)
-        let page = 1
-        while (true) {
-          const res  = await fetch(
-            `https://gitlab.com/api/v4/projects/${encodedRepo}/repository/commits?per_page=100&page=${page}&since=${sinceStr}&ref_name=main`,
-            { headers: { Authorization: `Bearer ${gitlabToken}` } }
-          )
-          const data = await res.json() as unknown[]
-          if (!Array.isArray(data) || data.length === 0) break
-          totalCommits += data.length
-          if (data.length < 100) break
-          page++
-        }
-      }
+      const memberCommitCount = memberDates.length
+      const commitVelocity    = memberCommitCount / 52
+      const contributionShare = repoTotalCommits > 0 ? memberCommitCount / repoTotalCommits : 0
+
+      const weeks = new Set(memberDates.map((d: string) => {
+        const date        = new Date(d)
+        const startOfYear = new Date(date.getFullYear(), 0, 1)
+        return Math.floor((date.getTime() - startOfYear.getTime()) / (7 * 86400000))
+      }))
+      const activeWeeksRatio    = Math.min(weeks.size / 52, 1)
+      const activityConsistency = memberCommitCount > 0 ? weeks.size / 52 : 0
+
+      commitVelocityByRepo[repoFullName] = commitVelocity
+      contributionShareByRepo[repoFullName] = contributionShare
+      activityConsistencyByRepo[repoFullName] = activityConsistency
+      activeWeeksRatioByRepo[repoFullName] = activeWeeksRatio
+
+      commitsPerMonthByRepo[repoFullName] = last12Months.map(({ year, month }) =>
+        memberDates.filter((d: string) => {
+          const date = new Date(d)
+          return date.getFullYear() === year && date.getMonth() === month
+        }).length
+      )
+
+      const mlData = await callMLPredictor(memberCommitCount, contributionShare, weeks.size, activeWeeksRatio)
+      statusByRepo[repoFullName] = mlData.status
+      recommendationByRepo[repoFullName] = mlData.recommendation
     }
 
-    const memberCommitCount   = allDates.length
-    const commitVelocity      = memberCommitCount / 52
-    const contributionShare   = totalCommits > 0 ? memberCommitCount / totalCommits : 0
+    const allDates = Object.values(datesByRepo).flat()
+    const memberCommitCount = allDates.length
+    const commitVelocity    = memberCommitCount / 52
+    const totalCommits      = Object.values(datesByRepo).reduce((sum, dates) => sum + dates.length, 0)
+    const contributionShare = totalCommits > 0 ? memberCommitCount / totalCommits : 0
 
     const weeks = new Set(allDates.map((d: string) => {
       const date        = new Date(d)
@@ -165,29 +229,7 @@ export async function POST(
       }).length
     )
 
-    const commitsPerMonthByRepo: Record<string, number[]> = {}
-    for (const repoFullName of repoFullNames) {
-      const repoDates = datesByRepo[repoFullName] ?? []
-      commitsPerMonthByRepo[repoFullName] = last12Months.map(({ year, month }) =>
-        repoDates.filter((d: string) => {
-          const date = new Date(d)
-          return date.getFullYear() === year && date.getMonth() === month
-        }).length
-      )
-    }
-
-    const ML_URL = process.env.NEXT_PUBLIC_ML_SERVICE_URL || "http://127.0.0.1:8000"
-    const mlRes  = await fetch(`${ML_URL}/predict/contributor`, {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify({
-        commit_count:     memberCommitCount,
-        contribution_pct: contributionShare * 100,
-        active_weeks:     weeks.size,
-        active_ratio:     activeWeeksRatio,
-      }),
-    })
-    const mlData = await mlRes.json() as MlPredictResponse
+    const mlData = await callMLPredictor(memberCommitCount, contributionShare, weeks.size, activeWeeksRatio)
 
     await updateDoc(doc(db, "memberships", memberId), {
       memberStatus:          mlData.status,
@@ -197,6 +239,12 @@ export async function POST(
       activeWeeksRatio,
       commitsPerMonth,
       commitsPerMonthByRepo,
+      commitVelocityByRepo,
+      contributionShareByRepo,
+      activityConsistencyByRepo,
+      activeWeeksRatioByRepo,
+      statusByRepo,
+      recommendationByRepo,
       recommendation:        mlData.recommendation,
       analyzedAt:            new Date(),
     })

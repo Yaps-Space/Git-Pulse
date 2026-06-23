@@ -68,6 +68,21 @@ async function fetchRepoCommits(
   return []
 }
 
+async function callMLPredictor(memberCommitCount: number, contributionShare: number, activeWeeks: number, activeRatio: number): Promise<MlPredictResponse> {
+  const ML_URL = process.env.NEXT_PUBLIC_ML_SERVICE_URL || "http://127.0.0.1:8000"
+  const mlRes  = await fetch(`${ML_URL}/predict/contributor`, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({
+      commit_count:     memberCommitCount,
+      contribution_pct: contributionShare * 100,
+      active_weeks:     activeWeeks,
+      active_ratio:     activeRatio,
+    }),
+  })
+  return mlRes.json() as Promise<MlPredictResponse>
+}
+
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: classId } = await params
   const session = await getServerSession(authOptions)
@@ -99,78 +114,109 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
 
     const last12Months = getLastNMonths(12)
 
-    const memberStats: Record<string, { commits: number; dates: string[]; datesByRepo: Record<string, string[]> }> = {}
-    let totalCommits = 0
+    const memberStatsByRepo: Record<string, Record<string, { commits: number; dates: string[] }>> = {}
+    const repoCommitCounts: Record<string, number> = {}
 
     for (const repoFullName of repoFullNames) {
       const commits = await fetchRepoCommits(repoFullName, sinceStr, githubToken, gitlabToken)
-      totalCommits += commits.length
+      repoCommitCounts[repoFullName] = commits.length
+
+      memberStatsByRepo[repoFullName] = {}
       commits.forEach(({ login, date }) => {
-        if (!memberStats[login]) memberStats[login] = { commits: 0, dates: [], datesByRepo: {} }
-        memberStats[login].commits++
-        memberStats[login].dates.push(date)
-        if (!memberStats[login].datesByRepo[repoFullName]) memberStats[login].datesByRepo[repoFullName] = []
-        memberStats[login].datesByRepo[repoFullName].push(date)
+        if (!memberStatsByRepo[repoFullName][login]) {
+          memberStatsByRepo[repoFullName][login] = { commits: 0, dates: [] }
+        }
+        memberStatsByRepo[repoFullName][login].commits++
+        memberStatsByRepo[repoFullName][login].dates.push(date)
       })
     }
 
-    const ML_URL = process.env.NEXT_PUBLIC_ML_SERVICE_URL || "http://127.0.0.1:8000"
-
     for (const member of members) {
       const loginKey = (member.userLogin ?? member.userName)?.toLowerCase()
-      const stats    = memberStats[loginKey] || { commits: 0, dates: [], datesByRepo: {} }
 
-      const commitVelocity    = stats.commits / 52
-      const contributionShare = totalCommits > 0 ? stats.commits / totalCommits : 0
+      const commitsPerMonthByRepo: Record<string, number[]> = {}
+      const commitVelocityByRepo: Record<string, number> = {}
+      const contributionShareByRepo: Record<string, number> = {}
+      const activityConsistencyByRepo: Record<string, number> = {}
+      const activeWeeksRatioByRepo: Record<string, number> = {}
+      const statusByRepo: Record<string, string> = {}
+      const recommendationByRepo: Record<string, string> = {}
 
-      const weeks = new Set(stats.dates.map((d: string) => {
+      const allDatesAllRepos: string[] = []
+
+      for (const repoFullName of repoFullNames) {
+        const stats = memberStatsByRepo[repoFullName]?.[loginKey] || { commits: 0, dates: [] }
+        const memberCommitCount = stats.commits
+        const repoTotalCommits = repoCommitCounts[repoFullName]
+        const contributionShare = repoTotalCommits > 0 ? memberCommitCount / repoTotalCommits : 0
+
+        const weeks = new Set(stats.dates.map((d: string) => {
+          const date        = new Date(d)
+          const startOfYear = new Date(date.getFullYear(), 0, 1)
+          return Math.floor((date.getTime() - startOfYear.getTime()) / (7 * 86400000))
+        }))
+        const activeWeeksRatio    = Math.min(weeks.size / 52, 1)
+        const activityConsistency = memberCommitCount > 0 ? weeks.size / 52 : 0
+        const commitVelocity      = memberCommitCount / 52
+
+        commitVelocityByRepo[repoFullName] = commitVelocity
+        contributionShareByRepo[repoFullName] = contributionShare
+        activityConsistencyByRepo[repoFullName] = activityConsistency
+        activeWeeksRatioByRepo[repoFullName] = activeWeeksRatio
+
+        commitsPerMonthByRepo[repoFullName] = last12Months.map(({ year, month }) =>
+          stats.dates.filter((d: string) => {
+            const date = new Date(d)
+            return date.getFullYear() === year && date.getMonth() === month
+          }).length
+        )
+
+        const mlData = await callMLPredictor(memberCommitCount, contributionShare, weeks.size, activeWeeksRatio)
+        statusByRepo[repoFullName] = mlData.status
+        recommendationByRepo[repoFullName] = mlData.recommendation
+
+        allDatesAllRepos.push(...stats.dates)
+      }
+
+      const memberCommitCountAll = allDatesAllRepos.length
+      const contributionShareAll = Object.values(repoCommitCounts).reduce((a, b) => a + b, 0) > 0
+        ? memberCommitCountAll / Object.values(repoCommitCounts).reduce((a, b) => a + b, 0)
+        : 0
+
+      const weeksAll = new Set(allDatesAllRepos.map((d: string) => {
         const date        = new Date(d)
         const startOfYear = new Date(date.getFullYear(), 0, 1)
         return Math.floor((date.getTime() - startOfYear.getTime()) / (7 * 86400000))
       }))
-      const activeWeeksRatio    = Math.min(weeks.size / 52, 1)
-      const activityConsistency = stats.commits > 0 ? weeks.size / 52 : 0
+      const activeWeeksRatioAll    = Math.min(weeksAll.size / 52, 1)
+      const activityConsistencyAll = memberCommitCountAll > 0 ? weeksAll.size / 52 : 0
+      const commitVelocityAll      = memberCommitCountAll / 52
 
       const commitsPerMonth = last12Months.map(({ year, month }) =>
-        stats.dates.filter((d: string) => {
+        allDatesAllRepos.filter((d: string) => {
           const date = new Date(d)
           return date.getFullYear() === year && date.getMonth() === month
         }).length
       )
 
-      const commitsPerMonthByRepo: Record<string, number[]> = {}
-      for (const repoFullName of repoFullNames) {
-        const repoDates = stats.datesByRepo[repoFullName] ?? []
-        commitsPerMonthByRepo[repoFullName] = last12Months.map(({ year, month }) =>
-          repoDates.filter((d: string) => {
-            const date = new Date(d)
-            return date.getFullYear() === year && date.getMonth() === month
-          }).length
-        )
-      }
-
-      const mlRes  = await fetch(`${ML_URL}/predict/contributor`, {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({
-          commit_count:     stats.commits,
-          contribution_pct: contributionShare * 100,
-          active_weeks:     weeks.size,
-          active_ratio:     activeWeeksRatio,
-        }),
-      })
-      const mlData = await mlRes.json() as MlPredictResponse
+      const mlData = await callMLPredictor(memberCommitCountAll, contributionShareAll, weeksAll.size, activeWeeksRatioAll)
 
       await updateDoc(doc(db, "memberships", member.membershipId), {
-        memberStatus:          mlData.status,
-        commitVelocity,
-        contributionShare,
-        activityConsistency,
-        activeWeeksRatio,
+        memberStatus:              mlData.status,
+        commitVelocity:            commitVelocityAll,
+        contributionShare:         contributionShareAll,
+        activityConsistency:       activityConsistencyAll,
+        activeWeeksRatio:          activeWeeksRatioAll,
         commitsPerMonth,
         commitsPerMonthByRepo,
-        recommendation:        mlData.recommendation,
-        analyzedAt:            new Date(),
+        commitVelocityByRepo,
+        contributionShareByRepo,
+        activityConsistencyByRepo,
+        activeWeeksRatioByRepo,
+        statusByRepo,
+        recommendationByRepo,
+        recommendation:            mlData.recommendation,
+        analyzedAt:                new Date(),
       })
     }
 
