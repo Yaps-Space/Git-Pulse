@@ -21,6 +21,8 @@ export interface TeamSpaceDetail {
   members:             TeamMember[]
   academicYear:        string | null
   studyProgram:        string | null
+  academicYearId:      string | null
+  studyProgramId:      string | null
   projectManager:      string | null
   repoCommitsPerMonth: Record<string, number[]>
   repoHealthList:      RepoHealth[]
