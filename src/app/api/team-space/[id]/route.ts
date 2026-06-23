@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/shared/lib/auth"
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/shared/lib/firebase"
-import { collection, query, where, getDocs, doc, getDoc, DocumentData } from "firebase/firestore"
+import { collection, query, where, getDocs, doc, getDoc, updateDoc, DocumentData } from "firebase/firestore"
 import { TeamMember } from "@/features/team-space/types/TeamSpace"
 import { TeamSpaceDetail, RepoHealth } from "@/features/team-space/detail/types/TeamSpaceDetail"
 import { GithubCommit } from "@/features/team-space/detail/types/analyzeTypes"
@@ -180,6 +180,8 @@ export async function GET(
       members,
       academicYear:        academicYearLabel,
       studyProgram:        studyProgramLabel,
+      academicYearId:      (ts.academicYearId as string) || null,
+      studyProgramId:      (ts.studyProgramId as string) || null,
       projectManager:      (ts.projectManager as string) || null,
       repoCommitsPerMonth,
       repoHealthList,
@@ -189,5 +191,50 @@ export async function GET(
   } catch (e) {
     console.error(e)
     return NextResponse.json({ error: "Failed to fetch detail" }, { status: 500 })
+  }
+}
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  try {
+    const tsRef  = doc(db, "teamSpaces", id)
+    const tsSnap = await getDoc(tsRef)
+    if (!tsSnap.exists()) return NextResponse.json({ error: "Not found" }, { status: 404 })
+
+    const ts = tsSnap.data() as DocumentData
+    if (ts.ownerId !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    const body = await req.json() as {
+      name?:           string
+      description?:    string | null
+      projectManager?: string | null
+      academicYearId?: string | null
+      studyProgramId?: string | null
+    }
+
+    if (!body.name?.trim()) {
+      return NextResponse.json({ error: "Name is required" }, { status: 400 })
+    }
+
+    await updateDoc(tsRef, {
+      name:           body.name.trim(),
+      description:    body.description?.trim()   || null,
+      projectManager: body.projectManager?.trim() || null,
+      academicYearId: body.academicYearId         || null,
+      studyProgramId: body.studyProgramId         || null,
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (e) {
+    console.error(e)
+    return NextResponse.json({ error: "Failed to update team space" }, { status: 500 })
   }
 }

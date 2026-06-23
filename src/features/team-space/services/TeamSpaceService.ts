@@ -37,6 +37,23 @@ export async function joinTeamSpace(inviteCode: string) {
   return res.json()
 }
 
+interface UpdateTeamSpacePayload {
+  name:           string
+  description:    string | null
+  projectManager: string | null
+  academicYearId: string | null
+  studyProgramId: string | null
+}
+
+export async function updateTeamSpace(id: string, payload: UpdateTeamSpacePayload) {
+  const res = await fetch(`/api/team-space/${id}`, {
+    method:  "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify(payload),
+  })
+  return res.json()
+}
+
 export async function fetchRepos(): Promise<Repo[]> {
   const res  = await fetch("/api/repo/list")
   const data = await res.json()
