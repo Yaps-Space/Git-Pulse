@@ -37,6 +37,22 @@ export function TeamSpaceRepoTabs({
     ? { [activeRepo.repoFullName]: repoCommitsPerMonth[activeRepo.repoFullName] ?? Array(12).fill(0) }
     : {}
 
+  const activeMembers = activeRepo
+    ? members.map(m => {
+        const isAnalyzing = m.status === "analyzing"
+        return {
+          ...m,
+          commitsPerMonth:       m.commitsPerMonthByRepo?.[activeRepo.repoFullName] ?? Array(12).fill(0),
+          commitVelocity:        isAnalyzing ? m.commitVelocity : (m.commitVelocityByRepo?.[activeRepo.repoFullName] ?? 0),
+          contributionShare:     isAnalyzing ? m.contributionShare : (m.contributionShareByRepo?.[activeRepo.repoFullName] ?? 0),
+          activityConsistency:   isAnalyzing ? m.activityConsistency : (m.activityConsistencyByRepo?.[activeRepo.repoFullName] ?? 0),
+          activeWeeksRatio:      isAnalyzing ? m.activeWeeksRatio : (m.activeWeeksRatioByRepo?.[activeRepo.repoFullName] ?? 0),
+          status:                isAnalyzing ? m.status : (m.statusByRepo?.[activeRepo.repoFullName] ?? m.status),
+          recommendation:        isAnalyzing ? m.recommendation : (m.recommendationByRepo?.[activeRepo.repoFullName] ?? m.recommendation),
+        }
+      })
+    : members
+
   const shortName = (fullName: string) => fullName.split("/").pop() ?? fullName
 
   return (
@@ -72,13 +88,11 @@ export function TeamSpaceRepoTabs({
         />
       )}
 
-      {isEvaluator && (
-        <TeamSpaceStatusCards members={members} />
-      )}
+      {isEvaluator && <TeamSpaceStatusCards members={activeMembers} />}
 
       {isEvaluator && (
         <TeamSpaceMemberTable
-          members={members}
+          members={activeMembers}
           myRole={myRole}
           ownerId={ownerId}
           classId={classId}
@@ -88,7 +102,7 @@ export function TeamSpaceRepoTabs({
       )}
 
       <ContributorsChart
-        members={members}
+        members={activeMembers}
         repoCommitsPerMonth={activeCommits}
       />
     </div>
