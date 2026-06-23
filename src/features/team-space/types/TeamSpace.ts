@@ -27,6 +27,12 @@ export interface TeamMember {
   activeWeeksRatio:      number
   commitsPerMonth:       number[]
   commitsPerMonthByRepo: Record<string, number[]>
+  commitVelocityByRepo:        Record<string, number>
+  contributionShareByRepo:     Record<string, number>
+  activityConsistencyByRepo:   Record<string, number>
+  activeWeeksRatioByRepo:      Record<string, number>
+  statusByRepo:                Record<string, string>
+  recommendationByRepo:        Record<string, string>
   recommendation:        string | null
   joinedAt:              number | null
   isOutsider:            boolean
