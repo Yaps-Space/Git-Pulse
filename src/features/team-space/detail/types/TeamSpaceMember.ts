@@ -1,2 +1,2 @@
-export type SortKey = "userName" | "commitVelocity" | "contributionShare"
+export type SortKey = "displayName" | "commitVelocity" | "contributionShare" | "activeWeeksRatio"
 export type SortDir = "asc" | "desc"
