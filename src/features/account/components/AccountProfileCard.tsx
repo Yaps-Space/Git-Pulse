@@ -2,32 +2,27 @@
 
 import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
 import { Separator } from "@/shared/components/ui/separator"
-import { Github, CheckCircle2, Loader2, Pencil } from "lucide-react"
+import { CheckCircle2, Loader2, Pencil } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
 import { INFO_ITEMS } from "../constants/ProfileIcon"
 import { useIsMobile } from "@/shared/hooks/UseMobile"
 import { AccountData } from "../types/Account"
 import { AccountEditPassword } from "./AccountEditPassword"
-
-function GitLabIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M22.65 14.39L12 22.13 1.35 14.39a.84.84 0 0 1-.3-.94l1.22-3.78 2.44-7.51A.42.42 0 0 1 4.82 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.49h8.1l2.44-7.51A.42.42 0 0 1 18.6 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.51 1.22 3.78a.84.84 0 0 1-.3.92z"/>
-    </svg>
-  )
-}
+import { GitHubIcon, GitLabIcon } from "@/shared/components/commons/ProviderIcons"
 
 export function AccountProfileCard({ name, username, email, avatar, createdAt, linkedProviders, hasPassword }: AccountData) {
-  const isMobile = useIsMobile()
-  const initials = name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
-  const params   = useSearchParams()
+  const isMobile       = useIsMobile()
+  const initials       = name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+  const params         = useSearchParams()
+  const { update }     = useSession()
 
-  const [toast, setToast]         = useState<string | null>(null)
-  const [editingName, setEditing] = useState(false)
-  const [nameValue, setNameValue] = useState(name)
-  const [savingName, setSaving]   = useState(false)
+  const [toast,       setToast]    = useState<string | null>(null)
+  const [editingName, setEditing]  = useState(false)
+  const [nameValue,   setNameValue] = useState(name)
+  const [savingName,  setSaving]   = useState(false)
 
   const isGithubConnected = !!linkedProviders?.github?.accessToken
   const isGitlabConnected = !!linkedProviders?.gitlab?.accessToken
@@ -61,6 +56,7 @@ export function AccountProfileCard({ name, username, email, avatar, createdAt, l
       })
 
       if (res.ok) {
+        await update({ name: nameValue })
         setToast("Nama berhasil diperbarui.")
         setEditing(false)
       } else {
@@ -93,7 +89,6 @@ export function AccountProfileCard({ name, username, email, avatar, createdAt, l
         </>
       )}
 
-      {/* Toast */}
       {toast && (
         <div className={`mb-4 px-4 py-2.5 rounded-xl text-sm font-medium ${
           toast.includes("Gagal") || toast.includes("salah") || toast.includes("bisa")
@@ -104,7 +99,6 @@ export function AccountProfileCard({ name, username, email, avatar, createdAt, l
         </div>
       )}
 
-      {/* Info items */}
       <div className={isMobile ? "space-y-3" : "space-y-4"}>
         {INFO_ITEMS(username, email, createdAt).map(({ icon: Icon, label, value }) => (
           <div key={label} className="flex items-center gap-3">
@@ -118,7 +112,6 @@ export function AccountProfileCard({ name, username, email, avatar, createdAt, l
           </div>
         ))}
 
-        {/* Edit nama */}
         <div className="flex items-start gap-3">
           <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
             <Pencil className="w-4 h-4 text-gray-400" />
@@ -157,20 +150,17 @@ export function AccountProfileCard({ name, username, email, avatar, createdAt, l
         </div>
       </div>
 
-      {/* Edit password */}
       <AccountEditPassword hasPassword={hasPassword} />
 
       <Separator className="my-5" />
 
-      {/* Connected Accounts */}
       <div>
         <p className="text-sm font-semibold text-gray-700 mb-3">Connected Accounts</p>
         <div className="flex flex-col gap-2">
-
           {isGithubConnected ? (
             <div className="flex items-center justify-between px-4 py-2.5 rounded-xl border border-gray-100 bg-gray-50">
               <div className="flex items-center gap-2.5">
-                <Github className="w-4 h-4 text-gray-700" />
+                <GitHubIcon className="w-4 h-4 text-gray-700" />
                 <div>
                   <p className="text-sm font-medium text-gray-800">GitHub</p>
                   {linkedProviders.github?.username && (
@@ -184,9 +174,10 @@ export function AccountProfileCard({ name, username, email, avatar, createdAt, l
               </div>
             </div>
           ) : (
+            // eslint-disable-next-line @next/next/no-html-link-for-pages
             <a href="/api/auth/connect/github/init">
               <Button variant="outline" className="w-full gap-2 justify-start font-medium text-gray-700 border-gray-200 hover:bg-gray-50">
-                <Github className="w-4 h-4" />
+                <GitHubIcon className="w-4 h-4" />
                 Connect GitHub
               </Button>
             </a>
@@ -209,6 +200,7 @@ export function AccountProfileCard({ name, username, email, avatar, createdAt, l
               </div>
             </div>
           ) : (
+            // eslint-disable-next-line @next/next/no-html-link-for-pages
             <a href="/api/auth/connect/gitlab/init">
               <Button variant="outline" className="w-full gap-2 justify-start font-medium text-gray-700 border-gray-200 hover:bg-gray-50">
                 <GitLabIcon className="w-4 h-4 text-[#fc6d26]" />
@@ -216,7 +208,6 @@ export function AccountProfileCard({ name, username, email, avatar, createdAt, l
               </Button>
             </a>
           )}
-
         </div>
       </div>
     </div>
