@@ -19,9 +19,13 @@ export function AccountLayout() {
 
   return (
     <PageShell title="Account Settings">
-      <div className="grid grid-cols-2 gap-4 items-stretch mb-1">
-        <AccountProfileCard {...account} />
-        <AccountLogoutCard />
+      <div className="grid grid-cols-3 gap-4 items-start">
+        <div className="col-span-2">
+          <AccountProfileCard {...account} />
+        </div>
+        <div className="col-span-1">
+          <AccountLogoutCard />
+        </div>
       </div>
     </PageShell>
   );

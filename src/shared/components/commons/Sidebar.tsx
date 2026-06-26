@@ -3,31 +3,26 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarSeparator,
-  useSidebar,
+  Sidebar, SidebarContent, SidebarFooter, SidebarHeader,
+  SidebarMenu, SidebarMenuButton, SidebarMenuItem,
+  SidebarSeparator, useSidebar,
 } from "@/shared/components/ui/sidebar";
 import { cn } from "@/shared/lib/utils";
 import { NAV_ITEMS } from "@/shared/contans/NavItems";
-import { SidebarProps } from "@/shared/types/Sidebar";
 
-export function AppSidebar({ user }: SidebarProps) {
-  const pathname  = usePathname();
-  const { state, toggleSidebar } = useSidebar();
-  const collapsed = state === "collapsed";
+export function AppSidebar() {
+  const pathname          = usePathname()
+  const { state, toggleSidebar } = useSidebar()
+  const { data: session } = useSession()
+  const collapsed         = state === "collapsed"
 
+  const user     = session?.user
   const initials = user?.name
-    ?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) ?? "GP";
+    ?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) ?? "GP"
 
   const isActive = (href: string) =>
     href === "/dashboard"
@@ -133,5 +128,5 @@ export function AppSidebar({ user }: SidebarProps) {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  );
+  )
 }

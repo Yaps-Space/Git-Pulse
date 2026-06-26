@@ -135,6 +135,12 @@ export async function POST(req: NextRequest) {
   if (!name || !repoFullNames?.length) return NextResponse.json({ error: "Missing fields" }, { status: 400 })
 
   try {
+    // Ambil nama dari Firestore supaya pakai displayName yang sudah diupdate user
+    const userSnap = await getDoc(doc(db, "users", session.user.id))
+    const userName = userSnap.exists()
+      ? (userSnap.data().name ?? session.user.name)
+      : session.user.name
+
     const inviteCode = generateInviteCode()
 
     const tsRef = await addDoc(collection(db, "teamSpaces"), {
@@ -152,7 +158,7 @@ export async function POST(req: NextRequest) {
     await addDoc(collection(db, "memberships"), {
       classId:      tsRef.id,
       userId:       session.user.id,
-      userName:     session.user.name,
+      userName,                        // ← dari Firestore
       displayName:  null,
       userLogin:    session.user.username ?? null,
       userImage:    session.user.image,
