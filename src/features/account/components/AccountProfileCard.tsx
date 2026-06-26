@@ -16,7 +16,7 @@ import { EditNameDialog } from "./EditNameDialog"
 import { GitHubIcon, GitLabIcon } from "@/shared/components/commons/ProviderIcons"
 import { toast } from "sonner"
 
-export function AccountProfileCard({ name, username, email, avatar, createdAt, linkedProviders, hasPassword }: AccountData) {
+export function AccountProfileCard({ name, username, email, avatar, createdAt, linkedProviders, hasPassword, onNameChange }: AccountData) {
   const isMobile   = useIsMobile()
   const initials   = name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
   const params     = useSearchParams()
@@ -63,6 +63,7 @@ export function AccountProfileCard({ name, username, email, avatar, createdAt, l
         await update({ name: nameInput })
         router.refresh()
         setNameValue(nameInput)
+        onNameChange?.(nameInput)
         setEditOpen(false)
         toast.success("Nama berhasil diperbarui.")
       } else {

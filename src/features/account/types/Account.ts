@@ -15,4 +15,5 @@ export interface AccountData {
     github?: LinkedProvider
     gitlab?: LinkedProvider
   }
+  onNameChange?: (name: string) => void
 }
