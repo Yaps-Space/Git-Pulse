@@ -3,9 +3,8 @@ import GithubProvider from "next-auth/providers/github"
 import GitLabProvider from "next-auth/providers/gitlab"
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
-import type { NextAuthOptions, Session, User } from "next-auth"
-import type { JWT } from "next-auth/jwt"
-import type { Account, Profile } from "next-auth"
+import type { NextAuthOptions, User } from "next-auth"
+import type { Profile } from "next-auth"
 import { db } from "@/shared/lib/firebase"
 import {
   doc, getDoc, setDoc, serverTimestamp,
@@ -101,11 +100,9 @@ export const authOptions: NextAuthOptions = {
 
         const provider = isGithub ? "github" : "gitlab"
 
-        // Cek apakah provider ID ini sudah di-connect ke akun lain
         const existingUser = await findUserByLinkedProvider(provider, providerId)
 
         if (existingUser) {
-          // Akun ditemukan — hanya update token, JANGAN tiban data utama
           await setDoc(doc(db, "users", existingUser.id), {
             linkedProviders: {
               [provider]: {
@@ -120,12 +117,10 @@ export const authOptions: NextAuthOptions = {
           return true
         }
 
-        // Akun belum ada — buat baru dengan data dari provider
         const userRef  = doc(db, "users", providerId)
         const userSnap = await getDoc(userRef)
 
         if (!userSnap.exists()) {
-          // First-write: simpan data utama dari provider pertama
           await setDoc(userRef, {
             name:      user.name,
             email:     user.email,
@@ -142,7 +137,6 @@ export const authOptions: NextAuthOptions = {
             }
           })
         } else {
-          // Dokumen sudah ada — hanya update token, data utama tetap
           await setDoc(userRef, {
             linkedProviders: {
               [provider]: {
@@ -160,7 +154,12 @@ export const authOptions: NextAuthOptions = {
       return true
     },
 
-    async jwt({ token, account, profile, user }) {
+    async jwt({ token, account, profile, user, trigger, session }) {
+      if (trigger === "update" && session?.name) {
+        token.name = session.name
+        return token
+      }
+
       if (account?.type === "credentials" && user) {
         const u           = user as User & { username?: string }
         token.id          = u.id
@@ -174,10 +173,8 @@ export const authOptions: NextAuthOptions = {
         const isGithub = account.provider === "github"
         const p        = profile as Profile & { id?: number; login?: string; username?: string }
 
-        // Pakai user.id yang mungkin sudah di-override di signIn callback
         const userId = user?.id ?? p?.id?.toString() ?? token.sub
 
-        // Ambil data utama dari Firestore — bukan dari profile provider
         try {
           const snap     = await getDoc(doc(db, "users", userId!))
           const userData = snap.exists() ? snap.data() : null
