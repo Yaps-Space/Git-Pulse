@@ -95,13 +95,14 @@ export async function GET(
   const code        = searchParams.get("code")
   const state       = searchParams.get("state")
   const storedState = req.cookies.get(`connect_oauth_state_${provider}`)?.value
+  const returnTo    = req.cookies.get(`connect_return_to_${provider}`)?.value ?? "/account"
 
   if (!state || !storedState || state !== storedState) {
-    return NextResponse.redirect(new URL("/account?error=invalid_state", req.url))
+    return NextResponse.redirect(new URL(`${new URL(returnTo, req.url).pathname}?error=invalid_state`, req.url))
   }
 
   if (!code) {
-    return NextResponse.redirect(new URL("/account?error=no_code", req.url))
+    return NextResponse.redirect(new URL(`${new URL(returnTo, req.url).pathname}?error=no_code`, req.url))
   }
 
   const session = await getServerSession(authOptions)
@@ -112,12 +113,12 @@ export async function GET(
   try {
     const tokenData = await exchangeCodeForToken(provider, code)
     if (!tokenData?.access_token) {
-      return NextResponse.redirect(new URL("/account?error=token_failed", req.url))
+      return NextResponse.redirect(new URL(`${new URL(returnTo, req.url).pathname}?error=token_failed`, req.url))
     }
 
     const profile = await getProviderProfile(provider, tokenData.access_token)
     if (!profile) {
-      return NextResponse.redirect(new URL("/account?error=profile_failed", req.url))
+      return NextResponse.redirect(new URL(`${new URL(returnTo, req.url).pathname}?error=profile_failed`, req.url))
     }
 
     const providerData: Record<string, unknown> = {
@@ -137,14 +138,16 @@ export async function GET(
       linkedProviders: { [provider]: providerData }
     }, { merge: true })
 
+    const basePath = new URL(returnTo, req.url).pathname
     const response = NextResponse.redirect(
-      new URL(`/account?connected=${provider}`, req.url)
+      new URL(`${basePath}?connected=${provider}`, req.url)
     )
     response.cookies.delete(`connect_oauth_state_${provider}`)
+    response.cookies.delete(`connect_return_to_${provider}`)
     return response
 
   } catch (e) {
     console.error("Connect callback error:", e)
-    return NextResponse.redirect(new URL("/account?error=server_error", req.url))
+    return NextResponse.redirect(new URL(`${new URL(returnTo, req.url).pathname}?error=server_error`, req.url))
   }
 }
