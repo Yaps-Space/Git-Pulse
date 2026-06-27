@@ -19,6 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="id" className={cn("font-sans", geist.variable)}>
       <body suppressHydrationWarning>
+        <Toaster position="top-center" richColors />        
         <SessionProvider>
           {children}
         </SessionProvider>

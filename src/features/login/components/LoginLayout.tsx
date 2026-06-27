@@ -2,29 +2,18 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { Github, ChevronLeft, Eye, EyeOff, Loader2 } from "lucide-react";
+import { ChevronLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
+import { GitHubIcon, GitLabIcon } from "@/shared/components/commons/ProviderIcons";
+import { toast } from "sonner";
 
 const VIDEO_URL =
   "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260315_073750_51473149-4350-4920-ae24-c8214286f323.mp4";
 
-function GitLabIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M22.65 14.39L12 22.13 1.35 14.39a.84.84 0 0 1-.3-.94l1.22-3.78 2.44-7.51A.42.42 0 0 1 4.82 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.49h8.1l2.44-7.51A.42.42 0 0 1 18.6 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.51 1.22 3.78a.84.84 0 0 1-.3.92z" />
-    </svg>
-  );
-}
-
-// Shared button style baseline — ensures consistent height across all buttons
 const oauthBtnBase: React.CSSProperties = {
   height:       "42px",
   borderRadius: "10px",
@@ -33,24 +22,33 @@ const oauthBtnBase: React.CSSProperties = {
 };
 
 export function LoginLayout() {
-  const [login, setLogin]       = useState("");
-  const [password, setPassword] = useState("");
-  const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState<string | null>(null);
+  const params              = useSearchParams();
+  const [login, setLogin]   = useState("");
+  const [password, setPass] = useState("");
+  const [showPass, setShow] = useState(false);
+  const [loading, setLoad]  = useState(false);
+  const [error, setError]   = useState<string | null>(null);
+
+  useEffect(() => {
+    if (params.get("registered") === "1") {
+      toast.success("Akun berhasil dibuat! Silakan masuk.")
+    }
+  }, [params])
 
   const handleGithubLogin = () => {
+    sessionStorage.setItem("showLoginToast", "1")
     signIn("github", { callbackUrl: "/dashboard" }, { prompt: "select_account" });
   };
 
   const handleGitlabLogin = () => {
+    sessionStorage.setItem("showLoginToast", "1")
     signIn("gitlab", { callbackUrl: "/dashboard" });
   };
 
   const handleCredentialsLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
+    setLoad(true);
 
     const result = await signIn("credentials", {
       login,
@@ -59,14 +57,17 @@ export function LoginLayout() {
       callbackUrl: "/dashboard",
     });
 
-    setLoading(false);
+    setLoad(false);
 
     if (result?.error) {
       setError("Email/username atau password salah.");
       return;
     }
 
-    if (result?.url) window.location.href = result.url;
+    if (result?.url) {
+      sessionStorage.setItem("showLoginToast", "1")
+      window.location.href = result.url
+    }
   };
 
   const inputStyle = {
@@ -83,7 +84,6 @@ export function LoginLayout() {
 
   return (
     <main className="relative min-h-[100dvh] flex flex-col items-center justify-center overflow-hidden bg-black">
-      {/* Background video */}
       <video
         src={VIDEO_URL}
         autoPlay
@@ -94,7 +94,6 @@ export function LoginLayout() {
       />
       <div className="absolute inset-0 bg-black/60 z-[1]" />
 
-      {/* Back button — top left, consistent with register */}
       <Link
         href="/"
         className="absolute top-5 left-5 z-20 flex items-center gap-1.5 text-white/45 hover:text-white/80 text-sm font-medium transition-colors"
@@ -103,7 +102,6 @@ export function LoginLayout() {
         Back
       </Link>
 
-      {/* Card — wider */}
       <div className="relative z-10 w-full max-w-[460px] px-4">
         <Card
           className="w-full border-0 px-8 py-8"
@@ -116,15 +114,9 @@ export function LoginLayout() {
             borderRadius:         "18px",
           }}
         >
-          <CardHeader className="flex flex-col items-center text-center pb-5 px-0">
+          <CardHeader className="flex flex-col items-center text-center pb-2 px-0">
             <div className="flex items-center gap-2 mb-5">
-              <Image
-                src="/logo.png"
-                alt="GitPulse"
-                width={28}
-                height={28}
-                className="rounded-md flex-shrink-0"
-              />
+              <Image src="/logo.png" alt="GitPulse" width={28} height={28} className="rounded-md flex-shrink-0" />
               <span className="font-bold text-white text-base">
                 Git<span className="text-[#00d964]">Pulse</span>
               </span>
@@ -138,7 +130,6 @@ export function LoginLayout() {
           </CardHeader>
 
           <CardContent className="px-0 pb-0">
-            {/* Credentials form — on top */}
             <form onSubmit={handleCredentialsLogin} className="flex flex-col gap-3">
               <div>
                 <label className="text-white/45 text-[11.5px] font-medium mb-1.5 block">
@@ -151,6 +142,7 @@ export function LoginLayout() {
                   placeholder="nama@email.com atau username"
                   required
                   style={inputStyle}
+                  className="autofill-dark"
                   onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(0,217,100,0.45)")}
                   onBlur={(e)  => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)")}
                 />
@@ -164,16 +156,17 @@ export function LoginLayout() {
                   <input
                     type={showPass ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => setPass(e.target.value)}
                     placeholder="••••••••"
                     required
                     style={{ ...inputStyle, paddingRight: "40px" }}
+                    className="autofill-dark"
                     onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(0,217,100,0.45)")}
                     onBlur={(e)  => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)")}
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPass(!showPass)}
+                    onClick={() => setShow(!showPass)}
                     style={{
                       position:   "absolute",
                       right:      "11px",
@@ -204,11 +197,12 @@ export function LoginLayout() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full gap-2 text-sm font-semibold text-[#0a1a0e] border-0 hover:brightness-110 active:brightness-95 transition-all"
+                className="w-full gap-2 text-sm font-semibold text-[#0a1a0e] border-0 hover:brightness-110 active:brightness-95 transition-all mt-2"
                 style={{
-                  ...oauthBtnBase,
-                  background: "#00d964",
-                  opacity:    loading ? 0.7 : 1,
+                  height:       "42px",
+                  borderRadius: "10px",
+                  background:   "#00d964",
+                  opacity:      loading ? 0.7 : 1,
                 }}
               >
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -216,14 +210,12 @@ export function LoginLayout() {
               </Button>
             </form>
 
-            {/* Divider */}
             <div className="flex items-center gap-3 my-5">
               <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.08)" }} />
               <span className="text-white/20 text-[11px]">atau lanjutkan dengan</span>
               <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.08)" }} />
             </div>
 
-            {/* OAuth buttons — same height, side by side */}
             <div className="grid grid-cols-2 gap-3">
               <Button
                 onClick={handleGithubLogin}
@@ -234,7 +226,7 @@ export function LoginLayout() {
                   border:     "0.5px solid rgba(255,255,255,0.15)",
                 }}
               >
-                <Github className="w-4 h-4 flex-shrink-0" />
+                <GitHubIcon className="w-4 h-4 flex-shrink-0" />
                 GitHub
               </Button>
 
@@ -253,13 +245,9 @@ export function LoginLayout() {
               </Button>
             </div>
 
-            {/* Register hint — bottom */}
             <p className="text-center text-xs text-white/30 mt-5">
               Belum punya akun?{" "}
-              <Link
-                href="/register"
-                className="text-[#00d964] hover:brightness-110 transition-all font-medium"
-              >
+              <Link href="/register" className="text-[#00d964] hover:brightness-110 transition-all font-medium">
                 Daftar sekarang
               </Link>
             </p>
