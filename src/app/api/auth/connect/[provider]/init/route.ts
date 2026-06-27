@@ -35,7 +35,8 @@ export async function GET(
     return NextResponse.json({ error: "Provider tidak didukung." }, { status: 400 })
   }
 
-  const state = randomBytes(16).toString("hex")
+  const state    = randomBytes(16).toString("hex")
+  const returnTo = req.headers.get("referer") ?? "/account"
 
   const oauthUrl = new URL(config.authUrl)
   oauthUrl.searchParams.set("client_id",    config.clientId)
@@ -49,6 +50,14 @@ export async function GET(
   const response = NextResponse.redirect(oauthUrl.toString())
 
   response.cookies.set(`connect_oauth_state_${provider}`, state, {
+    httpOnly: true,
+    secure:   process.env.NODE_ENV === "production",
+    maxAge:   60 * 10,
+    path:     "/",
+    sameSite: "lax",
+  })
+
+  response.cookies.set(`connect_return_to_${provider}`, returnTo, {
     httpOnly: true,
     secure:   process.env.NODE_ENV === "production",
     maxAge:   60 * 10,

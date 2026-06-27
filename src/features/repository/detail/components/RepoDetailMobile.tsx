@@ -10,6 +10,7 @@ import { RefreshButton }        from "./RefreshButton"
 import { DisconnectButton }     from "./DisconnectButton"
 import { RepoDetail }           from "../types/RepoDetail"
 import { useRefreshRepo }       from "../hooks/useRefreshRepo"
+import { GitHubIcon, GitLabIcon } from "@/shared/components/commons/ProviderIcons"
 
 interface Props {
   repo: RepoDetail
@@ -20,7 +21,19 @@ export function RepoDetailMobile({ repo }: Props) {
 
   return (
     <div className="min-h-screen">
-      <MobilePageHeader title={repo.fullName} backHref="/repository">
+      <MobilePageHeader
+        title={
+          <span className="flex items-center gap-1.5">
+            {repo.provider === "gitlab" ? (
+              <GitLabIcon className="w-4 h-4 text-[#fc6d26] flex-shrink-0" />
+            ) : (
+              <GitHubIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            )}
+            {repo.fullName}
+          </span>
+        }
+        backHref="/repository"
+      >
         <div className="flex flex-col gap-1">
           {repo.description && (
             <p className="text-xs text-gray-400 truncate">{repo.description}</p>

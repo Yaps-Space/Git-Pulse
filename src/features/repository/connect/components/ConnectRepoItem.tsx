@@ -1,18 +1,11 @@
 "use client"
 
-import { Star, GitFork, Clock, Github } from "lucide-react"
+import { Star, GitFork, Clock } from "lucide-react"
 import { Avatar, AvatarImage, AvatarFallback } from "@/shared/components/ui/avatar"
-import { Button }      from "@/shared/components/ui/button"
+import { Button }    from "@/shared/components/ui/button"
 import { GithubRepo, Provider } from "@/features/repository/types"
-import { timeAgo }     from "../helpers"
-
-function GitLabIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M22.65 14.39L12 22.13 1.35 14.39a.84.84 0 0 1-.3-.94l1.22-3.78 2.44-7.51A.42.42 0 0 1 4.82 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.49h8.1l2.44-7.51A.42.42 0 0 1 18.6 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.51 1.22 3.78a.84.84 0 0 1-.3.92z"/>
-    </svg>
-  )
-}
+import { GitHubIcon, GitLabIcon } from "@/shared/components/commons/ProviderIcons"
+import { timeAgo }   from "../helpers"
 
 interface Props {
   repo:       GithubRepo
@@ -22,26 +15,24 @@ interface Props {
   variant?:   "default" | "mobile"
 }
 
-export function ConnectRepoItem({ repo, connecting, provider, onConnect, variant = "default" }: Props) {
-  const isConnecting = connecting === repo.full_name
-
-  const ProviderBadge = () => (
+function ProviderBadge({ provider }: { provider: Provider }) {
+  return (
     <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium ${
-      provider === "github"
-        ? "bg-gray-100 text-gray-500"
-        : "bg-orange-50 text-[#fc6d26]"
+      provider === "github" ? "bg-gray-100 text-gray-500" : "bg-orange-50 text-[#fc6d26]"
     }`}>
       {provider === "github"
-        ? <Github className="w-2.5 h-2.5" />
+        ? <GitHubIcon className="w-2.5 h-2.5" />
         : <GitLabIcon className="w-2.5 h-2.5" />
       }
       {provider === "github" ? "GitHub" : "GitLab"}
     </span>
   )
+}
 
-  const ConnectBtn = () => (
+function ConnectBtn({ isConnecting, onClick }: { isConnecting: boolean; onClick: () => void }) {
+  return (
     <Button
-      onClick={() => onConnect(repo)}
+      onClick={onClick}
       disabled={isConnecting}
       className="flex-shrink-0 w-28 rounded-md font-semibold gap-2 bg-[#00D964] hover:bg-[#00c057] text-gray-900 disabled:bg-gray-100 disabled:text-gray-400 disabled:opacity-100"
     >
@@ -52,6 +43,26 @@ export function ConnectRepoItem({ repo, connecting, provider, onConnect, variant
         </>
       ) : "Connect"}
     </Button>
+  )
+}
+
+export function ConnectRepoItem({ repo, connecting, provider, onConnect, variant = "default" }: Props) {
+  const isConnecting = connecting === repo.full_name
+
+  const visibilityBadge = (
+    <span className={`text-xs px-2 py-0.5 rounded-full ${
+      repo.private ? "bg-gray-100 text-gray-500" : "bg-[#BEF3DF]/25 text-[#00D964]"
+    }`}>
+      {repo.private ? "Private" : "Public"}
+    </span>
+  )
+
+  const stats = (
+    <>
+      <span className="flex items-center gap-1 text-xs text-gray-400"><Star    className="w-3 h-3" />{repo.stargazers_count}</span>
+      <span className="flex items-center gap-1 text-xs text-gray-400"><GitFork className="w-3 h-3" />{repo.forks_count}</span>
+      <span className="flex items-center gap-1 text-xs text-gray-400"><Clock   className="w-3 h-3" />{timeAgo(repo.pushed_at)}</span>
+    </>
   )
 
   if (variant === "mobile") {
@@ -73,24 +84,16 @@ export function ConnectRepoItem({ repo, connecting, provider, onConnect, variant
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <ProviderBadge />
-          <span className={`text-xs px-2 py-0.5 rounded-full ${
-            repo.private ? "bg-gray-100 text-gray-500" : "bg-[#BEF3DF]/25 text-[#00D964]"
-          }`}>
-            {repo.private ? "Private" : "Public"}
-          </span>
+          <ProviderBadge provider={provider} />
+          {visibilityBadge}
           {repo.language && (
             <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-400">{repo.language}</span>
           )}
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1 text-xs text-gray-400"><Star    className="w-3 h-3" />{repo.stargazers_count}</span>
-            <span className="flex items-center gap-1 text-xs text-gray-400"><GitFork className="w-3 h-3" />{repo.forks_count}</span>
-            <span className="flex items-center gap-1 text-xs text-gray-400"><Clock   className="w-3 h-3" />{timeAgo(repo.pushed_at)}</span>
-          </div>
-          <ConnectBtn />
+          <div className="flex items-center gap-3">{stats}</div>
+          <ConnectBtn isConnecting={isConnecting} onClick={() => onConnect(repo)} />
         </div>
       </div>
     )
@@ -108,12 +111,8 @@ export function ConnectRepoItem({ repo, connecting, provider, onConnect, variant
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="font-medium text-sm text-gray-800">{repo.full_name}</p>
-            <ProviderBadge />
-            <span className={`text-xs px-2 py-0.5 rounded-full ${
-              repo.private ? "bg-gray-100 text-gray-500" : "bg-[#BEF3DF]/25 text-[#00D964]"
-            }`}>
-              {repo.private ? "Private" : "Public"}
-            </span>
+            <ProviderBadge provider={provider} />
+            {visibilityBadge}
             {repo.language && (
               <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-400">{repo.language}</span>
             )}
@@ -121,14 +120,10 @@ export function ConnectRepoItem({ repo, connecting, provider, onConnect, variant
           {repo.description && (
             <p className="text-xs mt-0.5 truncate text-gray-400">{repo.description}</p>
           )}
-          <div className="flex items-center gap-3 mt-1">
-            <span className="flex items-center gap-1 text-xs text-gray-400"><Star    className="w-3 h-3" />{repo.stargazers_count}</span>
-            <span className="flex items-center gap-1 text-xs text-gray-400"><GitFork className="w-3 h-3" />{repo.forks_count}</span>
-            <span className="flex items-center gap-1 text-xs text-gray-400"><Clock   className="w-3 h-3" />{timeAgo(repo.pushed_at)}</span>
-          </div>
+          <div className="flex items-center gap-3 mt-1">{stats}</div>
         </div>
       </div>
-      <ConnectBtn />
+      <ConnectBtn isConnecting={isConnecting} onClick={() => onConnect(repo)} />
     </div>
   )
 }

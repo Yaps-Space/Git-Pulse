@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Github } from "lucide-react"
 import {
   Table, TableBody, TableCell,
   TableHead, TableHeader, TableRow,
@@ -14,14 +13,7 @@ import { PRODUCTIVITY_COLOR, PRODUCTIVITY_BG, GRADE_COLOR } from "../constants"
 import { sortRepos }       from "../helpers"
 import { SORTABLE_COLUMNS } from "../constants/Sortable"
 import { capitalizeFirst }  from "@/shared/helpers"
-
-function GitLabIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M22.65 14.39L12 22.13 1.35 14.39a.84.84 0 0 1-.3-.94l1.22-3.78 2.44-7.51A.42.42 0 0 1 4.82 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.49h8.1l2.44-7.51A.42.42 0 0 1 18.6 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.51 1.22 3.78a.84.84 0 0 1-.3.92z"/>
-    </svg>
-  )
-}
+import { GitHubIcon, GitLabIcon } from "@/shared/components/commons/ProviderIcons"
 
 interface Props {
   repos:    Repo[]
@@ -96,7 +88,7 @@ export function RepoTable({ repos, search, pageSize }: Props) {
                 <div className="flex items-center gap-2">
                   {repo.provider === "gitlab"
                     ? <GitLabIcon className="w-3.5 h-3.5 text-[#fc6d26] flex-shrink-0" />
-                    : <Github     className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+                    : <GitHubIcon className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
                   }
                   <p className="font-medium text-sm text-gray-800">{repo.fullName}</p>
                 </div>
@@ -106,8 +98,8 @@ export function RepoTable({ repos, search, pageSize }: Props) {
                 <span
                   className="px-3 py-1 rounded-sm text-xs font-medium inline-flex items-center justify-center w-18"
                   style={{
-                    background: PRODUCTIVITY_BG[capitalizeFirst(repo.productivityState)]    ?? "#88888818",
-                    color:      PRODUCTIVITY_COLOR[capitalizeFirst(repo.productivityState)]  ?? "#888",
+                    background: PRODUCTIVITY_BG[capitalizeFirst(repo.productivityState)]   ?? "#88888818",
+                    color:      PRODUCTIVITY_COLOR[capitalizeFirst(repo.productivityState)] ?? "#888",
                   }}
                 >
                   {capitalizeFirst(repo.productivityState) || "-"}
