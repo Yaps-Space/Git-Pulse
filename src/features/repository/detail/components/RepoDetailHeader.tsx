@@ -4,6 +4,7 @@ import { Star, GitFork, Clock } from "lucide-react"
 import { RepoDetail }       from "../types/RepoDetail"
 import { RefreshButton }    from "./RefreshButton"
 import { DisconnectButton } from "./DisconnectButton"
+import { GitHubIcon, GitLabIcon } from "@/shared/components/commons/ProviderIcons"
 
 interface Props {
   repo:       RepoDetail
@@ -15,7 +16,14 @@ export function RepoDetailHeader({ repo, refreshing, onRefresh }: Props) {
   return (
     <div className="flex items-start justify-between">
       <div className="flex flex-col gap-1">
-        <h2 className="text-xl font-bold text-gray-900">{repo.fullName}</h2>
+        <div className="flex items-center gap-2">
+          {repo.provider === "gitlab" ? (
+            <GitLabIcon className="w-5 h-5 text-[#fc6d26] flex-shrink-0" />
+          ) : (
+            <GitHubIcon className="w-5 h-5 text-gray-900 flex-shrink-0" />
+          )}
+          <h2 className="text-xl font-bold text-gray-900">{repo.fullName}</h2>
+        </div>
         {repo.description && (
           <p className="text-sm text-gray-500">{repo.description}</p>
         )}
