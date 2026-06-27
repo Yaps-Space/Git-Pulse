@@ -6,10 +6,10 @@ export const PRODUCTIVITY_COLOR: Record<string, string> = {
 
 export const GRADE_COLOR: Record<string, string> = {
   A: "#00D964",
-  B: "#100086",
+  B: "#4b34fa",
   C: "#D7AC00",
   D: "#FF7D20",
-  E: "#BB230B",
+  E: "#f21010",
 }
 
 export const PRODUCTIVITY_BG: Record<string, string> = {
