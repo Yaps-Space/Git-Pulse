@@ -1,6 +1,7 @@
 export interface DashboardRepo {
   id:                string
   fullName:          string
+  provider:          string
   productivityState: string
   healthScore:       number
   healthGrade:       string

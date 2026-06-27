@@ -15,8 +15,9 @@ export async function GET() {
     const repos = snap.docs.map(doc => {
       const data = doc.data()
       return {
-        id:                doc.id,
-        fullName:          data.fullName             ?? "",
+        id:                    doc.id,
+        fullName:              data.fullName              ?? "",
+        provider:              data.provider              ?? "github",
         description:           data.description          ?? null,
         language:              data.language             ?? null,
         stars:                 data.stars                ?? 0,
@@ -26,19 +27,19 @@ export async function GET() {
         commitFrequency:       data.commitFrequency      ?? 0,
         activityConsistency:   data.activityConsistency  ?? 0,
         commitTrend:           data.commitTrend          ?? 0,
-        activeDaysRatio:   data.activeDaysRatio      ?? 0,
+        activeDaysRatio:       data.activeDaysRatio      ?? 0,
         productivityRec:       data.productivityRec      ?? null,
         healthScore:           data.healthScore          ?? 0,
         healthGrade:           data.healthGrade          ?? "-",
         healthLabel:           data.healthLabel          ?? "",
         healthBreakdown:       data.healthBreakdown      ?? {},
         healthRecommendations: data.healthRecommendations ?? [],
-        additionsPercent:  data.additionsPercent     ?? 50,
-        deletionsPercent:  data.deletionsPercent     ?? 50,
-        commitsPerMonth:   data.commitsPerMonth      ?? Array(12).fill(0),
-        prPerMonth:        data.prPerMonth           ?? Array(12).fill(0),
-        issuesPerMonth:    data.issuesPerMonth       ?? Array(12).fill(0),
-        analyzedAt:        data.analyzedAt?.seconds ? data.analyzedAt.seconds * 1000 : null,
+        additionsPercent:      data.additionsPercent     ?? 50,
+        deletionsPercent:      data.deletionsPercent     ?? 50,
+        commitsPerMonth:       data.commitsPerMonth      ?? Array(12).fill(0),
+        prPerMonth:            data.prPerMonth           ?? Array(12).fill(0),
+        issuesPerMonth:        data.issuesPerMonth       ?? Array(12).fill(0),
+        analyzedAt:            data.analyzedAt?.seconds ? data.analyzedAt.seconds * 1000 : null,
       }
     })
 
