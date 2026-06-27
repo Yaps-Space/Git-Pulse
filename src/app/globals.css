@@ -167,4 +167,20 @@
   input[type="password"]::-webkit-credentials-auto-fill-button {
     display: none;
 }
+
+.autofill-dark:-webkit-autofill,
+  .autofill-dark:-webkit-autofill:hover,
+  .autofill-dark:-webkit-autofill:focus,
+  .autofill-dark:autofill {
+    -webkit-text-fill-color: white !important;
+    -webkit-box-shadow: 0 0 0px 1000px rgba(20, 20, 20, 0.95) inset !important;
+    box-shadow: 0 0 0px 1000px rgba(20, 20, 20, 0.95) inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  .autofill-dark:-internal-autofill-selected {
+    -webkit-text-fill-color: white !important;
+    -webkit-box-shadow: 0 0 0px 1000px rgba(20, 20, 20, 0.95) inset !important;
+    box-shadow: 0 0 0px 1000px rgba(20, 20, 20, 0.95) inset !important;
+  }
 }

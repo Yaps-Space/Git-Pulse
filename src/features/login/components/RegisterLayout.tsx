@@ -109,7 +109,7 @@ export function RegisterLayout() {
             borderRadius:         "18px",
           }}
         >
-          <CardHeader className="flex flex-col items-center text-center pb-5 px-0">
+          <CardHeader className="flex flex-col items-center text-center pb-2 px-0">
             <div className="flex items-center gap-2 mb-5">
               <Image
                 src="/logo.png"
@@ -144,6 +144,7 @@ export function RegisterLayout() {
                   placeholder="John Doe"
                   required
                   style={inputStyle}
+                  className="autofill-dark"
                   onFocus={focusStyle}
                   onBlur={blurStyle}
                 />
@@ -161,6 +162,7 @@ export function RegisterLayout() {
                   placeholder="nama@email.com"
                   required
                   style={inputStyle}
+                  className="autofill-dark"
                   onFocus={focusStyle}
                   onBlur={blurStyle}
                 />
@@ -178,6 +180,7 @@ export function RegisterLayout() {
                   placeholder="username_kamu"
                   required
                   style={inputStyle}
+                  className="autofill-dark"
                   onFocus={focusStyle}
                   onBlur={blurStyle}
                 />
@@ -198,6 +201,7 @@ export function RegisterLayout() {
                       required
                       minLength={8}
                       style={{ ...inputStyle, paddingRight: "36px" }}
+                      className="autofill-dark"
                       onFocus={focusStyle}
                       onBlur={blurStyle}
                     />
@@ -234,6 +238,7 @@ export function RegisterLayout() {
                       placeholder="Ulangi"
                       required
                       style={{ ...inputStyle, paddingRight: "36px" }}
+                      className="autofill-dark"
                       onFocus={focusStyle}
                       onBlur={blurStyle}
                     />
@@ -273,7 +278,7 @@ export function RegisterLayout() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full gap-2 text-sm font-semibold text-[#0a1a0e] border-0 hover:brightness-110 active:brightness-95 transition-all mt-1"
+                className="w-full gap-2 text-sm font-semibold text-[#0a1a0e] border-0 hover:brightness-110 active:brightness-95 transition-all mt-2"
                 style={{
                   height:       "42px",
                   background:   "#00d964",
