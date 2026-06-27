@@ -33,8 +33,9 @@ function BreakdownRow({
 
   if (!item) return null
 
+  const max     = item.weight * 100
   const value   = item.contribution ?? 0
-  const ratio   = value / config.max
+  const ratio   = max > 0 ? value / max : 0
   const missing = item.missing ?? []
 
   return (
@@ -54,7 +55,7 @@ function BreakdownRow({
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-gray-600">
-              {value.toFixed(1)}/{config.max}
+              {value.toFixed(1)}/{max.toFixed(0)}
             </span>
             {open
               ? <ChevronUp   className="w-3.5 h-3.5 text-gray-400" />

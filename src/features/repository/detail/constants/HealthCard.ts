@@ -1,7 +1,6 @@
 export const BREAKDOWN_CONFIG = {
   community: {
     label:    "Community & Docs",
-    max:      30,
     detailKeys: [
       { key: "has_readme",       label: "README" },
       { key: "has_license",      label: "License" },
@@ -12,7 +11,6 @@ export const BREAKDOWN_CONFIG = {
   },
   issueManagement: {
     label:    "Issue Management",
-    max:      25,
     detailKeys: [
       { key: "avg_issue_close_time_days", label: "Rata-rata close time", format: (v: number) => `${v} hari` },
       { key: "open_issues_count",         label: "Open issues",          format: (v: number) => v.toString() },
@@ -21,7 +19,6 @@ export const BREAKDOWN_CONFIG = {
   },
   velocity: {
     label:    "Velocity",
-    max:      20,
     detailKeys: [
       { key: "velocity_stability", label: "Stability index", format: (v: number) => v.toFixed(2) },
       { key: "interpretation",     label: "Status",          format: (v: string) => v },
@@ -29,7 +26,6 @@ export const BREAKDOWN_CONFIG = {
   },
   popularity: {
     label:    "Popularitas",
-    max:      25,
     detailKeys: [
       { key: "stars",       label: "Stars",      format: (v: number) => v.toLocaleString() },
       { key: "forks_count", label: "Forks",      format: (v: number) => v.toLocaleString() },
