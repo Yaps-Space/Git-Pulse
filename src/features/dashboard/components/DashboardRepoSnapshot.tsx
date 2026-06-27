@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { ChevronRight, GitFork, Star, Clock } from "lucide-react"
 import { DashboardRepo } from "../types"
+import { GitHubIcon, GitLabIcon } from "@/shared/components/commons/ProviderIcons"
 
 interface Props {
   repos: DashboardRepo[]
@@ -19,7 +20,9 @@ function timeAgo(ms: number) {
 }
 
 export function DashboardRepoSnapshot({ repos }: Props) {
-  const visible = repos.slice(0, 5)
+  const visible = [...repos]
+    .sort((a, b) => (b.analyzedAt ?? 0) - (a.analyzedAt ?? 0))
+    .slice(0, 5)
 
   return (
     <div className="bg-white rounded-2xl p-6 flex flex-col">
@@ -47,7 +50,13 @@ export function DashboardRepoSnapshot({ repos }: Props) {
             >
               <div className="w-1 h-full min-h-[2rem] rounded-full bg-[#00D964] flex-shrink-0 mt-1" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">{repo.fullName}</p>
+                <div className="flex items-center gap-1.5">
+                  {repo.provider === "gitlab"
+                    ? <GitLabIcon className="w-3.5 h-3.5 text-[#fc6d26] flex-shrink-0" />
+                    : <GitHubIcon className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
+                  }
+                  <p className="text-sm font-semibold text-gray-900 truncate">{repo.fullName}</p>
+                </div>
                 <div className="flex items-center gap-3 mt-0.5">
                   {repo.language && <span className="text-xs text-gray-400">{repo.language}</span>}
                   {!repo.isPrivate && (
