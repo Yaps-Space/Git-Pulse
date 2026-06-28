@@ -6,20 +6,21 @@ import { useSession } from "next-auth/react"
 import { X, Plus, Check } from "lucide-react"
 import Image from "next/image"
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/shared/components/ui/dialog"
 import { Button } from "@/shared/components/ui/button"
 import { Input }  from "@/shared/components/ui/input"
 import { Label }  from "@/shared/components/ui/label"
 import { cn } from "@/shared/lib/utils"
 import { InfiniteCombobox, ComboboxOption } from "@/shared/components/commons/InfiniteCombobox"
-import { GitHubIcon, GitLabIcon } from "@/shared/components/commons/ProviderIcons"
-import { createTeamSpace, fetchRepos, fetchRepoContributors, Contributor } from "../services/TeamSpaceService"
-import { fetchAcademicData, deleteAcademicOption, AcademicOption } from "../services/AcademicService"
+import { createTeamSpace } from "../services/TeamSpaceService"
+import { AcademicOption } from "../services/AcademicService"
+import { useAcademicData } from "../hooks/useAcademicData"
+import { useRepoOptions } from "./RepoOptions"
+import { useRepoContributors } from "../hooks/useRepoContributors"
 import { AddAcademicDialog } from "./AddAcademicDialog"
+import { toast } from "sonner"
+import { useDeleteAcademicConfirm } from "./DeleteAcademicConfrim"
 
 type Step          = "form" | "display-names"
 type AddDialogType = "academicYear" | "studyProgram" | null
@@ -28,54 +29,41 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
   const router            = useRouter()
   const { data: session } = useSession()
 
-  const [step,                setStep]                = useState<Step>("form")
-  const [addDialogType,       setAddDialogType]       = useState<AddDialogType>(null)
+  const { academicYears: fetchedYears, studyPrograms: fetchedPrograms, loading: loadingAcademic } = useAcademicData()
+  const { repoOptions, loadingRepos }                                                              = useRepoOptions()
 
-  const [name,                setName]                = useState("")
-  const [description,         setDescription]         = useState("")
-  const [selectedRepos,       setSelectedRepos]       = useState<string[]>([])
-  const [academicYear,        setAcademicYear]        = useState("")
-  const [studyProgram,        setStudyProgram]        = useState("")
-  const [projectManager,      setProjectManager]      = useState("")
+  const [step,          setStep]          = useState<Step>("form")
+  const [addDialogType, setAddDialogType] = useState<AddDialogType>(null)
 
-  const [repoOptions,         setRepoOptions]         = useState<ComboboxOption[]>([])
-  const [academicYears,       setAcademicYears]       = useState<AcademicOption[]>([])
-  const [studyPrograms,       setStudyPrograms]       = useState<AcademicOption[]>([])
-  const [contributors,        setContributors]        = useState<Contributor[]>([])
-  const [selectedLogins,      setSelectedLogins]      = useState<Set<string>>(new Set())
-  const [displayNames,        setDisplayNames]        = useState<Record<string, string>>({})
+  const [name,           setName]           = useState("")
+  const [description,    setDescription]    = useState("")
+  const [selectedRepos,  setSelectedRepos]  = useState<string[]>([])
+  const [academicYear,   setAcademicYear]   = useState("")
+  const [studyProgram,   setStudyProgram]   = useState("")
+  const [projectManager, setProjectManager] = useState("")
+  const [selectedLogins, setSelectedLogins] = useState<Set<string>>(new Set())
+  const [displayNames,   setDisplayNames]   = useState<Record<string, string>>({})
+  const [loading,        setLoading]        = useState(false)
 
-  const [loading,             setLoading]             = useState(false)
-  const [loadingRepos,        setLoadingRepos]        = useState(true)
-  const [loadingAcademic,     setLoadingAcademic]     = useState(true)
-  const [loadingContributors, setLoadingContributors] = useState(false)
+  const [academicYears, setAcademicYears] = useState<AcademicOption[]>([])
+  const [studyPrograms, setStudyPrograms] = useState<AcademicOption[]>([])
 
-  useEffect(() => {
-    fetchRepos()
-      .then(repos => setRepoOptions(repos.map(r => ({
-        id:    r.fullName,
-        label: r.fullName,
-        icon:  r.provider === "gitlab"
-          ? <GitLabIcon className="w-3.5 h-3.5 text-[#fc6d26]" />
-          : <GitHubIcon className="w-3.5 h-3.5 text-gray-600" />,
-      }))))
-      .finally(() => setLoadingRepos(false))
+  const { contributors, loadingContributors } = useRepoContributors(selectedRepos)
 
-    fetchAcademicData()
-      .then(data => { setAcademicYears(data.academicYears); setStudyPrograms(data.studyPrograms) })
-      .finally(() => setLoadingAcademic(false))
-  }, [])
+  const { requestDelete, DeleteConfirmDialog } = useDeleteAcademicConfirm({
+    academicYears, studyPrograms, setAcademicYears, setStudyPrograms,
+    academicYear, studyProgram, setAcademicYear, setStudyProgram,
+  })
 
   useEffect(() => {
-    if (selectedRepos.length === 0) { setContributors([]); setSelectedLogins(new Set()); return }
-    setLoadingContributors(true)
-    Promise.all(selectedRepos.map(r => fetchRepoContributors(r)))
-      .then(results => {
-        const merged = new Map<string, Contributor>()
-        results.flat().forEach(c => { if (!merged.has(c.login)) merged.set(c.login, c) })
-        setContributors(Array.from(merged.values()))
-      })
-      .finally(() => setLoadingContributors(false))
+    if (!loadingAcademic) {
+      setAcademicYears(fetchedYears)
+      setStudyPrograms(fetchedPrograms)
+    }
+  }, [loadingAcademic, fetchedYears, fetchedPrograms])
+
+  useEffect(() => {
+    setSelectedLogins(new Set())
   }, [selectedRepos])
 
   const ownerLogin        = session?.user?.username?.toLowerCase()
@@ -96,21 +84,8 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
     })
   }
 
-  const ayOptions: ComboboxOption[] = academicYears.map(ay => ({ id: ay.id, label: ay.label }))
-  const spOptions: ComboboxOption[] = studyPrograms.map(sp => ({ id: sp.id, label: sp.label }))
-
-  const handleDeleteAcademic = async (type: "academicYear" | "studyProgram", id: string) => {
-    try {
-      await deleteAcademicOption(type, id)
-      if (type === "academicYear") {
-        setAcademicYears(prev => prev.filter(ay => ay.id !== id))
-        if (academicYear === id) setAcademicYear("")
-      } else {
-        setStudyPrograms(prev => prev.filter(sp => sp.id !== id))
-        if (studyProgram === id) setStudyProgram("")
-      }
-    } catch { /* silent */ }
-  }
+  const ayOptions: ComboboxOption[] = academicYears.map(ay => ({ id: ay.id, label: ay.label, createdBy: ay.createdBy ?? null }))
+  const spOptions: ComboboxOption[] = studyPrograms.map(sp => ({ id: sp.id, label: sp.label, createdBy: sp.createdBy ?? null }))
 
   const handleAcademicAdded = (type: AddDialogType, option: AcademicOption) => {
     if (type === "academicYear") {
@@ -141,15 +116,22 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
         importMembers,
       })
       if (data.id) {
+        toast.success("Team space berhasil dibuat.")
         router.push(`/team-space/${data.id}`)
         router.refresh()
+      } else {
+        toast.error(data.error ?? "Gagal membuat team space.")
       }
+    } catch {
+      toast.error("Tidak bisa menghubungi server.")
     } finally {
       setLoading(false)
     }
   }
 
   const selectedContributors = selectableMembers.filter(c => selectedLogins.has(c.login))
+
+  if (DeleteConfirmDialog) return DeleteConfirmDialog
 
   if (addDialogType) {
     return (
@@ -271,7 +253,7 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
                 searchPlaceholder="Cari tahun ajaran..."
                 emptyMessage="Belum ada data. Tambah dengan tombol +"
                 disabled={loadingAcademic}
-                onDelete={id => handleDeleteAcademic("academicYear", id)}
+                onDelete={id => requestDelete("academicYear", id)}
                 className="flex-1"
               />
               <button
@@ -294,7 +276,7 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
                 searchPlaceholder="Cari program studi..."
                 emptyMessage="Belum ada data. Tambah dengan tombol +"
                 disabled={loadingAcademic}
-                onDelete={id => handleDeleteAcademic("studyProgram", id)}
+                onDelete={id => requestDelete("studyProgram", id)}
                 className="flex-1"
               />
               <button

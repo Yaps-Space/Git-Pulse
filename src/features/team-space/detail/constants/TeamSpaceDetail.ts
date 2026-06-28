@@ -46,7 +46,7 @@ export const getContributionItems = (membership: {
   activityConsistency: number
   activeWeeksRatio:    number
 }) => [
-  { label: "Frekuensi Commits", value: `${membership.commitVelocity.toFixed(1)} / hari`      },
+  { label: "Frekuensi Commits", value: `${membership.commitVelocity.toFixed(1)} / minggu`      },
   { label: "Kontribusi",        value: `${(membership.contributionShare * 100).toFixed(1)}%` },
   { label: "Konsistensi",       value: CONSISTENCY_LABEL(membership.activityConsistency)     },
   { label: "Active Weeks",      value: `${Math.round(membership.activeWeeksRatio * 100)}%`   },

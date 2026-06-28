@@ -1,36 +1,42 @@
 "use client"
 
 import { useState } from "react"
-import { cn }                        from "@/shared/lib/utils"
-import { TeamSpaceRepoHealthCard }   from "./TeamSpaceRepoHealthCard"
-import { TeamSpaceStatusCards }      from "./TeamSpaceStatusCards"
-import { TeamSpaceMemberTable }      from "./TeamSpaceMemberTable"
-import { ContributorsChart }         from "./ContributorsChart"
-import { TeamMember }                from "../../types/TeamSpace"
+import { cn } from "@/shared/lib/utils"
+import { useIsMobile } from "@/shared/hooks/UseMobile"
+import { TeamSpaceRepoHealthCard } from "./TeamSpaceRepoHealthCard"
+import { TeamSpaceStatusCards }    from "./TeamSpaceStatusCards"
+import { TeamSpaceMemberList }     from "./TeamSpaceMemberList"
+import { TeamSpaceMemberTable }    from "./TeamSpaceMemberTable"
+import { ContributorsChart }       from "./ContributorsChart"
+import { ContributionCard }        from "./ContributionCard"
+import { TeamMember } from "../../types/TeamSpace"
 import { RepoHealth, TeamSpaceDetail } from "../types/TeamSpaceDetail"
 
 interface Props {
   repoHealthList:      RepoHealth[]
   repoCommitsPerMonth: Record<string, number[]>
   members:             TeamMember[]
+  myMembership:        TeamMember
   myRole:              string
-  ownerId:             string
+  ownerId?:            string
   classId:             string
   isEvaluator:         boolean
-  onMutate:            (optimisticFn: (data: TeamSpaceDetail) => TeamSpaceDetail) => void
+  onMutate:            (fn: (data: TeamSpaceDetail) => TeamSpaceDetail) => void
 }
 
 export function TeamSpaceRepoTabs({
   repoHealthList,
   repoCommitsPerMonth,
   members,
+  myMembership,
   myRole,
   ownerId,
   classId,
   isEvaluator,
   onMutate,
 }: Props) {
-  const [activeTab, setActiveTab] = useState(0)
+  const isMobile                   = useIsMobile()
+  const [activeTab, setActiveTab]  = useState(0)
 
   const activeRepo    = repoHealthList[activeTab]
   const activeCommits = activeRepo
@@ -56,16 +62,17 @@ export function TeamSpaceRepoTabs({
   const shortName = (fullName: string) => fullName.split("/").pop() ?? fullName
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className={cn("flex flex-col", isMobile ? "gap-3" : "gap-4")}>
       {repoHealthList.length > 1 && (
         <div className="border-b border-gray-300">
-          <div className="flex items-center gap-6">
+          <div className={cn("flex items-center", isMobile ? "gap-5" : "gap-6")}>
             {repoHealthList.map((rh, i) => (
               <button
                 key={rh.repoFullName}
                 onClick={() => setActiveTab(i)}
                 className={cn(
                   "pb-1 text-sm font-medium transition-colors border-b-2 -mb-px",
+                  isMobile && "truncate max-w-[140px]",
                   activeTab === i
                     ? "border-[#00D964] text-gray-900 font-semibold"
                     : "border-transparent text-gray-400 hover:text-gray-600"
@@ -85,20 +92,39 @@ export function TeamSpaceRepoTabs({
           productivityState={activeRepo.productivityState}
           repoFullName={activeRepo.repoFullName}
           repoId={activeRepo.repoId}
+          provider={activeRepo.provider}
+        />
+      )}
+
+      {!isEvaluator && (
+        <ContributionCard
+          member={myMembership}
+          classId={classId}
+          onMutate={onMutate}
         />
       )}
 
       {isEvaluator && <TeamSpaceStatusCards members={activeMembers} />}
 
       {isEvaluator && (
-        <TeamSpaceMemberTable
-          members={activeMembers}
-          myRole={myRole}
-          ownerId={ownerId}
-          classId={classId}
-          onMutate={onMutate}
-          showSearchAndFilter={true}
-        />
+        isMobile ? (
+          <TeamSpaceMemberList
+            members={activeMembers}
+            myRole={myRole}
+            classId={classId}
+            onMutate={onMutate}
+            showSearchAndFilter={true}
+          />
+        ) : (
+          <TeamSpaceMemberTable
+            members={activeMembers}
+            myRole={myRole}
+            ownerId={ownerId ?? ""}
+            classId={classId}
+            onMutate={onMutate}
+            showSearchAndFilter={true}
+          />
+        )
       )}
 
       <ContributorsChart

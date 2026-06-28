@@ -1,28 +1,59 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import Link from "next/link"
-import { Users, GitBranch, Search, UserPlus, Plus, ChevronRight } from "lucide-react"
+import { Users, GitBranch, Search, UserPlus, Plus, ChevronRight, SlidersHorizontal } from "lucide-react"
 import { useTeamSpaces } from "../hooks/useTeamSpaces"
+import { useAcademicData } from "../hooks/useAcademicData"
 import { ROLE_COLOR, ROLE_TEXT, ROLE_LABEL } from "../constants/TeamSpaceConfig"
 import { TeamSpaceRepoStats } from "./TeamSpaceRepoStats"
-import { Input } from "@/shared/components/ui/input"
-import { Button } from "@/shared/components/ui/button"
+import { Input }   from "@/shared/components/ui/input"
+import { Button }  from "@/shared/components/ui/button"
 import { EmptyState } from "./EmptyTeamSpace"
 import CreateTeamSpaceModal from "./CreateTeamSpaceModal"
-import JoinTeamSpaceModal from "./JoinTeamSpaceModal"
+import JoinTeamSpaceModal   from "./JoinTeamSpaceModal"
+import { TeamSpaceFilterSheet } from "./TeamSpaceFilterSheet"
 import { cn } from "@/shared/lib/utils"
 import { MobilePageHeader } from "@/shared/components/commons/MobilePageHeader"
+import { TeamSpaceFilterState } from "./TeamSpaceListView"
+import { ShowPerPage } from "@/shared/components/commons/ShowPerPage"
+import { Pagination }  from "@/shared/components/commons/Pagination"
 
-export default function TeamSpaceListMobile() {
-  const { teamSpaces }              = useTeamSpaces()
-  const [search,     setSearch]     = useState("")
-  const [showCreate, setShowCreate] = useState(false)
-  const [showJoin,   setShowJoin]   = useState(false)
+interface Props {
+  pageSize:   number
+  onPageSize: (val: number) => void
+}
 
-  const filtered = teamSpaces.filter(ts =>
-    ts.name.toLowerCase().includes(search.toLowerCase())
-  )
+export default function TeamSpaceListMobile({ pageSize, onPageSize }: Props) {
+  const { teamSpaces }                  = useTeamSpaces()
+  const { studyPrograms: spOptions,
+          academicYears: ayOptions }     = useAcademicData()
+  const [search,     setSearch]         = useState("")
+  const [showCreate, setShowCreate]     = useState(false)
+  const [showJoin,   setShowJoin]       = useState(false)
+  const [filterOpen, setFilterOpen]     = useState(false)
+  const [filters,    setFilters]        = useState<TeamSpaceFilterState>({ role: "", studyProgram: "", academicYear: "" })
+  const [page,       setPage]           = useState(1)
+
+  const studyPrograms = useMemo(() => spOptions.map(sp => sp.label), [spOptions])
+  const academicYears = useMemo(() => ayOptions.map(ay => ay.label), [ayOptions])
+
+  const hasActive = filters.role || filters.studyProgram || filters.academicYear
+
+  const filtered = useMemo(() => teamSpaces.filter(ts => {
+    if (search && !ts.name.toLowerCase().includes(search.toLowerCase())) return false
+    if (filters.role         && ts.role         !== filters.role)         return false
+    if (filters.studyProgram && ts.studyProgram !== filters.studyProgram) return false
+    if (filters.academicYear && ts.academicYear !== filters.academicYear) return false
+    return true
+  }), [teamSpaces, search, filters])
+
+  const totalPages = Math.ceil(filtered.length / pageSize)
+  const paginated  = filtered.slice((page - 1) * pageSize, page * pageSize)
+
+  const handleSearch   = (val: string) => { setSearch(val); setPage(1) }
+  const handlePageSize = (val: number) => { onPageSize(val); setPage(1) }
+  const handleFilter   = (f: TeamSpaceFilterState) => { setFilters(f); setPage(1) }
 
   return (
     <>
@@ -33,29 +64,36 @@ export default function TeamSpaceListMobile() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
                 value={search}
-                onChange={e => setSearch(e.target.value)}
+                onChange={e => handleSearch(e.target.value)}
                 placeholder="Cari team space..."
                 className="pl-9 h-10 bg-white/10 border-white/10 text-white placeholder:text-gray-400 text-sm"
               />
             </div>
+
             <Button
               variant="outline" size="icon"
+              onClick={() => setFilterOpen(true)}
               className={cn(
                 "h-10 w-10 border-white/10 transition-colors flex-shrink-0",
-                showJoin ? "bg-[#00D964] text-gray-900 border-[#00D964]"
-                         : "bg-white/10 text-white hover:bg-[#00D964] hover:text-gray-900 hover:border-[#00D964]"
+                hasActive
+                  ? "bg-[#00D964] text-gray-900 border-[#00D964]"
+                  : "bg-white/10 text-white hover:bg-[#00D964] hover:text-gray-900 hover:border-[#00D964]"
               )}
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+            </Button>
+
+            <Button
+              variant="outline" size="icon"
+              className="h-10 w-10 border-white/10 bg-white/10 text-white hover:bg-[#00D964] hover:text-gray-900 hover:border-[#00D964] transition-colors flex-shrink-0"
               onClick={() => setShowJoin(true)}
             >
               <UserPlus className="w-4 h-4" />
             </Button>
+
             <Button
               variant="outline" size="icon"
-              className={cn(
-                "h-10 w-10 border-white/10 transition-colors flex-shrink-0",
-                showCreate ? "bg-[#00D964] text-gray-900 border-[#00D964]"
-                           : "bg-white/10 text-white hover:bg-[#00D964] hover:text-gray-900 hover:border-[#00D964]"
-              )}
+              className="h-10 w-10 border-white/10 bg-white/10 text-white hover:bg-[#00D964] hover:text-gray-900 hover:border-[#00D964] transition-colors flex-shrink-0"
               onClick={() => setShowCreate(true)}
             >
               <Plus className="w-4 h-4" />
@@ -64,10 +102,15 @@ export default function TeamSpaceListMobile() {
         </MobilePageHeader>
 
         <div className="px-4 pt-5 pb-6 flex flex-col gap-3">
-          {filtered.length === 0 ? (
+          <div className="bg-white rounded-xl border border-gray-100 px-4 py-3">
+            <ShowPerPage variant="mobile" value={pageSize} onChange={handlePageSize} />
+            <Pagination variant="mobile" page={page} totalPages={totalPages} onChange={setPage} />
+          </div>
+
+          {paginated.length === 0 ? (
             <EmptyState />
           ) : (
-            filtered.map((ts) => (
+            paginated.map((ts) => (
               <Link
                 key={ts.id}
                 href={`/team-space/${ts.id}`}
@@ -124,6 +167,15 @@ export default function TeamSpaceListMobile() {
           )}
         </div>
       </div>
+
+      <TeamSpaceFilterSheet
+        open={filterOpen}
+        filters={filters}
+        studyPrograms={studyPrograms}
+        academicYears={academicYears}
+        onClose={() => setFilterOpen(false)}
+        onFilter={handleFilter}
+      />
 
       {showCreate && <CreateTeamSpaceModal onClose={() => setShowCreate(false)} />}
       {showJoin   && <JoinTeamSpaceModal   onClose={() => setShowJoin(false)}   />}

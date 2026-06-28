@@ -4,7 +4,6 @@ import { useTeamSpaceDetail }      from "../hooks/useTeamSpaceDetail"
 import { canViewAllMembers }       from "../helpers/permissions"
 import { TeamSpaceHeader }         from "./TeamSpaceHeader"
 import { TeamSpaceRepoTabs }       from "./TeamSpaceRepoTabs"
-import { ContributionCard }        from "./ContributionCard"
 import TeamSpaceFooterActions      from "./TeamSpaceFooterActions"
 
 interface Props {
@@ -35,20 +34,13 @@ export default function TeamSpaceDetailView({ id }: Props) {
         repoHealthList={detail.repoHealthList}
         repoCommitsPerMonth={detail.repoCommitsPerMonth}
         members={visibleMembers}
+        myMembership={detail.myMembership}
         myRole={detail.myRole}
         ownerId={detail.ownerId}
         classId={detail.id}
         isEvaluator={isEvaluator}
         onMutate={refresh}
       />
-
-      {!isEvaluator && (
-        <ContributionCard
-          member={detail.myMembership}
-          classId={detail.id}
-          onMutate={refresh}
-        />
-      )}
 
       <TeamSpaceFooterActions
         classId={detail.id}

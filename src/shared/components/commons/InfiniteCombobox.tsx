@@ -2,38 +2,34 @@
 
 import { useState } from "react"
 import { Check, ChevronDown, Trash2 } from "lucide-react"
+import { useSession } from "next-auth/react"
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+  Popover, PopoverContent, PopoverTrigger,
 } from "@/shared/components/ui/popover"
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
+  Command, CommandEmpty, CommandGroup,
+  CommandInput, CommandItem, CommandList,
 } from "@/shared/components/ui/command"
 import { cn } from "@/shared/lib/utils"
 
 export interface ComboboxOption {
-  id:       string
-  label:    string
-  icon?:    React.ReactNode  // untuk GitHub/GitLab icon
+  id:         string
+  label:      string
+  icon?:      React.ReactNode
+  createdBy?: string | null
 }
 
 interface Props {
-  options:        ComboboxOption[]
-  value:          string | string[]   // string untuk single, string[] untuk multi
-  onChange:       (value: string | string[]) => void
-  placeholder?:   string
+  options:            ComboboxOption[]
+  value:              string | string[]
+  onChange:           (value: string | string[]) => void
+  placeholder?:       string
   searchPlaceholder?: string
-  emptyMessage?:  string
-  disabled?:      boolean
-  multi?:         boolean
-  onDelete?:      (id: string) => void
-  className?:     string
+  emptyMessage?:      string
+  disabled?:          boolean
+  multi?:             boolean
+  onDelete?:          (id: string) => void
+  className?:         string
 }
 
 export function InfiniteCombobox({
@@ -48,7 +44,9 @@ export function InfiniteCombobox({
   onDelete,
   className,
 }: Props) {
-  const [open, setOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const { data: session } = useSession()
+  const currentUserId     = session?.user?.id
 
   const isSelected = (id: string) =>
     multi ? (value as string[]).includes(id) : value === id
@@ -59,7 +57,7 @@ export function InfiniteCombobox({
       onChange(arr.includes(id) ? arr.filter(v => v !== id) : [...arr, id])
     } else {
       onChange(id === value ? "" : id)
-      setOpen(false)
+      setIsOpen(false)
     }
   }
 
@@ -89,7 +87,7 @@ export function InfiniteCombobox({
   const hasValue = multi ? (value as string[]).length > 0 : !!value
 
   return (
-    <Popover open={open} onOpenChange={setOpen} modal={false}>
+    <Popover open={isOpen} onOpenChange={setIsOpen} modal={false}>
       <PopoverTrigger asChild>
         <button
           disabled={disabled}
@@ -114,28 +112,32 @@ export function InfiniteCombobox({
               {emptyMessage}
             </CommandEmpty>
             <CommandGroup>
-              {options.map(opt => (
-                <CommandItem
-                  key={opt.id}
-                  value={opt.label}
-                  onSelect={() => handleSelect(opt.id)}
-                  className="text-sm flex items-center justify-between group"
-                >
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <Check className={cn("h-4 w-4 flex-shrink-0", isSelected(opt.id) ? "opacity-100 text-[#00D964]" : "opacity-0")} />
-                    {opt.icon && <span className="flex-shrink-0">{opt.icon}</span>}
-                    <span className="truncate">{opt.label}</span>
-                  </div>
-                  {onDelete && (
-                    <button
-                      onClick={e => { e.stopPropagation(); onDelete(opt.id) }}
-                      className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-opacity p-0.5 rounded flex-shrink-0 ml-2"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </CommandItem>
-              ))}
+              {options.map(opt => {
+                const canDelete = onDelete && opt.createdBy && opt.createdBy === currentUserId
+
+                return (
+                  <CommandItem
+                    key={opt.id}
+                    value={opt.label}
+                    onSelect={() => handleSelect(opt.id)}
+                    className="text-sm flex items-center justify-between group"
+                  >
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <Check className={cn("h-4 w-4 flex-shrink-0", isSelected(opt.id) ? "opacity-100 text-[#00D964]" : "opacity-0")} />
+                      {opt.icon && <span className="flex-shrink-0">{opt.icon}</span>}
+                      <span className="truncate">{opt.label}</span>
+                    </div>
+                    {canDelete && (
+                      <button
+                        onClick={e => { e.stopPropagation(); onDelete(opt.id) }}
+                        className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-opacity p-0.5 rounded flex-shrink-0 ml-2"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </CommandItem>
+                )
+              })}
             </CommandGroup>
           </CommandList>
         </Command>

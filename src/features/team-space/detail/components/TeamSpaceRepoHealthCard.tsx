@@ -4,6 +4,7 @@ import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 import { GRADE_COLOR, PRODUCTIVITY_BG } from "@/features/repository/constants"
 import { capitalizeFirst } from "@/shared/helpers"
+import { GitHubIcon, GitLabIcon } from "@/shared/components/commons/ProviderIcons"
 
 interface Props {
   healthScore:       number
@@ -11,6 +12,7 @@ interface Props {
   productivityState: string
   repoFullName:      string
   repoId:            string | null
+  provider:          "github" | "gitlab"
 }
 
 export function TeamSpaceRepoHealthCard({
@@ -19,6 +21,7 @@ export function TeamSpaceRepoHealthCard({
   productivityState,
   repoFullName,
   repoId,
+  provider,
 }: Props) {
   const stateDisplay = capitalizeFirst(productivityState)
   const hasData      = healthScore > 0 || productivityState !== "-"
@@ -27,15 +30,21 @@ export function TeamSpaceRepoHealthCard({
   return (
     <div className="bg-gray-900 rounded-xl border border-gray-100 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm font-semibold text-white">Repository Health</span>
-          <span className="text-xs text-gray-400">· {repoFullName}</span>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700 gap-2">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="text-sm font-semibold text-white flex-shrink-0">Repository Health</span>
+          <span className="text-xs text-gray-400 flex-shrink-0">·</span>
+          {provider === "gitlab" ? (
+            <GitLabIcon className="w-3 h-3 text-[#fc6d26] flex-shrink-0" />
+          ) : (
+            <GitHubIcon className="w-3 h-3 text-gray-400 flex-shrink-0" />
+          )}
+          <span className="text-xs text-gray-400 truncate">{repoFullName}</span>
         </div>
         {repoId && (
           <Link
             href={`/repository/${repoId}`}
-            className="flex items-center gap-1 text-xs font-medium text-gray-400 hover:underline"
+            className="flex items-center gap-1 text-xs font-medium text-gray-400 hover:underline flex-shrink-0 whitespace-nowrap"
           >
             Lihat Detail Repository
             <ChevronRight className="w-3 h-3" />

@@ -99,7 +99,7 @@ export function TeamSpaceMemberCard({ member, index, myRole, classId, onAnalyze,
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-400">Frekuensi Commits</span>
-            <span className="text-xs font-semibold text-gray-700">{member.commitVelocity.toFixed(1)} / hari</span>
+            <span className="text-xs font-semibold text-gray-700">{member.commitVelocity.toFixed(1)} / minggu</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-400">Kontribusi</span>
