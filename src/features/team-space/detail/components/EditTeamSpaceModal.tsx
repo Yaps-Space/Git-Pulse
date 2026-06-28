@@ -4,17 +4,15 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { X, Plus } from "lucide-react"
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/shared/components/ui/dialog"
 import { Button } from "@/shared/components/ui/button"
 import { Input }  from "@/shared/components/ui/input"
 import { Label }  from "@/shared/components/ui/label"
 import { InfiniteCombobox, ComboboxOption } from "@/shared/components/commons/InfiniteCombobox"
 import { updateTeamSpace } from "../../services/TeamSpaceService"
-import { fetchAcademicData, AcademicOption } from "../../services/AcademicService"
+import { AcademicOption } from "../../services/AcademicService"
+import { useAcademicData } from "../../hooks/useAcademicData"
 import { AddAcademicDialog } from "../../components/AddAcademicDialog"
 import { TeamSpaceDetail } from "../types/TeamSpaceDetail"
 import { toast } from "sonner"
@@ -31,6 +29,8 @@ interface Props {
 export function EditTeamSpaceModal({ detail, onClose, onSaved }: Props) {
   const router = useRouter()
 
+  const { academicYears: fetchedYears, studyPrograms: fetchedPrograms, loading: loadingAcademic } = useAcademicData()
+
   const [addDialogType, setAddDialogType] = useState<AddDialogType>(null)
 
   const [name,           setName]           = useState(detail.name)
@@ -39,10 +39,9 @@ export function EditTeamSpaceModal({ detail, onClose, onSaved }: Props) {
   const [studyProgram,   setStudyProgram]   = useState(detail.studyProgramId ?? "")
   const [projectManager, setProjectManager] = useState(detail.projectManager ?? "")
 
-  const [academicYears,   setAcademicYears]   = useState<AcademicOption[]>([])
-  const [studyPrograms,   setStudyPrograms]   = useState<AcademicOption[]>([])
-  const [loadingAcademic, setLoadingAcademic] = useState(true)
-  const [loading,         setLoading]         = useState(false)
+  const [academicYears, setAcademicYears] = useState<AcademicOption[]>([])
+  const [studyPrograms, setStudyPrograms] = useState<AcademicOption[]>([])
+  const [loading,       setLoading]       = useState(false)
 
   const { requestDelete, DeleteConfirmDialog } = useDeleteAcademicConfirm({
     academicYears, studyPrograms, setAcademicYears, setStudyPrograms,
@@ -50,10 +49,11 @@ export function EditTeamSpaceModal({ detail, onClose, onSaved }: Props) {
   })
 
   useEffect(() => {
-    fetchAcademicData()
-      .then(data => { setAcademicYears(data.academicYears); setStudyPrograms(data.studyPrograms) })
-      .finally(() => setLoadingAcademic(false))
-  }, [])
+    if (!loadingAcademic) {
+      setAcademicYears(fetchedYears)
+      setStudyPrograms(fetchedPrograms)
+    }
+  }, [loadingAcademic, fetchedYears, fetchedPrograms])
 
   const ayOptions: ComboboxOption[] = academicYears.map(ay => ({ id: ay.id, label: ay.label }))
   const spOptions: ComboboxOption[] = studyPrograms.map(sp => ({ id: sp.id, label: sp.label }))
