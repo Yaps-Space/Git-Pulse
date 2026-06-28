@@ -63,7 +63,6 @@ export function RepoActions({ value, pageSize, filters, onSearch, onPageSize, on
         >
           <SlidersHorizontal className="w-4 h-4" />
           Filter
-          {hasActive && <span className="w-1.5 h-1.5 rounded-full bg-[#00d964]" />}
         </button>
 
         <Button
