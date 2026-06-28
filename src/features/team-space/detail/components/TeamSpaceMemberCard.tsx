@@ -6,6 +6,7 @@ import { Edit2, BarChart2 } from "lucide-react"
 import { ROLE_COLOR, ROLE_TEXT, ROLE_LABEL }      from "../../constants/TeamSpaceConfig"
 import { CONSISTENCY_LABEL, STATUS_COLOR, STATUS_LABEL } from "../constants/TeamSpaceDetail"
 import { canManageMembers }                        from "../helpers/permissions"
+import { resolveMemberName }                        from "../helpers/resolveMemberName"
 import { EditRoleDialog }                          from "./EditRoleDialog"
 import { TeamMember }                              from "../../types/TeamSpace"
 import { capitalizeFirst }                         from "@/shared/helpers"
@@ -26,7 +27,7 @@ export function TeamSpaceMemberCard({ member, index, myRole, classId, onAnalyze,
 
   const showEdit      = canManageMembers(myRole)
   const cannotAnalyze = member.status === "not_joined"
-  const displayName   = member.displayName ?? member.userName
+  const displayName   = resolveMemberName(member)
 
   const handleAnalyze = async () => {
     if (cannotAnalyze) return

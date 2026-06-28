@@ -2,24 +2,20 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Check, ChevronDown } from "lucide-react"
+import { Check, ChevronDown, AlertTriangle } from "lucide-react"
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/shared/components/ui/dialog"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent,
+  DropdownMenuItem, DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu"
 import { Button } from "@/shared/components/ui/button"
-import { AlertTriangle } from "lucide-react"
 import { ROLE_LABEL } from "../../constants/TeamSpaceConfig"
 import { canKick } from "../helpers/permissions"
-import { cn } from "@/shared/lib/utils"
+import { cn }   from "@/shared/lib/utils"
+import { toast } from "sonner"
+import { editMemberRole, kickMember } from "../../services/TeamSpaceService"
 
 const ROLES = ["owner", "evaluator", "contributor"] as const
 type Role = typeof ROLES[number]
@@ -69,14 +65,17 @@ export function EditRoleDialog({ open, onClose, memberId, memberName, currentRol
     if (selected === currentRole) { handleClose(); return }
     setLoading("save")
     try {
-      await fetch(`/api/team-space/${classId}/member/${memberId}/edit-role`, {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ role: selected }),
-      })
-      onRoleChange(selected)
-      router.refresh()
-      handleClose()
+      const ok = await editMemberRole(classId, memberId, selected)
+      if (ok) {
+        onRoleChange(selected)
+        router.refresh()
+        toast.success(`Role ${memberName} berhasil diubah menjadi ${ROLE_LABEL[selected] ?? selected}.`)
+        handleClose()
+      } else {
+        toast.error("Gagal mengubah role.")
+      }
+    } catch {
+      toast.error("Tidak bisa menghubungi server.")
     } finally {
       setLoading(null)
     }
@@ -87,8 +86,15 @@ export function EditRoleDialog({ open, onClose, memberId, memberName, currentRol
     onKick()
     handleClose()
     try {
-      await fetch(`/api/team-space/${classId}/member/${memberId}/kick`, { method: "POST" })
-      router.refresh()
+      const ok = await kickMember(classId, memberId)
+      if (ok) {
+        router.refresh()
+        toast.success(`${memberName} berhasil dikeluarkan dari tim.`)
+      } else {
+        toast.error("Gagal mengeluarkan member.")
+      }
+    } catch {
+      toast.error("Tidak bisa menghubungi server.")
     } finally {
       setLoading(null)
     }
@@ -192,7 +198,7 @@ export function EditRoleDialog({ open, onClose, memberId, memberName, currentRol
                 </DialogTitle>
               </DialogHeader>
               <p className="text-sm text-gray-500 text-center">
-                Are you sure you want to remove {" "}
+                Are you sure you want to remove{" "}
                 <span className="font-semibold text-gray-900">{memberName}</span>{" "}
                 from this team?
               </p>

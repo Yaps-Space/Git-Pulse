@@ -13,6 +13,7 @@ import { TeamSpaceMemberCard }     from "./TeamSpaceMemberCard"
 import { MemberFilterSheet, MemberFilterState } from "./MemberFilterSheet"
 import { SORTABLE_MEMBER_COLUMNS } from "../constants/SortableMember"
 import { sortMembers }             from "../helpers/sortMembers"
+import { resolveMemberName }       from "../helpers/resolveMemberName"
 import { TeamMember }              from "../../types/TeamSpace"
 import { TeamSpaceDetail }         from "../types/TeamSpaceDetail"
 import { SortKey, SortDir }        from "../types/TeamSpaceMember"
@@ -69,7 +70,7 @@ export function TeamSpaceMemberList({ members, myRole, classId, onMutate, showSe
   }
 
   const filtered = members.filter(m => {
-    const displayName = (m.displayName ?? m.userName).toLowerCase()
+    const displayName = resolveMemberName(m).toLowerCase()
     const login        = (m.userLogin ?? "").toLowerCase()
     const q             = search.toLowerCase()
     const matchesSearch = displayName.includes(q) || login.includes(q)
@@ -140,11 +141,14 @@ export function TeamSpaceMemberList({ members, myRole, classId, onMutate, showSe
             className={cn(
               "h-10 w-10 flex-shrink-0 border-gray-200 transition-colors relative",
               hasFilters
-                ? "text-gray-900 border-[#00D964] bg-[#00d964] hover:bg-[#00d964]"
+                ? "text-gray-900 border-[#00D964] bg-[#00d964]/10"
                 : "bg-white text-gray-900 hover:bg-[#00D964]"
             )}
           >
             <SlidersHorizontal className="w-4 h-4" />
+            {hasFilters && (
+              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#00D964]" />
+            )}
           </Button>
         </div>
       )}

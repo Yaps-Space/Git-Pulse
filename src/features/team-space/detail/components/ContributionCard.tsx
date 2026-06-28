@@ -5,6 +5,7 @@ import { useState } from "react"
 import { BarChart2 } from "lucide-react"
 import { ROLE_COLOR, ROLE_TEXT, ROLE_LABEL }                      from "../../constants/TeamSpaceConfig"
 import { STATUS_COLOR, STATUS_LABEL, getContributionItems }       from "../constants/TeamSpaceDetail"
+import { resolveMemberName }                                      from "../helpers/resolveMemberName"
 import { TeamMember }                                             from "../../types/TeamSpace"
 import { TeamSpaceDetail }                                        from "../types/TeamSpaceDetail"
 import { capitalizeFirst }                                        from "@/shared/helpers"
@@ -18,6 +19,7 @@ interface Props {
 export function ContributionCard({ member, classId, onMutate }: Props) {
   const [loading, setLoading] = useState(false)
   const items = getContributionItems(member)
+  const displayName = resolveMemberName(member)
 
   const handleAnalyze = async () => {
     onMutate(data => ({
@@ -52,14 +54,14 @@ export function ContributionCard({ member, classId, onMutate }: Props) {
             {member.userImage && (
               <Image
                 src={member.userImage}
-                alt={member.userName}
+                alt={displayName}
                 width={40}
                 height={40}
                 className="rounded-full object-cover"
               />
             )}
             <div>
-              <p className="text-sm font-semibold text-gray-900">{member.userName}</p>
+              <p className="text-sm font-semibold text-gray-900">{displayName}</p>
               <span
                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium mt-0.5"
                 style={{ background: ROLE_COLOR[member.role] ?? "#eee", color: ROLE_TEXT[member.role] ?? "#333" }}

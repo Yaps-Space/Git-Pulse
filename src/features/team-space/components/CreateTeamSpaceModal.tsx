@@ -129,7 +129,16 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
     }
   }
 
-  const selectedContributors = selectableMembers.filter(c => selectedLogins.has(c.login))
+  const selectedContributors      = selectableMembers.filter(c => selectedLogins.has(c.login))
+  const unregisteredContributors  = selectedContributors.filter(c => !c.isRegistered)
+
+  const handleNext = () => {
+    if (unregisteredContributors.length === 0) {
+      handleSubmit()
+      return
+    }
+    setStep("display-names")
+  }
 
   if (DeleteConfirmDialog) return DeleteConfirmDialog
 
@@ -158,33 +167,29 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
           </DialogHeader>
 
           <p className="text-sm text-gray-500 mt-1">
-            Masukkan nama asli tiap anggota agar mudah dikenali. Boleh dikosongkan.
+            Anggota berikut belum terdaftar di GitPulse. Masukkan nama asli mereka agar mudah dikenali. Boleh dikosongkan.
           </p>
 
-          {selectedContributors.length === 0 ? (
-            <p className="text-sm text-gray-400 py-4 text-center">Tidak ada anggota dipilih</p>
-          ) : (
-            <div className="flex flex-col border border-gray-200 rounded-xl overflow-hidden max-h-72 overflow-y-auto mt-2">
-              {selectedContributors.map((c, idx) => (
-                <div
-                  key={c.login}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5",
-                    idx !== selectedContributors.length - 1 && "border-b border-gray-100"
-                  )}
-                >
-                  <Image src={c.avatar_url} alt={c.login} width={28} height={28} className="rounded-full flex-shrink-0" />
-                  <span className="text-xs text-gray-500 w-24 truncate flex-shrink-0">@{c.login}</span>
-                  <Input
-                    value={displayNames[c.login] ?? ""}
-                    onChange={e => setDisplayNames(prev => ({ ...prev, [c.login]: e.target.value }))}
-                    placeholder="Nama asli"
-                    className="h-8 text-xs rounded-md flex-1 bg-gray-50"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="flex flex-col border border-gray-200 rounded-xl overflow-hidden max-h-72 overflow-y-auto mt-2">
+            {unregisteredContributors.map((c, idx) => (
+              <div
+                key={c.login}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5",
+                  idx !== unregisteredContributors.length - 1 && "border-b border-gray-100"
+                )}
+              >
+                <Image src={c.avatar_url} alt={c.login} width={28} height={28} className="rounded-full flex-shrink-0" />
+                <span className="text-xs text-gray-500 w-24 truncate flex-shrink-0">@{c.login}</span>
+                <Input
+                  value={displayNames[c.login] ?? ""}
+                  onChange={e => setDisplayNames(prev => ({ ...prev, [c.login]: e.target.value }))}
+                  placeholder="Nama asli"
+                  className="h-8 text-xs rounded-md flex-1 bg-gray-50"
+                />
+              </div>
+            ))}
+          </div>
 
           <div className="flex gap-3 mt-2">
             <Button
@@ -383,7 +388,7 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
           </Button>
           <Button
             className="flex-1 h-10 rounded-lg bg-[#00D964] hover:bg-[#00c057] text-gray-900 font-bold"
-            onClick={() => setStep("display-names")}
+            onClick={handleNext}
             disabled={!name || selectedRepos.length === 0}
           >
             Next

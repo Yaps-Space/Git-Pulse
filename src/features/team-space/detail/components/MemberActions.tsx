@@ -4,6 +4,8 @@ import { useState } from "react"
 import { Edit2, BarChart2 } from "lucide-react"
 import { canManageMembers } from "../helpers/permissions"
 import { EditRoleDialog }   from "./EditRoleDialog"
+import { analyzeMember }    from "../../services/TeamSpaceService"
+import { toast }            from "sonner"
 
 interface Props {
   memberId:     string
@@ -32,7 +34,14 @@ export default function MemberActions({
     onAnalyze()
     setLoading("analyze")
     try {
-      await fetch(`/api/team-space/${classId}/member/${memberId}/analyze`, { method: "POST" })
+      const ok = await analyzeMember(classId, memberId)
+      if (ok) {
+        toast.success(`${memberName} berhasil dianalisis.`)
+      } else {
+        toast.error(`Gagal menganalisis ${memberName}.`)
+      }
+    } catch {
+      toast.error("Tidak bisa menghubungi server.")
     } finally {
       setLoading(null)
     }

@@ -71,3 +71,39 @@ export async function fetchRepoContributors(repoFullName: string): Promise<Contr
   const data = await res.json()
   return data.contributors ?? []
 }
+
+export async function editMemberRole(classId: string, memberId: string, role: string): Promise<boolean> {
+  const res = await fetch(`/api/team-space/${classId}/member/${memberId}/edit-role`, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ role }),
+  })
+  return res.ok
+}
+
+export async function kickMember(classId: string, memberId: string): Promise<boolean> {
+  const res = await fetch(`/api/team-space/${classId}/member/${memberId}/kick`, { method: "POST" })
+  return res.ok
+}
+
+export async function analyzeMember(classId: string, memberId: string): Promise<boolean> {
+  const res = await fetch(`/api/team-space/${classId}/member/${memberId}/analyze`, { method: "POST" })
+  return res.ok
+}
+
+interface TeamSpaceActionResult {
+  ok:    boolean
+  error?: string
+}
+
+export async function leaveTeamSpace(classId: string): Promise<TeamSpaceActionResult> {
+  const res  = await fetch(`/api/team-space/${classId}/leave`, { method: "POST" })
+  const data = await res.json()
+  return { ok: res.ok, error: data.error }
+}
+
+export async function deleteTeamSpace(classId: string): Promise<TeamSpaceActionResult> {
+  const res  = await fetch(`/api/team-space/${classId}/delete`, { method: "POST" })
+  const data = await res.json()
+  return { ok: res.ok, error: data.error }
+}

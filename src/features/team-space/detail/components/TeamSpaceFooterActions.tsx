@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import { Button } from "@/shared/components/ui/button"
 import {
   Dialog,
@@ -11,6 +12,7 @@ import {
 } from "@/shared/components/ui/dialog"
 import { Trash2, LogOut, AlertTriangle } from "lucide-react"
 import { ConfirmType, CONFIRM_CONFIG } from "../constants/ConfrimFooterActions"
+import { deleteTeamSpace, leaveTeamSpace } from "../../services/TeamSpaceService"
 
 interface Props {
   classId:   string
@@ -26,14 +28,17 @@ export default function TeamSpaceFooterActions({ classId, myRole, createdAt }: P
   const handleAction = async (type: ConfirmType) => {
     setLoading(true)
     try {
-      const res  = await fetch(`/api/team-space/${classId}/${type}`, { method: "POST" })
-      const data = await res.json()
-      if (res.ok) {
+      const action = type === "leave" ? leaveTeamSpace : deleteTeamSpace
+      const result = await action(classId)
+      if (result.ok) {
+        toast.success(type === "leave" ? "Berhasil keluar dari team space." : "Team space berhasil dihapus.")
         router.push("/team-space")
         router.refresh()
       } else {
-        alert(data.error)
+        toast.error(result.error ?? "Gagal memproses permintaan.")
       }
+    } catch {
+      toast.error("Tidak bisa menghubungi server.")
     } finally {
       setLoading(false)
       setShowConfirm(null)
