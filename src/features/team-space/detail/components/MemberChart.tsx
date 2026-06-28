@@ -4,6 +4,7 @@ import Image from "next/image"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from "recharts"
 import { TeamMember } from "../../types/TeamSpace"
 import { getLastNMonthLabels } from "../constants/TeamSpaceDetail"
+import { resolveMemberName } from "../helpers/resolveMemberName"
 
 interface Props {
   member: TeamMember
@@ -12,7 +13,7 @@ interface Props {
 
 export function MemberChart({ member, rank }: Props) {
   const labels      = getLastNMonthLabels(12)
-  const displayName = member.displayName ?? member.userName
+  const displayName = resolveMemberName(member)
 
   const data = labels.map((month, i) => ({
     month,

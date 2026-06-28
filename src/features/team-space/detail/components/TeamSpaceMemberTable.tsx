@@ -7,7 +7,6 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/shared/components/ui/table"
 import { Input }       from "@/shared/components/ui/input"
-import { Button }      from "@/shared/components/ui/button"
 import { ShowPerPage } from "@/shared/components/commons/ShowPerPage"
 import { Pagination }  from "@/shared/components/commons/Pagination"
 import { ROLE_COLOR, ROLE_TEXT, ROLE_LABEL }         from "../../constants/TeamSpaceConfig"
@@ -17,6 +16,7 @@ import { MemberSortIcon }                            from "./MemberSortIcon"
 import { MemberFilterSheet, MemberFilterState }      from "./MemberFilterSheet"
 import MemberActions                                 from "./MemberActions"
 import { sortMembers }                               from "../helpers/sortMembers"
+import { resolveMemberName }                         from "../helpers/resolveMemberName"
 import { TeamMember }                                from "../../types/TeamSpace"
 import { TeamSpaceDetail }                           from "../types/TeamSpaceDetail"
 import { SortKey, SortDir }                          from "../types/TeamSpaceMember"
@@ -79,7 +79,7 @@ export function TeamSpaceMemberTable({ members, myRole, classId, onMutate, showS
   }
 
   const filtered = members.filter(m => {
-    const displayName = (m.displayName ?? m.userName).toLowerCase()
+    const displayName = resolveMemberName(m).toLowerCase()
     const login        = (m.userLogin ?? "").toLowerCase()
     const q             = search.toLowerCase()
     const matchesSearch = displayName.includes(q) || login.includes(q)
@@ -110,21 +110,23 @@ export function TeamSpaceMemberTable({ members, myRole, classId, onMutate, showS
             />
           </div>
 
-          <ShowPerPage value={pageSize} onChange={handlePageSize} />
+          <ShowPerPage value={pageSize} onChange={handlePageSize} className="h-10 w-[152px]" />
 
-          <Button
-            variant="outline"
+          <button
             onClick={() => setFilterOpen(true)}
             className={cn(
-              "h-10 w-27 flex-shrink-0 gap-2 border-gray-200 transition-colors relative",
+              "relative flex items-center justify-center gap-2 h-10 w-[152px] rounded-lg border text-sm outline-none transition-colors",
               hasFilters
-                ? "text-gray-900 border-[#00D964] bg-[#00d964] hover:bg-[#00d964]"
-                : "bg-white text-gray-900 hover:bg-[#00D964]"
+                ? "border-[#00D964] bg-[#00d964]/10 text-gray-900"
+                : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
             )}
           >
             <SlidersHorizontal className="w-4 h-4" />
             Filter
-          </Button>
+            {hasFilters && (
+              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#00D964]" />
+            )}
+          </button>
         </div>
       )}
 
@@ -159,7 +161,7 @@ export function TeamSpaceMemberTable({ members, myRole, classId, onMutate, showS
               </TableHeader>
               <TableBody>
                 {paginated.map((member, idx) => {
-                  const displayName = member.displayName ?? member.userName
+                  const displayName = resolveMemberName(member)
                   return (
                     <TableRow key={member.id} className="border-gray-100">
                       <TableCell className="text-sm text-gray-400">
