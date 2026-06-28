@@ -8,6 +8,7 @@ import { TeamSpaceStatusCards }    from "./TeamSpaceStatusCards"
 import { TeamSpaceMemberList }     from "./TeamSpaceMemberList"
 import { TeamSpaceMemberTable }    from "./TeamSpaceMemberTable"
 import { ContributorsChart }       from "./ContributorsChart"
+import { ContributionCard }        from "./ContributionCard"
 import { TeamMember } from "../../types/TeamSpace"
 import { RepoHealth, TeamSpaceDetail } from "../types/TeamSpaceDetail"
 
@@ -15,6 +16,7 @@ interface Props {
   repoHealthList:      RepoHealth[]
   repoCommitsPerMonth: Record<string, number[]>
   members:             TeamMember[]
+  myMembership:        TeamMember
   myRole:              string
   ownerId?:            string
   classId:             string
@@ -26,6 +28,7 @@ export function TeamSpaceRepoTabs({
   repoHealthList,
   repoCommitsPerMonth,
   members,
+  myMembership,
   myRole,
   ownerId,
   classId,
@@ -90,6 +93,14 @@ export function TeamSpaceRepoTabs({
           repoFullName={activeRepo.repoFullName}
           repoId={activeRepo.repoId}
           provider={activeRepo.provider}
+        />
+      )}
+
+      {!isEvaluator && (
+        <ContributionCard
+          member={myMembership}
+          classId={classId}
+          onMutate={onMutate}
         />
       )}
 

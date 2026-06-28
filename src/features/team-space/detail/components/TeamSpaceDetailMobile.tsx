@@ -3,7 +3,6 @@
 import { canViewAllMembers }    from "../helpers/permissions"
 import { TeamSpaceHeaderMobile } from "./TeamSpaceHeaderMobile"
 import { TeamSpaceRepoTabs }     from "./TeamSpaceRepoTabs"
-import { ContributionCard }      from "./ContributionCard"
 import TeamSpaceFooterActions    from "./TeamSpaceFooterActions"
 import { TeamSpaceDetail }       from "../types/TeamSpaceDetail"
 
@@ -33,19 +32,12 @@ export function TeamSpaceDetailMobile({ detail, onMutate }: Props) {
           repoHealthList={detail.repoHealthList}
           repoCommitsPerMonth={detail.repoCommitsPerMonth}
           members={visibleMembers}
+          myMembership={detail.myMembership}
           myRole={detail.myRole}
           classId={detail.id}
           isEvaluator={isEvaluator}
           onMutate={onMutate}
         />
-
-        {!isEvaluator && (
-          <ContributionCard
-            member={detail.myMembership}
-            classId={detail.id}
-            onMutate={onMutate}
-          />
-        )}
 
         <TeamSpaceFooterActions
           classId={detail.id}
