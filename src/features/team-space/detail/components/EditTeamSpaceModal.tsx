@@ -14,9 +14,11 @@ import { Input }  from "@/shared/components/ui/input"
 import { Label }  from "@/shared/components/ui/label"
 import { InfiniteCombobox, ComboboxOption } from "@/shared/components/commons/InfiniteCombobox"
 import { updateTeamSpace } from "../../services/TeamSpaceService"
-import { fetchAcademicData, deleteAcademicOption, AcademicOption } from "../../services/AcademicService"
+import { fetchAcademicData, AcademicOption } from "../../services/AcademicService"
 import { AddAcademicDialog } from "../../components/AddAcademicDialog"
 import { TeamSpaceDetail } from "../types/TeamSpaceDetail"
+import { toast } from "sonner"
+import { useDeleteAcademicConfirm } from "../../components/DeleteAcademicConfrim"
 
 type AddDialogType = "academicYear" | "studyProgram" | null
 
@@ -42,6 +44,11 @@ export function EditTeamSpaceModal({ detail, onClose, onSaved }: Props) {
   const [loadingAcademic, setLoadingAcademic] = useState(true)
   const [loading,         setLoading]         = useState(false)
 
+  const { requestDelete, DeleteConfirmDialog } = useDeleteAcademicConfirm({
+    academicYears, studyPrograms, setAcademicYears, setStudyPrograms,
+    academicYear, studyProgram, setAcademicYear, setStudyProgram,
+  })
+
   useEffect(() => {
     fetchAcademicData()
       .then(data => { setAcademicYears(data.academicYears); setStudyPrograms(data.studyPrograms) })
@@ -50,19 +57,6 @@ export function EditTeamSpaceModal({ detail, onClose, onSaved }: Props) {
 
   const ayOptions: ComboboxOption[] = academicYears.map(ay => ({ id: ay.id, label: ay.label }))
   const spOptions: ComboboxOption[] = studyPrograms.map(sp => ({ id: sp.id, label: sp.label }))
-
-  const handleDeleteAcademic = async (type: "academicYear" | "studyProgram", id: string) => {
-    try {
-      await deleteAcademicOption(type, id)
-      if (type === "academicYear") {
-        setAcademicYears(prev => prev.filter(ay => ay.id !== id))
-        if (academicYear === id) setAcademicYear("")
-      } else {
-        setStudyPrograms(prev => prev.filter(sp => sp.id !== id))
-        if (studyProgram === id) setStudyProgram("")
-      }
-    } catch { /* silent */ }
-  }
 
   const handleAcademicAdded = (type: AddDialogType, option: AcademicOption) => {
     if (type === "academicYear") {
@@ -96,12 +90,17 @@ export function EditTeamSpaceModal({ detail, onClose, onSaved }: Props) {
         academicYear:   academicYears.find(ay => ay.id === academicYear)?.label ?? null,
         studyProgram:   studyPrograms.find(sp => sp.id === studyProgram)?.label ?? null,
       })
+      toast.success("Team space berhasil diperbarui.")
       router.refresh()
       onClose()
+    } catch {
+      toast.error("Gagal memperbarui team space.")
     } finally {
       setLoading(false)
     }
   }
+
+  if (DeleteConfirmDialog) return DeleteConfirmDialog
 
   if (addDialogType) {
     return (
@@ -160,7 +159,7 @@ export function EditTeamSpaceModal({ detail, onClose, onSaved }: Props) {
                 searchPlaceholder="Cari tahun ajaran..."
                 emptyMessage="Belum ada data. Tambah dengan tombol +"
                 disabled={loadingAcademic}
-                onDelete={id => handleDeleteAcademic("academicYear", id)}
+                onDelete={id => requestDelete("academicYear", id)}
                 className="flex-1"
               />
               <button
@@ -183,7 +182,7 @@ export function EditTeamSpaceModal({ detail, onClose, onSaved }: Props) {
                 searchPlaceholder="Cari program studi..."
                 emptyMessage="Belum ada data. Tambah dengan tombol +"
                 disabled={loadingAcademic}
-                onDelete={id => handleDeleteAcademic("studyProgram", id)}
+                onDelete={id => requestDelete("studyProgram", id)}
                 className="flex-1"
               />
               <button
