@@ -3,18 +3,12 @@
 import { X } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
 import { useIsMobile } from "@/shared/hooks/UseMobile"
+import { ROLE_LABEL } from "../constants/TeamSpaceConfig"
 import { TeamSpaceFilterState } from "./TeamSpaceListView"
 import { cn } from "@/shared/lib/utils"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/shared/components/ui/dialog"
-
-const ROLE_OPTIONS = ["owner", "evaluator", "contributor"]
-const ROLE_LABELS: Record<string, string> = {
-  owner:       "Owner",
-  evaluator:   "Evaluator",
-  contributor: "Contributor",
-}
 
 interface Props {
   open:          boolean
@@ -38,7 +32,7 @@ export function TeamSpaceFilterSheet({ open, filters, studyPrograms, academicYea
       <div className="flex flex-col gap-2">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Role</p>
         <div className="flex flex-wrap gap-2">
-          {["", ...ROLE_OPTIONS].map(r => (
+          {["", ...Object.keys(ROLE_LABEL)].map(r => (
             <button
               key={r}
               onClick={() => set("role", r)}
@@ -49,7 +43,7 @@ export function TeamSpaceFilterSheet({ open, filters, studyPrograms, academicYea
                   : "border-gray-200 text-gray-500 hover:border-gray-300 bg-white"
               )}
             >
-              {r === "" ? "Semua" : ROLE_LABELS[r]}
+              {r === "" ? "Semua" : ROLE_LABEL[r]}
             </button>
           ))}
         </div>
