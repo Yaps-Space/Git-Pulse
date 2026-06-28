@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useIsMobile } from "@/shared/hooks/UseMobile";
 import { useTeamSpaces } from "../hooks/useTeamSpaces";
 import { PageShell } from "@/shared/components/commons/PageShell";
@@ -8,16 +9,17 @@ import TeamSpaceListView from "./TeamSpaceListView";
 import TeamSpaceListMobile from "./TeamSpaceListMobile";
 
 export function TeamSpaceLayout() {
-  const isMobile            = useIsMobile();
-  const { loading }         = useTeamSpaces();
+  const isMobile                = useIsMobile();
+  const { loading }             = useTeamSpaces();
+  const [pageSize, setPageSize] = useState(10);
 
   if (loading) return <PageSkeleton />;
 
-  if (isMobile) return <TeamSpaceListMobile />;
+  if (isMobile) return <TeamSpaceListMobile pageSize={pageSize} onPageSize={setPageSize} />;
 
   return (
     <PageShell title="Team Space">
-      <TeamSpaceListView />
+      <TeamSpaceListView pageSize={pageSize} onPageSize={setPageSize} />
     </PageShell>
   );
 }
