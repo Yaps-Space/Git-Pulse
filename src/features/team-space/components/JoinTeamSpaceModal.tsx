@@ -13,6 +13,7 @@ import { Button } from "@/shared/components/ui/button"
 import { Input }  from "@/shared/components/ui/input"
 import { Label }  from "@/shared/components/ui/label"
 import { joinTeamSpace } from "../services/TeamSpaceService"
+import { toast } from "sonner"
 
 type Tab = "code" | "qr"
 
@@ -43,6 +44,7 @@ export default function JoinTeamSpaceModal({ onClose }: { onClose: () => void })
     try {
       const data = await joinTeamSpace(inviteCode.trim())
       if (data.classId) {
+        toast.success("Berhasil join team space.")
         router.push(`/team-space/${data.classId}`)
         router.refresh()
       } else {

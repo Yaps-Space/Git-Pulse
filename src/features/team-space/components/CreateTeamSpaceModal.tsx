@@ -3,13 +3,10 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { X, Plus, Check } from "lucide-react"
+import { X, Plus, Check, AlertTriangle } from "lucide-react"
 import Image from "next/image"
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/shared/components/ui/dialog"
 import { Button } from "@/shared/components/ui/button"
 import { Input }  from "@/shared/components/ui/input"
@@ -20,23 +17,31 @@ import { GitHubIcon, GitLabIcon } from "@/shared/components/commons/ProviderIcon
 import { createTeamSpace, fetchRepos, fetchRepoContributors, Contributor } from "../services/TeamSpaceService"
 import { fetchAcademicData, deleteAcademicOption, AcademicOption } from "../services/AcademicService"
 import { AddAcademicDialog } from "./AddAcademicDialog"
+import { toast } from "sonner"
 
 type Step          = "form" | "display-names"
 type AddDialogType = "academicYear" | "studyProgram" | null
+
+interface DeleteConfirm {
+  type:  "academicYear" | "studyProgram"
+  id:    string
+  label: string
+}
 
 export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void }) {
   const router            = useRouter()
   const { data: session } = useSession()
 
-  const [step,                setStep]                = useState<Step>("form")
-  const [addDialogType,       setAddDialogType]       = useState<AddDialogType>(null)
+  const [step,          setStep]          = useState<Step>("form")
+  const [addDialogType, setAddDialogType] = useState<AddDialogType>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirm | null>(null)
 
-  const [name,                setName]                = useState("")
-  const [description,         setDescription]         = useState("")
-  const [selectedRepos,       setSelectedRepos]       = useState<string[]>([])
-  const [academicYear,        setAcademicYear]        = useState("")
-  const [studyProgram,        setStudyProgram]        = useState("")
-  const [projectManager,      setProjectManager]      = useState("")
+  const [name,           setName]           = useState("")
+  const [description,    setDescription]    = useState("")
+  const [selectedRepos,  setSelectedRepos]  = useState<string[]>([])
+  const [academicYear,   setAcademicYear]   = useState("")
+  const [studyProgram,   setStudyProgram]   = useState("")
+  const [projectManager, setProjectManager] = useState("")
 
   const [repoOptions,         setRepoOptions]         = useState<ComboboxOption[]>([])
   const [academicYears,       setAcademicYears]       = useState<AcademicOption[]>([])
@@ -96,10 +101,27 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
     })
   }
 
-  const ayOptions: ComboboxOption[] = academicYears.map(ay => ({ id: ay.id, label: ay.label }))
-  const spOptions: ComboboxOption[] = studyPrograms.map(sp => ({ id: sp.id, label: sp.label }))
+  const ayOptions: ComboboxOption[] = academicYears.map(ay => ({
+    id:        ay.id,
+    label:     ay.label,
+    createdBy: ay.createdBy ?? null,
+  }))
+  const spOptions: ComboboxOption[] = studyPrograms.map(sp => ({
+    id:        sp.id,
+    label:     sp.label,
+    createdBy: sp.createdBy ?? null,
+  }))
 
-  const handleDeleteAcademic = async (type: "academicYear" | "studyProgram", id: string) => {
+  const handleDeleteRequest = (type: "academicYear" | "studyProgram", id: string) => {
+    const list  = type === "academicYear" ? academicYears : studyPrograms
+    const found = list.find(o => o.id === id)
+    if (!found) return
+    setDeleteConfirm({ type, id, label: found.label })
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm) return
+    const { type, id } = deleteConfirm
     try {
       await deleteAcademicOption(type, id)
       if (type === "academicYear") {
@@ -109,7 +131,12 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
         setStudyPrograms(prev => prev.filter(sp => sp.id !== id))
         if (studyProgram === id) setStudyProgram("")
       }
-    } catch { /* silent */ }
+      toast.success(type === "academicYear" ? "Tahun ajaran dihapus." : "Program studi dihapus.")
+    } catch {
+      toast.error("Gagal menghapus. Coba lagi.")
+    } finally {
+      setDeleteConfirm(null)
+    }
   }
 
   const handleAcademicAdded = (type: AddDialogType, option: AcademicOption) => {
@@ -141,15 +168,57 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
         importMembers,
       })
       if (data.id) {
+        toast.success("Team space berhasil dibuat.")
         router.push(`/team-space/${data.id}`)
         router.refresh()
+      } else {
+        toast.error(data.error ?? "Gagal membuat team space.")
       }
+    } catch {
+      toast.error("Tidak bisa menghubungi server.")
     } finally {
       setLoading(false)
     }
   }
 
   const selectedContributors = selectableMembers.filter(c => selectedLogins.has(c.login))
+
+  if (deleteConfirm) {
+    return (
+      <Dialog open onOpenChange={() => setDeleteConfirm(null)}>
+        <DialogContent className="max-w-sm rounded-2xl [&>button]:hidden">
+          <div className="flex flex-col items-center gap-3 py-2">
+            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+              <AlertTriangle className="w-6 h-6 text-[#BB230B]" />
+            </div>
+            <DialogHeader>
+              <DialogTitle className="text-lg font-bold text-gray-900 text-center">
+                {deleteConfirm.type === "academicYear" ? "Hapus Tahun Ajaran" : "Hapus Program Studi"}
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-gray-500 text-center">
+              Apakah kamu yakin ingin menghapus{" "}
+              <span className="font-semibold text-gray-900">{deleteConfirm.label}</span>?
+            </p>
+          </div>
+          <div className="flex gap-3 mt-2">
+            <Button
+              className="flex-1 h-10 rounded-lg text-gray-900 font-bold bg-[#CACACA] hover:bg-[#b0b0b0]"
+              onClick={() => setDeleteConfirm(null)}
+            >
+              Batal
+            </Button>
+            <Button
+              className="flex-1 h-10 rounded-lg text-white font-bold bg-[#BB230B] hover:bg-[#A21C06]"
+              onClick={handleDeleteConfirm}
+            >
+              Hapus
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
 
   if (addDialogType) {
     return (
@@ -271,7 +340,7 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
                 searchPlaceholder="Cari tahun ajaran..."
                 emptyMessage="Belum ada data. Tambah dengan tombol +"
                 disabled={loadingAcademic}
-                onDelete={id => handleDeleteAcademic("academicYear", id)}
+                onDelete={id => handleDeleteRequest("academicYear", id)}
                 className="flex-1"
               />
               <button
@@ -294,7 +363,7 @@ export default function CreateTeamSpaceModal({ onClose }: { onClose: () => void 
                 searchPlaceholder="Cari program studi..."
                 emptyMessage="Belum ada data. Tambah dengan tombol +"
                 disabled={loadingAcademic}
-                onDelete={id => handleDeleteAcademic("studyProgram", id)}
+                onDelete={id => handleDeleteRequest("studyProgram", id)}
                 className="flex-1"
               />
               <button
