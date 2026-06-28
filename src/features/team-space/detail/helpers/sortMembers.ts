@@ -1,8 +1,9 @@
 import { TeamMember } from "../../types/TeamSpace"
 import { SortKey, SortDir } from "../types/TeamSpaceMember"
+import { resolveMemberName } from "./resolveMemberName"
 
 function getSortValue(member: TeamMember, key: SortKey): string | number {
-  if (key === "displayName") return member.displayName ?? member.userName
+  if (key === "displayName") return resolveMemberName(member)
   return member[key]
 }
 
