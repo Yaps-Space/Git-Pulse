@@ -10,13 +10,21 @@ export async function GET() {
 
   try {
     const [aySnap, spSnap] = await Promise.all([
-      getDocs(query(collection(db, "academicYears"),  orderBy("createdAt", "desc"))),
-      getDocs(query(collection(db, "studyPrograms"),  orderBy("createdAt", "asc"))),
+      getDocs(query(collection(db, "academicYears"), orderBy("createdAt", "desc"))),
+      getDocs(query(collection(db, "studyPrograms"), orderBy("createdAt", "asc"))),
     ])
 
     return NextResponse.json({
-      academicYears: aySnap.docs.map(d => ({ id: d.id, label: d.data().label as string })),
-      studyPrograms: spSnap.docs.map(d => ({ id: d.id, label: d.data().label as string })),
+      academicYears: aySnap.docs.map(d => ({
+        id:        d.id,
+        label:     d.data().label     as string,
+        createdBy: d.data().createdBy as string ?? null,
+      })),
+      studyPrograms: spSnap.docs.map(d => ({
+        id:        d.id,
+        label:     d.data().label     as string,
+        createdBy: d.data().createdBy as string ?? null,
+      })),
     })
   } catch (e) {
     console.error(e)
@@ -42,7 +50,7 @@ export async function POST(req: NextRequest) {
       createdAt: serverTimestamp(),
       createdBy: session.user.id,
     })
-    return NextResponse.json({ id: ref.id, label: label.trim() })
+    return NextResponse.json({ id: ref.id, label: label.trim(), createdBy: session.user.id })
   } catch (e) {
     console.error(e)
     return NextResponse.json({ error: "Failed" }, { status: 500 })

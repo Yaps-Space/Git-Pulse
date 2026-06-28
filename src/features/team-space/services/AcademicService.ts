@@ -1,6 +1,7 @@
 export interface AcademicOption {
-  id:    string
-  label: string
+  id:        string
+  label:     string
+  createdBy: string | null
 }
 
 export interface AcademicData {
@@ -33,7 +34,5 @@ export async function deleteAcademicOption(
   type: "academicYear" | "studyProgram",
   id:   string
 ): Promise<void> {
-  await fetch(`/api/academic/${id}?type=${type}`, {
-    method: "DELETE",
-  })
+  await fetch(`/api/academic/${id}?type=${type}`, { method: "DELETE" })
 }
