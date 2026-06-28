@@ -6,6 +6,7 @@ export interface RepoHealth {
   healthScore:       number
   healthGrade:       string
   productivityState: string
+  provider:          "github" | "gitlab"
 }
 
 export interface TeamSpaceDetail {

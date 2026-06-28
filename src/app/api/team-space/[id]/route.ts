@@ -135,6 +135,7 @@ export async function GET(
             healthScore:       repo.healthScore       ?? 0,
             healthGrade:       repo.healthGrade       ?? "-",
             productivityState: repo.productivityState ?? "-",
+            provider:          repo.provider          ?? "github",
           })
         } else {
           repoHealthList.push({
@@ -143,6 +144,7 @@ export async function GET(
             healthScore:  0,
             healthGrade:  "-",
             productivityState: "-",
+            provider:     "github",
           })
         }
       } catch {
@@ -152,6 +154,7 @@ export async function GET(
           healthScore:  0,
           healthGrade:  "-",
           productivityState: "-",
+          provider:     "github",
         })
       }
     }
