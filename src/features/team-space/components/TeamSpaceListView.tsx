@@ -4,6 +4,7 @@ import { useState, useMemo } from "react"
 import Link from "next/link"
 import { Users, GitBranch, ChevronRight } from "lucide-react"
 import { useTeamSpaces } from "../hooks/useTeamSpaces"
+import { useAcademicData } from "../hooks/useAcademicData"
 import { ROLE_COLOR, ROLE_TEXT, ROLE_LABEL } from "../constants/TeamSpaceConfig"
 import { TeamSpaceRepoStats } from "./TeamSpaceRepoStats"
 import TeamSpaceSearchActions from "./TeamSpaceActions"
@@ -32,19 +33,21 @@ function applyFilters(teamSpaces: ReturnType<typeof useTeamSpaces>["teamSpaces"]
 }
 
 export default function TeamSpaceListView({ pageSize, onPageSize }: Props) {
-  const { teamSpaces }      = useTeamSpaces()
-  const [search,  setSearch]  = useState("")
-  const [filters, setFilters] = useState<TeamSpaceFilterState>({ role: "", studyProgram: "", academicYear: "" })
-  const [page,    setPage]    = useState(1)
+  const { teamSpaces }                        = useTeamSpaces()
+  const { studyPrograms: spOptions,
+          academicYears: ayOptions }           = useAcademicData()
+  const [search,  setSearch]                  = useState("")
+  const [filters, setFilters]                 = useState<TeamSpaceFilterState>({ role: "", studyProgram: "", academicYear: "" })
+  const [page,    setPage]                    = useState(1)
 
-  const studyPrograms  = useMemo(() => [...new Set(teamSpaces.map(ts => ts.studyProgram).filter(Boolean))] as string[], [teamSpaces])
-  const academicYears  = useMemo(() => [...new Set(teamSpaces.map(ts => ts.academicYear).filter(Boolean))] as string[], [teamSpaces])
-  const filtered       = useMemo(() => applyFilters(teamSpaces, search, filters), [teamSpaces, search, filters])
-  const totalPages      = Math.ceil(filtered.length / pageSize)
-  const paginated       = filtered.slice((page - 1) * pageSize, page * pageSize)
+  const studyPrograms = useMemo(() => spOptions.map(sp => sp.label), [spOptions])
+  const academicYears = useMemo(() => ayOptions.map(ay => ay.label), [ayOptions])
+  const filtered      = useMemo(() => applyFilters(teamSpaces, search, filters), [teamSpaces, search, filters])
+  const totalPages    = Math.ceil(filtered.length / pageSize)
+  const paginated     = filtered.slice((page - 1) * pageSize, page * pageSize)
 
-  const handleSearch = (val: string) => { setSearch(val); setPage(1) }
-  const handleFilter = (f: TeamSpaceFilterState) => { setFilters(f); setPage(1) }
+  const handleSearch   = (val: string) => { setSearch(val); setPage(1) }
+  const handleFilter   = (f: TeamSpaceFilterState) => { setFilters(f); setPage(1) }
   const handlePageSize = (val: number) => { onPageSize(val); setPage(1) }
 
   return (
