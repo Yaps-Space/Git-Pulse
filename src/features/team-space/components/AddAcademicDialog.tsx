@@ -3,33 +3,26 @@
 import { useState } from "react"
 import { X, Check, ChevronDown } from "lucide-react"
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/shared/components/ui/dialog"
 import { Button } from "@/shared/components/ui/button"
 import { Input }  from "@/shared/components/ui/input"
 import { Label }  from "@/shared/components/ui/label"
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+  Popover, PopoverContent, PopoverTrigger,
 } from "@/shared/components/ui/popover"
 import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
+  Command, CommandGroup, CommandItem, CommandList,
 } from "@/shared/components/ui/command"
 import { cn } from "@/shared/lib/utils"
 import { addAcademicOption, AcademicOption } from "../services/AcademicService"
+import { toast } from "sonner"
 
 interface Props {
-  type:     "academicYear" | "studyProgram"
-  open:     boolean
-  onClose:  () => void
-  onAdded:  (option: AcademicOption) => void
+  type:    "academicYear" | "studyProgram"
+  open:    boolean
+  onClose: () => void
+  onAdded: (option: AcademicOption) => void
 }
 
 const SEMESTERS = ["Gasal", "Genap"]
@@ -40,34 +33,32 @@ export function AddAcademicDialog({ type, open, onClose, onAdded }: Props) {
   const [semesterOpen, setSemesterOpen] = useState(false)
   const [label,        setLabel]        = useState("")
   const [loading,      setLoading]      = useState(false)
-  const [error,        setError]        = useState("")
 
   const isAcademicYear = type === "academicYear"
   const title          = isAcademicYear ? "Tambah Tahun Ajaran" : "Tambah Program Studi"
+  const successMsg     = isAcademicYear ? "Tahun ajaran berhasil ditambahkan." : "Program studi berhasil ditambahkan."
 
   const handleClose = () => {
-    setYear(""); setSemester(""); setLabel(""); setError("")
+    setYear(""); setSemester(""); setLabel("")
     onClose()
   }
 
   const handleSave = async () => {
-    const finalLabel = isAcademicYear
-      ? `${year.trim()} ${semester}`
-      : label.trim()
+    const finalLabel = isAcademicYear ? `${year.trim()} ${semester}` : label.trim()
 
     if (!finalLabel || (isAcademicYear && (!year.trim() || !semester))) {
-      setError("Semua field wajib diisi.")
+      toast.error("Semua field wajib diisi.")
       return
     }
 
     setLoading(true)
-    setError("")
     try {
       const result = await addAcademicOption(type, finalLabel)
       onAdded(result)
+      toast.success(successMsg)
       handleClose()
     } catch {
-      setError("Gagal menyimpan. Coba lagi.")
+      toast.error("Gagal menyimpan. Coba lagi.")
     } finally {
       setLoading(false)
     }
@@ -101,12 +92,10 @@ export function AddAcademicDialog({ type, open, onClose, onAdded }: Props) {
                 <Label className="text-sm font-medium text-gray-700">Semester <span className="text-[#BB230B]">*</span></Label>
                 <Popover open={semesterOpen} onOpenChange={setSemesterOpen} modal={false}>
                   <PopoverTrigger asChild>
-                    <button
-                      className={cn(
-                        "w-full flex items-center justify-between h-10 px-3 rounded-lg border border-input text-sm transition-colors hover:bg-accent",
-                        !semester && "text-muted-foreground"
-                      )}
-                    >
+                    <button className={cn(
+                      "w-full flex items-center justify-between h-10 px-3 rounded-lg border border-input text-sm transition-colors hover:bg-accent",
+                      !semester && "text-muted-foreground"
+                    )}>
                       <span>{semester || "Pilih semester"}</span>
                       <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0 ml-2" />
                     </button>
@@ -150,8 +139,6 @@ export function AddAcademicDialog({ type, open, onClose, onAdded }: Props) {
               />
             </div>
           )}
-
-          {error && <p className="text-xs text-red-500">{error}</p>}
         </div>
 
         <div className="flex gap-3 mt-2">
