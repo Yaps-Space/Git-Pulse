@@ -1,10 +1,15 @@
 import { TeamMember } from "../../types/TeamSpace"
 import { SortKey, SortDir } from "../types/TeamSpaceMember"
 
+function getSortValue(member: TeamMember, key: SortKey): string | number {
+  if (key === "displayName") return member.displayName ?? member.userName
+  return member[key]
+}
+
 export function sortMembers(members: TeamMember[], key: SortKey, dir: SortDir): TeamMember[] {
   return [...members].sort((a, b) => {
-    const aVal = a[key]
-    const bVal = b[key]
+    const aVal = getSortValue(a, key)
+    const bVal = getSortValue(b, key)
     const cmp  = typeof aVal === "string"
       ? aVal.localeCompare(bVal as string)
       : (aVal as number) - (bVal as number)
