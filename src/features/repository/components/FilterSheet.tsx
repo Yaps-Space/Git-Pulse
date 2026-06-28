@@ -4,14 +4,12 @@ import { X } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
 import { GitHubIcon, GitLabIcon } from "@/shared/components/commons/ProviderIcons"
 import { useIsMobile } from "@/shared/hooks/UseMobile"
+import { GRADE_COLOR, PRODUCTIVITY_BG } from "@/features/repository/constants"
 import { FilterState } from "./RepositoryLayout"
 import { cn } from "@/shared/lib/utils"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/shared/components/ui/dialog"
-
-const PRODUCTIVITY_OPTIONS = ["active", "inactive", "new"]
-const GRADE_OPTIONS        = ["A", "B", "C", "D", "F"]
 
 interface Props {
   open:     boolean
@@ -55,7 +53,7 @@ export function FilterSheet({ open, filters, onClose, onFilter }: Props) {
       <div className="flex flex-col gap-2">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Productivity</p>
         <div className="flex flex-wrap gap-2">
-          {["", ...PRODUCTIVITY_OPTIONS].map(p => (
+          {["", ...Object.keys(PRODUCTIVITY_BG)].map(p => (
             <button
               key={p}
               onClick={() => set("productivity", p)}
@@ -66,7 +64,7 @@ export function FilterSheet({ open, filters, onClose, onFilter }: Props) {
                   : "border-gray-200 text-gray-500 hover:border-gray-300 bg-white"
               )}
             >
-              {p === "" ? "Semua" : p.charAt(0).toUpperCase() + p.slice(1)}
+              {p === "" ? "Semua" : p}
             </button>
           ))}
         </div>
@@ -75,7 +73,7 @@ export function FilterSheet({ open, filters, onClose, onFilter }: Props) {
       <div className="flex flex-col gap-2">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Grade</p>
         <div className="flex flex-wrap gap-2">
-          {["", ...GRADE_OPTIONS].map(g => (
+          {["", ...Object.keys(GRADE_COLOR)].map(g => (
             <button
               key={g}
               onClick={() => set("grade", g)}
