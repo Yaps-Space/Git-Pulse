@@ -55,8 +55,17 @@ export function EditTeamSpaceModal({ detail, onClose, onSaved }: Props) {
     }
   }, [loadingAcademic, fetchedYears, fetchedPrograms])
 
-  const ayOptions: ComboboxOption[] = academicYears.map(ay => ({ id: ay.id, label: ay.label }))
-  const spOptions: ComboboxOption[] = studyPrograms.map(sp => ({ id: sp.id, label: sp.label }))
+  const ayOptions: ComboboxOption[] = academicYears.map(ay => ({
+    id:        ay.id,
+    label:     ay.label,
+    createdBy: ay.createdBy ?? null,
+  }))
+
+  const spOptions: ComboboxOption[] = studyPrograms.map(sp => ({
+    id: sp.id,
+    label:     sp.label,
+    createdBy: sp.createdBy ?? null,
+  }))
 
   const handleAcademicAdded = (type: AddDialogType, option: AcademicOption) => {
     if (type === "academicYear") {
