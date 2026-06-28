@@ -1,11 +1,11 @@
 "use client"
 
-import { canViewAllMembers }         from "../helpers/permissions"
-import { TeamSpaceHeaderMobile }     from "./TeamSpaceHeaderMobile"
-import { TeamSpaceRepoTabsMobile }   from "./TeamSpaceRepoTabsMobile"
-import { ContributionCard }          from "./ContributionCard"
-import TeamSpaceFooterActions        from "./TeamSpaceFooterActions"
-import { TeamSpaceDetail }           from "../types/TeamSpaceDetail"
+import { canViewAllMembers }    from "../helpers/permissions"
+import { TeamSpaceHeaderMobile } from "./TeamSpaceHeaderMobile"
+import { TeamSpaceRepoTabs }     from "./TeamSpaceRepoTabs"
+import { ContributionCard }      from "./ContributionCard"
+import TeamSpaceFooterActions    from "./TeamSpaceFooterActions"
+import { TeamSpaceDetail }       from "../types/TeamSpaceDetail"
 
 interface Props {
   detail:   TeamSpaceDetail
@@ -29,7 +29,7 @@ export function TeamSpaceDetailMobile({ detail, onMutate }: Props) {
       />
 
       <div className="px-4 pt-4 pb-6 flex flex-col gap-4">
-        <TeamSpaceRepoTabsMobile
+        <TeamSpaceRepoTabs
           repoHealthList={detail.repoHealthList}
           repoCommitsPerMonth={detail.repoCommitsPerMonth}
           members={visibleMembers}
