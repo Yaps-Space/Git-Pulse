@@ -175,7 +175,7 @@ export function TeamSpaceMemberTable({ members, myRole, classId, onMutate, showS
                         </span>
                       </TableCell>
                       <TableCell className="text-sm text-gray-700">
-                        {member.commitVelocity.toFixed(1)} / hari
+                        {member.commitVelocity.toFixed(1)} / minggu
                       </TableCell>
                       <TableCell className="text-sm text-gray-700">
                         {(member.contributionShare * 100).toFixed(1)}%
