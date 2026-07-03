@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/shared/lib/firebase"
 import { doc, getDoc } from "firebase/firestore"
 import { getValidGitLabToken } from "@/shared/lib/gitlab"
+import { GithubRepo } from "@/features/repository/types"
 
 interface GitLabProject {
   id:                 number
@@ -27,10 +28,11 @@ interface GitLabProject {
   }
 }
 
-function mapGitLabProject(p: GitLabProject) {
+function mapGitLabProject(p: GitLabProject): GithubRepo {
   return {
     id:               p.id,
     full_name:        p.path_with_namespace ?? p.path ?? p.name,
+    name:             p.name,
     description:      p.description ?? null,
     private:          p.visibility !== "public",
     language:         p.language ?? null,
@@ -40,7 +42,7 @@ function mapGitLabProject(p: GitLabProject) {
     owner: {
       avatar_url: p.owner?.avatar_url ?? p.namespace?.avatar_url ?? null,
       login:      p.owner?.username ?? p.namespace?.name
-        ?? (p.path_with_namespace ? p.path_with_namespace.split("/")[0] : null),
+        ?? (p.path_with_namespace ? p.path_with_namespace.split("/")[0] : "") ?? "",
     },
   }
 }

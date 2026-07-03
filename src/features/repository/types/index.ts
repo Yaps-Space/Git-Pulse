@@ -14,6 +14,7 @@ export type SortDir = "asc" | "desc"
 export interface GithubRepo {
   id:               number
   full_name:        string
+  name:             string
   description:      string | null
   private:          boolean
   language:         string | null
