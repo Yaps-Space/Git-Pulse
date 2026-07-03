@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/shared/lib/auth"
 import { db } from "@/shared/lib/firebase"
-import { doc, setDoc } from "firebase/firestore"
+import { doc, setDoc, getDocs, query, where, collection } from "firebase/firestore"
 
 const TOKEN_ENDPOINTS = {
   github: {
     tokenUrl:     "https://github.com/login/oauth/access_token",
-    clientId:     process.env.GITHUB_ID!,
-    clientSecret: process.env.GITHUB_SECRET!,
+    clientId:     process.env.GITHUB_CONNECT_ID!,
+    clientSecret: process.env.GITHUB_CONNECT_SECRET!,
     redirectUri:  `${process.env.NEXTAUTH_URL}/api/auth/connect/github/callback`,
   },
   gitlab: {
@@ -33,6 +33,7 @@ interface TokenResponse {
 interface ProviderProfile {
   id:       string
   username: string | null
+  email:    string | null
 }
 
 async function exchangeCodeForToken(
@@ -76,6 +77,7 @@ async function getProviderProfile(
   return {
     id:       data.id?.toString(),
     username: data.login ?? data.username ?? null,
+    email:    data.email ?? null,
   }
 }
 
@@ -121,10 +123,22 @@ export async function GET(
       return NextResponse.redirect(new URL(`${new URL(returnTo, req.url).pathname}?error=profile_failed`, req.url))
     }
 
+    const conflictSnap = await getDocs(
+      query(
+        collection(db, "users"),
+        where(`linkedProviders.${provider}.id`, "==", profile.id)
+      )
+    )
+    const conflict = conflictSnap.docs.find(d => d.id !== session.user.id)
+    if (conflict) {
+      return NextResponse.redirect(new URL(`${new URL(returnTo, req.url).pathname}?error=provider_taken`, req.url))
+    }
+
     const providerData: Record<string, unknown> = {
       id:          profile.id,
       accessToken: tokenData.access_token,
       username:    profile.username,
+      email:       profile.email,
     }
 
     if (provider === "gitlab" && tokenData.refresh_token) {

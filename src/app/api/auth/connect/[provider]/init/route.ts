@@ -6,7 +6,7 @@ import { randomBytes } from "crypto"
 const OAUTH_CONFIGS = {
   github: {
     authUrl:     "https://github.com/login/oauth/authorize",
-    clientId:    process.env.GITHUB_ID!,
+    clientId:    process.env.GITHUB_CONNECT_ID!,
     scope:       "read:user user:email repo",
     redirectUri: `${process.env.NEXTAUTH_URL}/api/auth/connect/github/callback`,
   },
