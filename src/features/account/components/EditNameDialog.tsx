@@ -47,15 +47,15 @@ export function EditNameDialog({ open, value, saving, onChange, onSave, onClose 
             onClick={onClose}
             disabled={saving}
           >
-            Batal
+            Cancel
           </Button>
           <Button
             className="flex-1 h-10 rounded-lg bg-[#00D964] hover:bg-[#00c057] text-gray-900 font-bold"
             onClick={onSave}
             disabled={saving}
           >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Simpan"}
-          </Button>
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Simpan"}
+            </Button>
         </div>
       </DialogContent>
     </Dialog>

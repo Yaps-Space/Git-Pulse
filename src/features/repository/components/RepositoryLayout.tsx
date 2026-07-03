@@ -9,6 +9,7 @@ import { RepoTable }        from "./RepoTable"
 import { RepositoryMobile } from "./RepositoryMobile"
 import { useRepos }         from "../hooks/useRepos"
 import { Repo }             from "../types"
+import { capitalizeFirst }  from "@/shared/helpers"
 
 export type FilterState = {
   provider:     "" | "github" | "gitlab"
@@ -18,9 +19,9 @@ export type FilterState = {
 
 function applyFilters(repos: Repo[], filters: FilterState): Repo[] {
   return repos.filter(r => {
-    if (filters.provider     && r.provider !== filters.provider)                            return false
-    if (filters.productivity && r.productivityState.toLowerCase() !== filters.productivity) return false
-    if (filters.grade        && r.healthGrade !== filters.grade)                            return false
+    if (filters.provider     && r.provider !== filters.provider)                                    return false
+    if (filters.productivity && capitalizeFirst(r.productivityState) !== filters.productivity)      return false
+    if (filters.grade        && r.healthGrade !== filters.grade)                                     return false
     return true
   })
 }

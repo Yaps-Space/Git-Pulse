@@ -102,15 +102,20 @@ export const authOptions: NextAuthOptions = {
 
         const existingUser = await findUserByLinkedProvider(provider, providerId)
 
+        if (existingUser && existingUser.id !== (user.id ?? providerId)) {
+          return false
+        }
+
+        const providerData = {
+          id:          providerId,
+          accessToken: account?.access_token ?? null,
+          username:    githubProfile?.login ?? gitlabProfile?.username ?? null,
+          email:       user.email ?? null,
+        }
+
         if (existingUser) {
           await setDoc(doc(db, "users", existingUser.id), {
-            linkedProviders: {
-              [provider]: {
-                id:          providerId,
-                accessToken: account?.access_token ?? null,
-                username:    githubProfile?.login ?? gitlabProfile?.username ?? null,
-              }
-            }
+            linkedProviders: { [provider]: providerData }
           }, { merge: true })
 
           user.id = existingUser.id
@@ -128,23 +133,11 @@ export const authOptions: NextAuthOptions = {
             username:  githubProfile?.login ?? gitlabProfile?.username ?? null,
             createdAt: serverTimestamp(),
             passwordHash:    null,
-            linkedProviders: {
-              [provider]: {
-                id:          providerId,
-                accessToken: account?.access_token ?? null,
-                username:    githubProfile?.login ?? gitlabProfile?.username ?? null,
-              }
-            }
+            linkedProviders: { [provider]: providerData }
           })
         } else {
           await setDoc(userRef, {
-            linkedProviders: {
-              [provider]: {
-                id:          providerId,
-                accessToken: account?.access_token ?? null,
-                username:    githubProfile?.login ?? gitlabProfile?.username ?? null,
-              }
-            }
+            linkedProviders: { [provider]: providerData }
           }, { merge: true })
         }
       } catch (e) {

@@ -171,14 +171,14 @@ export function AccountEditPassword({ hasPassword }: Props) {
                 onClick={handleClose}
                 disabled={loading}
               >
-                Batal
+                Cancel
               </Button>
               <Button
                 type="submit"
                 className="flex-1 h-10 rounded-lg bg-[#00D964] hover:bg-[#00c057] text-gray-900 font-bold"
                 disabled={loading}
               >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Simpan"}
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save"}
               </Button>
             </div>
           </form>
