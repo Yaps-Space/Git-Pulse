@@ -10,8 +10,8 @@ export interface LandingTech {
 export const LANDING_TECHS: LandingTech[] = [
   { icon: Zap, name: "Next.js", desc: "Framework React full-stack yang cepat dan modern" },
   { icon: Flame, name: "Firebase", desc: "Auth & Firestore sebagai backend dan autentikasi" },
-  { icon: GitBranch, name: "GitHub API", desc: "Fetch commit, issue, dan metadata repository" },
+  { icon: GitBranch, name: "GitHub & GitLab API", desc: "Fetch commit, issue, dan metadata repository dari kedua provider" },
   { icon: BrainCircuit, name: "Machine Learning", desc: "Tiga model ML: produktivitas, health score, member status" },
   { icon: QrCode, name: "QR Code System", desc: "Generate dan scan QR Code untuk invite anggota tim" },
-  { icon: ShieldCheck, name: "Role-Based Access", desc: "Sistem akses berbasis peran Evaluator dan Contributor" },
+  { icon: ShieldCheck, name: "Role-Based Access", desc: "Sistem akses berbasis peran Owner, Evaluator, dan Contributor" },
 ];

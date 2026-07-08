@@ -4,12 +4,12 @@ export const VALUES = [
   {
     icon: Target,
     title: "Objektif",
-    desc: "Penilaian berbasis data nyata dari aktivitas GitHub, bukan asumsi atau subjektivitas.",
+    desc: "Penilaian berbasis data nyata dari aktivitas GitHub & GitLab, bukan asumsi atau subjektivitas.",
   },
   {
     icon: Zap,
     title: "Otomatis",
-    desc: "Dari fetch data hingga laporan ML — semua berjalan tanpa intervensi manual.",
+    desc: "Dari fetch data hingga laporan ML, semua berjalan tanpa intervensi manual.",
   },
   {
     icon: BarChart2,

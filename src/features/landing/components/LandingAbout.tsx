@@ -37,11 +37,11 @@ export function LandingAbout() {
             </motion.h2>
 
             <motion.p variants={fadeUp} className="text-sm text-white/45 leading-relaxed mb-6 font-light">
-              GitPulse lahir dari kebutuhan nyata — evaluasi kontribusi tim developer yang selama ini dilakukan secara manual dan subjektif. Dengan memanfaatkan metadata repository GitHub dan tiga model Machine Learning, GitPulse menghadirkan analisis yang objektif, otomatis, dan dapat dipertanggungjawabkan.
+              GitPulse lahir dari kebutuhan nyata dalam project-based learning, evaluator kesulitan memetakan kontribusi karena username GitHub/GitLab tidak selalu sesuai nama asli anggota tim. Lewat Team Space, GitPulse memetakan identitas kontributor secara otomatis dan menganalisis kontribusi tiap anggota dengan tiga model Machine Learning yang objektif dan dapat dipertanggungjawabkan.
             </motion.p>
 
             <motion.p variants={fadeUp} className="text-sm text-white/45 leading-relaxed mb-10 font-light">
-              Platform ini dirancang untuk dua pihak — evaluator yang membutuhkan gambaran menyeluruh tentang tim, dan kontributor yang ingin memantau perkembangan diri sendiri secara transparan.
+              Platform ini dirancang untuk dua pihak. Owner dan Evaluator yang membutuhkan gambaran menyeluruh tentang tim, dan Contributor yang ingin memantau perkembangan diri sendiri secara transparan.
             </motion.p>
 
             <motion.div variants={fadeUp} className="flex items-center gap-5">
@@ -49,7 +49,7 @@ export function LandingAbout() {
                 <Image src="/logo.png" alt="GitPulse" width={36} height={36} className="rounded-md" />
                 <div>
                   <span className="text-white text-sm font-bold ">Git<span className="text-sm font-bold text-[#00d964]">Pulse</span></span>
-                  <p className="text-xs text-white/35">Platform Analisis GitHub</p>
+                  <p className="text-xs text-white/35">Platform Evaluasi Team Space</p>
                 </div>
               </div>
 
