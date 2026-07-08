@@ -1,4 +1,4 @@
-import { Users, GitBranch, BrainCircuit, QrCode, UserCheck } from "lucide-react";
+import { Users, GitBranch, BrainCircuit, QrCode } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 
 export interface LandingFeature {
