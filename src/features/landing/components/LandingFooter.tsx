@@ -23,7 +23,7 @@ export function LandingFooter() {
               <span className="text-white">Git<span className="text-[#00d964]">Pulse</span></span>
             </Link>
             <p className="text-white/40 text-sm leading-relaxed font-light">
-              Analisis kontribusi GitHub tim kamu secara otomatis dan objektif — berbasis Machine Learning.
+              Evaluasi kontribusi tim di GitHub & GitLab secara otomatis dan objektif lewat Team Space yang didukung oleh Machine Learning.
             </p>
             <p className="text-white/20 text-xs mt-4">GitPulse, 2026.</p>
           </div>

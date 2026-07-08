@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Github } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { fadeUp, fadeIn, staggerContainer } from "../contants/LandingAnimations";
 
@@ -39,7 +38,7 @@ function ParticleCanvas() {
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach((p) => {
+      particles.forEach(p => {
         p.x += p.vx;
         p.y += p.vy;
         if (p.x < 0 || p.x > canvas.width)  p.vx *= -1;
@@ -114,7 +113,7 @@ export function LandingHero() {
             backgroundClip:       "text",
           }}
         >
-          Analisis Kontribusi GitHub Tim Kamu dengan Cerdas
+          Evaluasi Kontribusi Tim Developer Secara Objektif
         </motion.h1>
 
         <motion.p
@@ -122,10 +121,10 @@ export function LandingHero() {
           className="text-[15px] font-normal max-w-[680px] mb-10"
           style={{ color: "rgba(255,255,255,0.7)", lineHeight: 1.7 }}
         >
-          GitPulse membantu evaluator dan tim developer memantau produktivitas, health score, dan pola kontribusi repository secara otomatis — berbasis Machine Learning.
+          GitPulse membantu evaluator dan developer memantau kontribusi tim secara transparan. Berbasis data GitHub & GitLab, dianalisis otomatis dengan Machine Learning.
         </motion.p>
 
-        <motion.div variants={fadeUp} className="flex gap-3 flex-wrap justify-center">
+        <motion.div variants={fadeUp} className="flex gap-3 flex-wrap justify-center mb-6">
           <Button
             asChild
             className="relative overflow-hidden rounded-full gap-2 px-7 py-6 text-sm font-medium text-gray-900 border border-white/30 hover:opacity-90"
@@ -136,8 +135,7 @@ export function LandingHero() {
                 className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px rounded-full blur-sm"
                 style={{ background: "linear-gradient(90deg, transparent, #00d96480, transparent)" }}
               />
-              <Github className="w-4 h-4" />
-              Login with GitHub
+              Mulai Sekarang
             </Link>
           </Button>
 

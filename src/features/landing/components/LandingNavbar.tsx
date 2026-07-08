@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Github, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { cn } from "@/shared/lib/utils";
 import { NAV_LINKS } from "../contants/nav";
 
 export function LandingNavbar() {
-  const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [open,       setOpen]       = useState(false);
+  const [scrolled,   setScrolled]   = useState(false);
   const [activeHref, setActiveHref] = useState<string>("");
 
   useEffect(() => {
@@ -61,10 +61,7 @@ export function LandingNavbar() {
           size="sm"
           className="hidden md:inline-flex rounded-full gap-2 bg-black text-white border-white/20 hover:bg-white/5 hover:text-white hover:border-white/40"
         >
-          <Link href="/login">
-            <Github className="w-3.5 h-3.5" />
-            Login with GitHub
-          </Link>
+          <Link href="/login">Masuk / Daftar</Link>
         </Button>
 
         <Button
@@ -121,8 +118,7 @@ export function LandingNavbar() {
                     className="w-full rounded-xl gap-2 bg-black text-white border-white/20 hover:bg-white/5 hover:text-white"
                   >
                     <Link href="/login" onClick={() => setOpen(false)}>
-                      <Github className="w-3.5 h-3.5" />
-                      Login with GitHub
+                      Masuk / Daftar
                     </Link>
                   </Button>
                 </div>
