@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
@@ -16,6 +16,7 @@ import { NAV_ITEMS } from "@/shared/contans/NavItems";
 
 export function AppSidebar() {
   const pathname          = usePathname()
+  const searchParams      = useSearchParams()
   const { state, toggleSidebar } = useSidebar()
   const { data: session } = useSession()
   const collapsed         = state === "collapsed"
@@ -24,10 +25,14 @@ export function AppSidebar() {
   const initials = user?.name
     ?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) ?? "GP"
 
-  const isActive = (href: string) =>
-    href === "/dashboard"
+  const fromTeamSpace = pathname.startsWith("/repository") && searchParams.has("teamSpaceId")
+
+  const isActive = (href: string) => {
+    if (fromTeamSpace) return href === "/team-space"
+    return href === "/dashboard"
       ? pathname === href
       : pathname === href || pathname.startsWith(href + "/")
+  }
 
   return (
     <Sidebar collapsible="icon">
