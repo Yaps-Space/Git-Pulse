@@ -35,6 +35,7 @@ export function TeamSpaceDetailMobile({ detail, onMutate }: Props) {
           myMembership={detail.myMembership}
           myRole={detail.myRole}
           classId={detail.id}
+          teamSpaceName={detail.name}
           isEvaluator={isEvaluator}
           onMutate={onMutate}
         />

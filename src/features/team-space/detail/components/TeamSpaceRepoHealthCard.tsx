@@ -13,6 +13,8 @@ interface Props {
   repoFullName:      string
   repoId:            string | null
   provider:          "github" | "gitlab"
+  teamSpaceId:       string
+  teamSpaceName:     string
 }
 
 export function TeamSpaceRepoHealthCard({
@@ -22,14 +24,19 @@ export function TeamSpaceRepoHealthCard({
   repoFullName,
   repoId,
   provider,
+  teamSpaceId,
+  teamSpaceName,
 }: Props) {
   const stateDisplay = capitalizeFirst(productivityState)
   const hasData      = healthScore > 0 || productivityState !== "-"
   const gradeColor   = GRADE_COLOR[healthGrade] ?? "#888"
 
+  const repoHref = repoId
+    ? `/repository/${repoId}?teamSpaceId=${teamSpaceId}&teamSpaceName=${encodeURIComponent(teamSpaceName)}`
+    : null
+
   return (
     <div className="bg-gray-900 rounded-xl border border-gray-100 overflow-hidden">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700 gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
           <span className="text-sm font-semibold text-white flex-shrink-0">Repository Health</span>
@@ -41,9 +48,9 @@ export function TeamSpaceRepoHealthCard({
           )}
           <span className="text-xs text-gray-400 truncate">{repoFullName}</span>
         </div>
-        {repoId && (
+        {repoHref && (
           <Link
-            href={`/repository/${repoId}`}
+            href={repoHref}
             className="flex items-center gap-1 text-xs font-medium text-gray-400 hover:underline flex-shrink-0 whitespace-nowrap"
           >
             Lihat Detail Repository
@@ -55,9 +62,9 @@ export function TeamSpaceRepoHealthCard({
       {!hasData ? (
         <div className="flex items-center justify-between px-4 py-3 gap-4">
           <p className="text-xs text-gray-400">Repository belum dianalisis</p>
-          {repoId && (
+          {repoHref && (
             <Link
-              href={`/repository/${repoId}`}
+              href={repoHref}
               className="text-xs font-semibold text-[#00D964] hover:underline flex-shrink-0"
             >
               Analisis Sekarang →
@@ -66,7 +73,6 @@ export function TeamSpaceRepoHealthCard({
         </div>
       ) : (
         <div className="grid grid-cols-2 divide-x divide-gray-700">
-          {/* Health Score */}
           <div className="flex flex-col gap-1 px-4 pt-3 pb-4">
             <span className="text-xs font-medium text-gray-400">Health Score</span>
             <div className="flex items-center gap-3">
@@ -91,7 +97,6 @@ export function TeamSpaceRepoHealthCard({
             </div>
           </div>
 
-          {/* Productivity State */}
           <div className="flex flex-col gap-3.5 px-4 py-3">
             <div className="flex items-center gap-1">
               <span className="text-xs font-medium text-gray-400 pb-1">Status Produktivitas</span>

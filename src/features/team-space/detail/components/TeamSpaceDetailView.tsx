@@ -38,6 +38,7 @@ export default function TeamSpaceDetailView({ id }: Props) {
         myRole={detail.myRole}
         ownerId={detail.ownerId}
         classId={detail.id}
+        teamSpaceName={detail.name}
         isEvaluator={isEvaluator}
         onMutate={refresh}
       />
