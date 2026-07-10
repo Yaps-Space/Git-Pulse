@@ -2,35 +2,40 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Search, Plus, SlidersHorizontal } from "lucide-react"
-import { Input } from "@/shared/components/ui/input"
-import { Button } from "@/shared/components/ui/button"
-import { MobilePageHeader } from "@/shared/components/commons/MobilePageHeader"
-import { RepoMobileList }   from "./RepoMobileList"
-import { cn } from "@/shared/lib/utils"
+import { Search, Plus, SlidersHorizontal, ArrowUpDown } from "lucide-react"
+import { Input }   from "@/shared/components/ui/input"
+import { Button }  from "@/shared/components/ui/button"
+import { MobilePageHeader }   from "@/shared/components/commons/MobilePageHeader"
+import { RepoMobileList }     from "./RepoMobileList"
+import { FilterSheet }        from "./FilterSheet"
+import { cn }      from "@/shared/lib/utils"
 import { Repo, SortKey, SortDir } from "../types"
+import { FilterState }  from "./RepositoryLayout"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent,
+  DropdownMenuItem, DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu"
 import { SORTABLE_COLUMNS } from "../constants/Sortable"
 
 interface Props {
-  repos: Repo[]
+  repos:    Repo[]
+  filters:  FilterState
+  onFilter: (f: FilterState) => void
 }
 
-export function RepositoryMobile({ repos }: Props) {
-  const [search,   setSearch]   = useState("")
-  const [sortKey,  setSortKey]  = useState<SortKey>("analyzedAt")
-  const [sortDir,  setSortDir]  = useState<SortDir>("desc")
-  const [pageSize, setPageSize] = useState(10)
+export function RepositoryMobile({ repos, filters, onFilter }: Props) {
+  const [search,     setSearch]     = useState("")
+  const [sortKey,    setSortKey]    = useState<SortKey>("analyzedAt")
+  const [sortDir,    setSortDir]    = useState<SortDir>("desc")
+  const [pageSize,   setPageSize]   = useState(10)
+  const [filterOpen, setFilterOpen] = useState(false)
 
   const handleSort = (key: SortKey) => {
     if (key === sortKey) setSortDir(d => d === "asc" ? "desc" : "asc")
     else { setSortKey(key); setSortDir("desc") }
   }
+
+  const hasActive = filters.provider || filters.productivity || filters.grade
 
   return (
     <div className="min-h-screen">
@@ -48,12 +53,9 @@ export function RepositoryMobile({ repos }: Props) {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-10 w-10 border-white/10 bg-white/10 text-white hover:bg-[#00D964] hover:text-gray-900 hover:border-[#00D964] transition-colors flex-shrink-0"
-              >
-                <SlidersHorizontal className="w-4 h-4" />
+              <Button variant="outline" size="icon"
+                className="h-10 w-10 border-white/10 bg-white/10 text-white hover:bg-[#00D964] hover:text-gray-900 hover:border-[#00D964] transition-colors flex-shrink-0">
+                <ArrowUpDown className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-[160px]">
@@ -68,9 +70,7 @@ export function RepositoryMobile({ repos }: Props) {
                 >
                   {col.label}
                   {col.key === sortKey && (
-                    <span className="text-xs text-gray-400">
-                      {sortDir === "asc" ? "↑" : "↓"}
-                    </span>
+                    <span className="text-xs text-gray-400">{sortDir === "asc" ? "↑" : "↓"}</span>
                   )}
                 </DropdownMenuItem>
               ))}
@@ -78,11 +78,19 @@ export function RepositoryMobile({ repos }: Props) {
           </DropdownMenu>
 
           <Button
-            asChild
             variant="outline"
             size="icon"
-            className="h-10 w-10 border-white/10 bg-white/10 text-white hover:bg-[#00D964] hover:text-gray-900 hover:border-[#00D964] transition-colors flex-shrink-0"
+            onClick={() => setFilterOpen(true)}
+            className={cn(
+              "h-10 w-10 border-white/10 bg-white/10 text-white hover:bg-[#00D964] hover:text-gray-900 hover:border-[#00D964] transition-colors flex-shrink-0",
+              hasActive && "bg-[#00D964] text-gray-900 border-[#00D964]"
+            )}
           >
+            <SlidersHorizontal className="w-4 h-4" />
+          </Button>
+
+          <Button asChild variant="outline" size="icon"
+            className="h-10 w-10 border-white/10 bg-white/10 text-white hover:bg-[#00D964] hover:text-gray-900 hover:border-[#00D964] transition-colors flex-shrink-0">
             <Link href="/repository/connect">
               <Plus className="w-4 h-4" />
             </Link>
@@ -97,6 +105,13 @@ export function RepositoryMobile({ repos }: Props) {
         sortDir={sortDir}
         pageSize={pageSize}
         onPageSize={setPageSize}
+      />
+
+      <FilterSheet
+        open={filterOpen}
+        filters={filters}
+        onClose={() => setFilterOpen(false)}
+        onFilter={onFilter}
       />
     </div>
   )

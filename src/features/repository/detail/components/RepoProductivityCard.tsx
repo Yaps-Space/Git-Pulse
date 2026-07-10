@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { RepoDetail } from "../types/RepoDetail"
 import { PRODUCTIVITY_BG, PRODUCTIVITY_COLOR } from "../../constants"
 import { PRODUCTIVITY_ITEMS } from "../constants/Productivity"
+import { capitalizeFirst } from "@/shared/helpers"
 
 interface Props {
   repo:        RepoDetail
@@ -14,8 +15,8 @@ interface Props {
 export function RepoProductivityCard({ repo, refreshing }: Props) {
   const trendLabel = repo.commitTrend > 0.01 ? "Meningkat"
     : repo.commitTrend < -0.01 ? "Menurun" : "Stabil"
-  const trendColor = repo.commitTrend > 0.01 ? "#3FB950"
-    : repo.commitTrend < -0.01 ? "#F85149" : "#000000"
+  const trendColor = repo.commitTrend > 0.01 ? "#00D964"
+    : repo.commitTrend < -0.01 ? "#BB230B" : "#000000"
   const TrendIcon  = repo.commitTrend > 0.01 ? TrendingUp
     : repo.commitTrend < -0.01 ? TrendingDown : Minus
 
@@ -37,11 +38,11 @@ export function RepoProductivityCard({ repo, refreshing }: Props) {
         <span
           className="px-3 py-1 rounded-md text-sm"
           style={{
-            background: PRODUCTIVITY_BG[repo.productivityState]   ?? "#88888818",
-            color:      PRODUCTIVITY_COLOR[repo.productivityState] ?? "#888",
+            background: PRODUCTIVITY_BG[capitalizeFirst(repo.productivityState)]   ?? "#88888818",
+            color:      PRODUCTIVITY_COLOR[capitalizeFirst(repo.productivityState)] ?? "#888",
           }}
         >
-          {repo.productivityState}
+          {capitalizeFirst(repo.productivityState) || "-"}
         </span>
       </CardHeader>
       <CardContent>
@@ -58,8 +59,8 @@ export function RepoProductivityCard({ repo, refreshing }: Props) {
         </div>
 
         {repo.productivityRec && (
-          <div className="mt-4 p-3 rounded-xl bg-[#83ECA7] flex items-start gap-2">
-            <Lightbulb className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <div className="mt-4 p-3 rounded-lg flex items-start gap-2 border border-[#00D96433] bg-[#00D9640D]">
+            <Lightbulb className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#00D964]" />
             <p className="text-sm text-gray-800">{repo.productivityRec}</p>
           </div>
         )}

@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useSWRConfig } from "swr"
+import { toast } from "sonner"
 import { analyzeRepo } from "../services/repoService"
 
 export function useRefreshRepo(id: string) {
@@ -11,8 +12,10 @@ export function useRefreshRepo(id: string) {
     try {
       await analyzeRepo(fullName)
       mutate(`/api/repo/${id}`)
+      toast.success("Repository berhasil dianalisis ulang.")
     } catch (e) {
       console.error(e)
+      toast.error("Gagal menganalisis ulang repository.")
     } finally {
       setLoading(false)
     }

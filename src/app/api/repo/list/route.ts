@@ -9,8 +9,7 @@ export async function GET() {
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   try {
-    const q    = query(collection(db, "repositories"), where("userId", "==", session.user.id))
-    const snap = await getDocs(q)
+    const snap  = await getDocs(query(collection(db, "repositories"), where("userId", "==", session.user.id)))
     const repos = snap.docs.map(doc => {
       const data = doc.data()
       return {
@@ -20,6 +19,8 @@ export async function GET() {
         healthScore:       data.healthScore       ?? 0,
         healthGrade:       data.healthGrade       ?? "-",
         analyzedAt:        data.analyzedAt?.seconds ? data.analyzedAt.seconds * 1000 : null,
+        isPrivate:         data.isPrivate         ?? false,
+        provider:          (data.provider         as "github" | "gitlab") ?? "github",
       }
     })
     return NextResponse.json({ repos })

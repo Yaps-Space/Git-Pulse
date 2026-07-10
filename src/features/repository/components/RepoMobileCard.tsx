@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation"
 import { ChevronRight } from "lucide-react"
 import { Repo } from "../types"
 import { PRODUCTIVITY_COLOR, PRODUCTIVITY_BG, GRADE_COLOR } from "../constants"
+import { capitalizeFirst } from "@/shared/helpers"
+import { GitHubIcon, GitLabIcon } from "@/shared/components/commons/ProviderIcons"
 
 interface Props {
   repo:  Repo
@@ -19,9 +21,16 @@ export function RepoMobileCard({ repo, index }: Props) {
       onClick={() => router.push(`/repository/${repo.id}`)}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="font-bold text-sm text-gray-900 flex-1 min-w-0 truncate">
-          {index}. {repo.fullName}
-        </p>
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          <span className="font-bold text-sm text-gray-900 flex-shrink-0">{index}.</span>
+          {repo.provider === "gitlab"
+            ? <GitLabIcon className="w-3.5 h-3.5 text-[#fc6d26] flex-shrink-0" />
+            : <GitHubIcon className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+          }
+          <p className="font-bold text-sm text-gray-900 flex-1 min-w-0 truncate">
+            {repo.fullName}
+          </p>
+        </div>
         <span
           className="text-lg font-bold flex-shrink-0"
           style={{ color: GRADE_COLOR[repo.healthGrade] ?? "#888" }}
@@ -36,11 +45,11 @@ export function RepoMobileCard({ repo, index }: Props) {
           <span
             className="text-xs px-2.5 py-0.5 rounded-full font-medium"
             style={{
-              background: PRODUCTIVITY_BG[repo.productivityState]   ?? "#88888818",
-              color:      PRODUCTIVITY_COLOR[repo.productivityState] ?? "#888",
+              background: PRODUCTIVITY_BG[capitalizeFirst(repo.productivityState)]   ?? "#88888818",
+              color:      PRODUCTIVITY_COLOR[capitalizeFirst(repo.productivityState)] ?? "#888",
             }}
           >
-            {repo.productivityState || "-"}
+            {capitalizeFirst(repo.productivityState) || "-"}
           </span>
         </div>
 

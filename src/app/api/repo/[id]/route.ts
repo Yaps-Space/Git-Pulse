@@ -27,6 +27,7 @@ export async function GET(
       stars:                 data.stars               ?? 0,
       forks:                 data.forks               ?? 0,
       isPrivate:             data.isPrivate           ?? false,
+      provider:              data.provider            ?? "github",
       productivityState:     data.productivityState   ?? "-",
       commitFrequency:       data.commitFrequency     ?? 0,
       activityConsistency:   data.activityConsistency ?? 0,

@@ -1,4 +1,5 @@
-export function timeAgo(dateStr: string): string {
+export function timeAgo(dateStr: string | null): string {
+  if (!dateStr) return "-"
   const diff = Date.now() - new Date(dateStr).getTime()
   const days = Math.floor(diff / 86400000)
   if (days === 0) return "Hari ini"

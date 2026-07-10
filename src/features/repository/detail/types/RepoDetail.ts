@@ -1,3 +1,11 @@
+export interface HealthBreakdownItem {
+  score:        number
+  weight:       number
+  contribution: number
+  details:      Record<string, unknown>
+  missing:      string[]
+}
+
 export interface RepoDetail {
   id:                    string
   fullName:              string
@@ -6,6 +14,7 @@ export interface RepoDetail {
   stars:                 number
   forks:                 number
   isPrivate:             boolean
+  provider:              "github" | "gitlab"
   productivityState:     string
   commitFrequency:       number
   activityConsistency:   number
@@ -15,7 +24,7 @@ export interface RepoDetail {
   healthScore:           number
   healthGrade:           string
   healthLabel:           string
-  healthBreakdown:       Record<string, number>
+  healthBreakdown:       Record<string, HealthBreakdownItem>
   healthRecommendations: string[]
   analyzedAt:            number | null
 }

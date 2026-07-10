@@ -12,27 +12,31 @@ type Role = keyof typeof ROLE_CONFIG;
 
 const MAX_VISIBLE = 4;
 
-function TeamItem({ name, role, memberCount }: Omit<Team, "id">) {
+function TeamItem({ id, name, role, memberCount }: Team) {
   const config = ROLE_CONFIG[role as Role] ?? ROLE_CONFIG.contributor
   return (
-    <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
-      <div className="min-w-0">
-        <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
-        <p className="text-sm text-gray-400">{memberCount} members</p>
+    <Link
+      href={`/team-space/${id}`}
+      className="flex items-center justify-between p-3 border-b border-gray-100 last:border-0 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors gap-2"
+    >
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <div className="w-1 self-stretch rounded-full bg-[#00D964] flex-shrink-0" />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
+          <p className="text-xs text-gray-400">{memberCount} members</p>
+        </div>
       </div>
       <span
-        className="flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full flex-shrink-0 ml-3"
+        className="flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full flex-shrink-0"
         style={{ background: config.bg, color: config.text }}
       >
-        <span
-          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-          style={{ background: config.dot }}
-        />
+        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: config.dot }} />
         {config.label}
       </span>
-    </div>
+    </Link>
   )
 }
+
 export function AccountTeamsCard() {
   const { teams }    = useTeams()
   const isMobile     = useIsMobile()

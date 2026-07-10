@@ -4,6 +4,7 @@ import Image from "next/image"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from "recharts"
 import { TeamMember } from "../../types/TeamSpace"
 import { getLastNMonthLabels } from "../constants/TeamSpaceDetail"
+import { resolveMemberName } from "../helpers/resolveMemberName"
 
 interface Props {
   member: TeamMember
@@ -11,7 +12,8 @@ interface Props {
 }
 
 export function MemberChart({ member, rank }: Props) {
-  const labels = getLastNMonthLabels(12)
+  const labels      = getLastNMonthLabels(12)
+  const displayName = resolveMemberName(member)
 
   const data = labels.map((month, i) => ({
     month,
@@ -24,11 +26,23 @@ export function MemberChart({ member, rank }: Props) {
     <div className="bg-white rounded-2xl p-5 border border-gray-100">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          {member.userImage && (
-            <Image src={member.userImage} alt={member.userName} width={32} height={32} className="rounded-full object-cover" />
+          {member.userImage ? (
+            <Image
+              src={member.userImage}
+              alt={displayName}
+              width={32}
+              height={32}
+              className="rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+              <span className="text-xs font-semibold text-gray-500">
+                {displayName.charAt(0).toUpperCase()}
+              </span>
+            </div>
           )}
           <div>
-            <p className="font-semibold text-sm text-gray-900">{member.userName}</p>
+            <p className="font-semibold text-sm text-gray-900">{displayName}</p>
             <p className="text-xs text-gray-400">{totalCommits} commits</p>
           </div>
         </div>

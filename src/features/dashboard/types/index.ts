@@ -1,6 +1,7 @@
 export interface DashboardRepo {
   id:                string
   fullName:          string
+  provider:          string
   productivityState: string
   healthScore:       number
   healthGrade:       string
@@ -16,4 +17,5 @@ export interface DashboardRepo {
   commitsPerMonth:   number[]
   prPerMonth:        number[]
   issuesPerMonth:    number[]
+  isPrivate:         boolean
 }

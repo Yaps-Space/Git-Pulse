@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { ReactNode } from "react"
 
 interface MobilePageHeaderProps {
-  title:     string
+  title:     ReactNode
   children?: ReactNode
   backHref?: string
 }

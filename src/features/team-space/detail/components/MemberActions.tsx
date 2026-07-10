@@ -4,29 +4,44 @@ import { useState } from "react"
 import { Edit2, BarChart2 } from "lucide-react"
 import { canManageMembers } from "../helpers/permissions"
 import { EditRoleDialog }   from "./EditRoleDialog"
+import { analyzeMember }    from "../../services/TeamSpaceService"
+import { toast }            from "sonner"
 
 interface Props {
-  memberId:      string
-  memberName:    string
-  currentRole:   string
-  myRole:        string
-  classId:       string
-  onAnalyze:     () => void
-  onKick:        () => void
-  onRoleChange:  (role: string) => void
+  memberId:     string
+  memberName:   string
+  memberStatus: string
+  currentRole:  string
+  myRole:       string
+  classId:      string
+  onAnalyze:    () => void
+  onKick:       () => void
+  onRoleChange: (role: string) => void
 }
 
-export default function MemberActions({ memberId, memberName, currentRole, myRole, classId, onAnalyze, onKick, onRoleChange }: Props) {
-  const [loading, setLoading]   = useState<string | null>(null)
+export default function MemberActions({
+  memberId, memberName, memberStatus, currentRole,
+  myRole, classId, onAnalyze, onKick, onRoleChange,
+}: Props) {
+  const [loading,  setLoading]  = useState<string | null>(null)
   const [editOpen, setEditOpen] = useState(false)
 
-  const showEdit = canManageMembers(myRole)
+  const showEdit      = canManageMembers(myRole)
+  const cannotAnalyze = memberStatus === "not_joined" || loading === "analyze"
 
   const handleAnalyze = async () => {
+    if (cannotAnalyze) return
     onAnalyze()
     setLoading("analyze")
     try {
-      await fetch(`/api/team-space/${classId}/member/${memberId}/analyze`, { method: "POST" })
+      const ok = await analyzeMember(classId, memberId)
+      if (ok) {
+        toast.success(`${memberName} berhasil dianalisis.`)
+      } else {
+        toast.error(`Gagal menganalisis ${memberName}.`)
+      }
+    } catch {
+      toast.error("Tidak bisa menghubungi server.")
     } finally {
       setLoading(null)
     }
@@ -45,8 +60,8 @@ export default function MemberActions({ memberId, memberName, currentRole, myRol
         )}
         <button
           onClick={handleAnalyze}
-          disabled={loading === "analyze"}
-          className="w-8 h-8 flex items-center justify-center rounded-md bg-[#00D964] hover:bg-[#00b853] text-gray-900transition-colors"
+          disabled={cannotAnalyze}
+          className="w-8 h-8 flex items-center justify-center rounded-md bg-[#00D964] hover:bg-[#00b853] text-gray-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <BarChart2 className="w-3.5 h-3.5" />
         </button>
