@@ -3,7 +3,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { ChevronLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
@@ -22,7 +21,9 @@ const oauthBtnBase: React.CSSProperties = {
 };
 
 export function LoginLayout() {
-  const params              = useSearchParams();
+  // Avoid using `useSearchParams` here because it can cause prerender
+  // issues when Next tries to statically generate the page. Read
+  // URL search params inside a client-only effect instead.
   const [login, setLogin]   = useState("");
   const [password, setPass] = useState("");
   const [showPass, setShow] = useState(false);
@@ -30,10 +31,12 @@ export function LoginLayout() {
   const [error, setError]   = useState<string | null>(null);
 
   useEffect(() => {
+    if (typeof window === "undefined") return
+    const params = new URLSearchParams(window.location.search)
     if (params.get("registered") === "1") {
       toast.success("Akun berhasil dibuat! Silakan masuk.")
     }
-  }, [params])
+  }, [])
 
   const handleGithubLogin = () => {
     sessionStorage.setItem("showLoginToast", "1")
