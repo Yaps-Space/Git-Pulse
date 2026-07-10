@@ -20,6 +20,7 @@ interface Props {
   myRole:              string
   ownerId?:            string
   classId:             string
+  teamSpaceName:       string
   isEvaluator:         boolean
   onMutate:            (fn: (data: TeamSpaceDetail) => TeamSpaceDetail) => void
 }
@@ -32,6 +33,7 @@ export function TeamSpaceRepoTabs({
   myRole,
   ownerId,
   classId,
+  teamSpaceName,
   isEvaluator,
   onMutate,
 }: Props) {
@@ -93,6 +95,8 @@ export function TeamSpaceRepoTabs({
           repoFullName={activeRepo.repoFullName}
           repoId={activeRepo.repoId}
           provider={activeRepo.provider}
+          teamSpaceId={classId}
+          teamSpaceName={teamSpaceName}
         />
       )}
 

@@ -14,6 +14,7 @@ import {
 import { Pencil, User, Link2, Unlink, AlertTriangle } from "lucide-react"
 import { INFO_ITEMS } from "../constants/ProfileIcon"
 import { useIsMobile } from "@/shared/hooks/UseMobile"
+import { useAccount } from "../hooks/UseAccount"
 import { AccountData } from "../types/Account"
 import { AccountEditPassword } from "./AccountEditPassword"
 import { EditNameDialog } from "./EditNameDialog"
@@ -28,6 +29,7 @@ export function AccountProfileCard({ name, username, email, avatar, createdAt, l
   const params     = useSearchParams()
   const { update } = useSession()
   const router     = useRouter()
+  const { refresh } = useAccount()
 
   const [editOpen,         setEditOpen]         = useState(false)
   const [nameValue,        setNameValue]        = useState(name)
@@ -43,11 +45,11 @@ export function AccountProfileCard({ name, username, email, avatar, createdAt, l
   useEffect(() => {
     const connected = params.get("connected")
     const error     = params.get("error")
-    if (connected === "github") toast.success("GitHub berhasil dihubungkan!")
-    if (connected === "gitlab") toast.success("GitLab berhasil dihubungkan!")
+    if (connected === "github") { toast.success("GitHub berhasil dihubungkan!"); refresh() }
+    if (connected === "gitlab") { toast.success("GitLab berhasil dihubungkan!"); refresh() }
     if (error === "provider_taken") toast.error("Akun ini sudah terhubung ke akun GitPulse lain.")
     else if (error)                 toast.error("Gagal menghubungkan akun. Coba lagi.")
-  }, [params])
+  }, [params, refresh])
 
   const handleSaveName = async () => {
     if (!nameInput.trim()) { toast.error("Nama tidak boleh kosong."); return }
@@ -100,7 +102,7 @@ export function AccountProfileCard({ name, username, email, avatar, createdAt, l
     try {
       const res = await fetch(`/api/account/disconnect/${disconnectTarget}`, { method: "POST" })
       if (res.ok) {
-        router.refresh()
+        await refresh()
         toast.success(`${disconnectTarget === "github" ? "GitHub" : "GitLab"} disconnected successfully.`)
         setDisconnectTarget(null)
       } else {

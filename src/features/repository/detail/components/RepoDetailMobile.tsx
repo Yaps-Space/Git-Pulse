@@ -13,10 +13,11 @@ import { useRefreshRepo }       from "../hooks/useRefreshRepo"
 import { GitHubIcon, GitLabIcon } from "@/shared/components/commons/ProviderIcons"
 
 interface Props {
-  repo: RepoDetail
+  repo:     RepoDetail
+  backHref: string
 }
 
-export function RepoDetailMobile({ repo }: Props) {
+export function RepoDetailMobile({ repo, backHref }: Props) {
   const { loading, refresh } = useRefreshRepo(repo.id)
 
   return (
@@ -32,7 +33,7 @@ export function RepoDetailMobile({ repo }: Props) {
             {repo.fullName}
           </span>
         }
-        backHref="/repository"
+        backHref={backHref}
       >
         <div className="flex flex-col gap-1">
           {repo.description && (

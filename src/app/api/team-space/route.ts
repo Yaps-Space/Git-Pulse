@@ -68,7 +68,6 @@ export async function GET() {
             const repoSnap = await getDocs(
               query(
                 collection(db, "repositories"),
-                where("userId",   "==", session.user.id),
                 where("fullName", "==", repoFullName)
               )
             )
@@ -135,7 +134,6 @@ export async function POST(req: NextRequest) {
   if (!name || !repoFullNames?.length) return NextResponse.json({ error: "Missing fields" }, { status: 400 })
 
   try {
-    // Ambil nama dari Firestore supaya pakai displayName yang sudah diupdate user
     const userSnap = await getDoc(doc(db, "users", session.user.id))
     const userName = userSnap.exists()
       ? (userSnap.data().name ?? session.user.name)
@@ -158,7 +156,7 @@ export async function POST(req: NextRequest) {
     await addDoc(collection(db, "memberships"), {
       classId:      tsRef.id,
       userId:       session.user.id,
-      userName,                        // ← dari Firestore
+      userName,
       displayName:  null,
       userLogin:    session.user.username ?? null,
       userImage:    session.user.image,

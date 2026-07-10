@@ -1,14 +1,16 @@
-import useSWR from "swr"
+import useSWR, { useSWRConfig } from "swr"
 import { AccountData } from "../types/Account";
 
 interface UseAccountResult {
   account: AccountData | null;
   loading: boolean;
+  refresh: () => Promise<AccountData | undefined>;
 }
 
 const fetcher = (url: string): Promise<AccountData> => fetch(url).then(r => r.json())
 
 export function useAccount(): UseAccountResult {
+  const { mutate } = useSWRConfig()
   const { data, isLoading } = useSWR<AccountData>("/api/account", fetcher, {
     revalidateOnFocus:     true,
     revalidateOnReconnect: true,
@@ -19,5 +21,6 @@ export function useAccount(): UseAccountResult {
   return {
     account: data ?? null,
     loading: isLoading,
+    refresh: () => mutate<AccountData>("/api/account"),
   }
 }
