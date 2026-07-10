@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { authOptions } from "@/shared/lib/auth"
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/lib/firebase"
+import { db } from "@/shared/lib/firebase"
 import { collection, query, where, getDocs, deleteDoc, doc, getDoc } from "firebase/firestore"
 
 export async function POST(
@@ -29,7 +29,7 @@ export async function POST(
     // Hapus team space
     await deleteDoc(doc(db, "teamSpaces", classId))
     return NextResponse.json({ success: true })
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Failed" }, { status: 500 })
   }
 }

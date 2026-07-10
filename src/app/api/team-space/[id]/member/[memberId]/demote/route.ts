@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { authOptions } from "@/shared/lib/auth"
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/lib/firebase"
+import { db } from "@/shared/lib/firebase"
 import { doc, updateDoc } from "firebase/firestore"
 
 export async function POST(
@@ -15,7 +15,7 @@ export async function POST(
   try {
     await updateDoc(doc(db, "memberships", memberId), { role: "contributor" })
     return NextResponse.json({ success: true })
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Failed" }, { status: 500 })
   }
 }

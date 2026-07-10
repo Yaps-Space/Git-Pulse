@@ -1,31 +1,211 @@
 import NextAuth from "next-auth"
 import GithubProvider from "next-auth/providers/github"
-import type { NextAuthOptions } from "next-auth"
+import GitLabProvider from "next-auth/providers/gitlab"
+import CredentialsProvider from "next-auth/providers/credentials"
+import bcrypt from "bcryptjs"
+import type { NextAuthOptions, User } from "next-auth"
+import type { Profile } from "next-auth"
+import { db } from "@/shared/lib/firebase"
+import {
+  doc, getDoc, setDoc, serverTimestamp,
+  collection, query, where, getDocs
+} from "firebase/firestore"
+
+async function findUserByLinkedProvider(provider: "github" | "gitlab", providerId: string) {
+  const usersRef = collection(db, "users")
+  const snap     = await getDocs(
+    query(usersRef, where(`linkedProviders.${provider}.id`, "==", providerId))
+  )
+  if (snap.empty) return null
+  return { id: snap.docs[0].id, ...snap.docs[0].data() }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
     GithubProvider({
       clientId:     process.env.GITHUB_ID!,
       clientSecret: process.env.GITHUB_SECRET!,
-      authorization: {
-        params: { scope: "read:user user:email repo" }
+      authorization: { params: { scope: "read:user user:email repo" } }
+    }),
+
+    GitLabProvider({
+      clientId:     process.env.GITLAB_ID!,
+      clientSecret: process.env.GITLAB_SECRET!,
+      authorization: { params: { scope: "read_user read_api read_repository" } }
+    }),
+
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        login:    { label: "Email atau Username", type: "text" },
+        password: { label: "Password",            type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.login || !credentials?.password) return null
+
+        try {
+          const usersRef = collection(db, "users")
+
+          let userSnap = await getDocs(
+            query(usersRef, where("email", "==", credentials.login))
+          )
+          if (userSnap.empty) {
+            userSnap = await getDocs(
+              query(usersRef, where("username", "==", credentials.login))
+            )
+          }
+          if (userSnap.empty) return null
+
+          const userDoc  = userSnap.docs[0]
+          const userData = userDoc.data()
+
+          if (!userData.passwordHash) return null
+
+          const isValid = await bcrypt.compare(credentials.password, userData.passwordHash)
+          if (!isValid) return null
+
+          return {
+            id:       userDoc.id,
+            name:     userData.name,
+            email:    userData.email,
+            image:    userData.image ?? null,
+            username: userData.username,
+          } as User & { username: string }
+        } catch (e) {
+          console.error("Credentials authorize error:", e)
+          return null
+        }
       }
     })
   ],
+
   callbacks: {
-    async jwt({ token, account, profile }: any) {
-      if (account) {
-        token.accessToken = account.access_token
-        token.id          = profile?.id?.toString() || token.sub
+    async signIn({ user, account, profile }) {
+      if (account?.type === "credentials") return true
+
+      try {
+        const isGithub = account?.provider === "github"
+        const isGitlab = account?.provider === "gitlab"
+
+        const githubProfile = isGithub
+          ? (profile as Profile & { id?: number; login?: string })
+          : undefined
+        const gitlabProfile = isGitlab
+          ? (profile as Profile & { id?: number; username?: string })
+          : undefined
+
+        const providerId = githubProfile?.id?.toString()
+          ?? gitlabProfile?.id?.toString()
+          ?? user.id
+
+        const provider = isGithub ? "github" : "gitlab"
+
+        const existingUser = await findUserByLinkedProvider(provider, providerId)
+
+        if (existingUser && existingUser.id !== (user.id ?? providerId)) {
+          return false
+        }
+
+        const providerData = {
+          id:          providerId,
+          accessToken: account?.access_token ?? null,
+          username:    githubProfile?.login ?? gitlabProfile?.username ?? null,
+          email:       user.email ?? null,
+        }
+
+        if (existingUser) {
+          await setDoc(doc(db, "users", existingUser.id), {
+            linkedProviders: { [provider]: providerData }
+          }, { merge: true })
+
+          user.id = existingUser.id
+          return true
+        }
+
+        const userRef  = doc(db, "users", providerId)
+        const userSnap = await getDoc(userRef)
+
+        if (!userSnap.exists()) {
+          await setDoc(userRef, {
+            name:      user.name,
+            email:     user.email,
+            image:     user.image,
+            username:  githubProfile?.login ?? gitlabProfile?.username ?? null,
+            createdAt: serverTimestamp(),
+            passwordHash:    null,
+            linkedProviders: { [provider]: providerData }
+          })
+        } else {
+          await setDoc(userRef, {
+            linkedProviders: { [provider]: providerData }
+          }, { merge: true })
+        }
+      } catch (e) {
+        console.error("Failed to save user:", e)
       }
+
+      return true
+    },
+
+    async jwt({ token, account, profile, user, trigger, session }) {
+      if (trigger === "update" && session?.name) {
+        token.name = session.name
+        return token
+      }
+
+      if (account?.type === "credentials" && user) {
+        const u           = user as User & { username?: string }
+        token.id          = u.id
+        token.username    = u.username ?? null
+        token.accessToken = null
+        token.gitlabToken = null
+        return token
+      }
+
+      if (account && (account.provider === "github" || account.provider === "gitlab")) {
+        const isGithub = account.provider === "github"
+        const p        = profile as Profile & { id?: number; login?: string; username?: string }
+
+        const userId = user?.id ?? p?.id?.toString() ?? token.sub
+
+        try {
+          const snap     = await getDoc(doc(db, "users", userId!))
+          const userData = snap.exists() ? snap.data() : null
+
+          token.id       = userId
+          token.name     = userData?.name     ?? user.name
+          token.email    = userData?.email    ?? user.email
+          token.picture  = userData?.image    ?? user.image
+          token.username = userData?.username ?? p?.login ?? p?.username ?? null
+        } catch {
+          token.id       = userId
+          token.username = p?.login ?? p?.username ?? null
+        }
+
+        if (isGithub) {
+          token.accessToken = account.access_token ?? null
+          token.gitlabToken = null
+        } else {
+          token.gitlabToken = account.access_token ?? null
+          token.accessToken = null
+        }
+      }
+
       return token
     },
-    async session({ session, token }: any) {
-      session.accessToken = token.accessToken
-      session.user.id     = token.id || token.sub
+
+    async session({ session, token }) {
+      session.accessToken   = (token.accessToken as string | null) ?? null
+      session.gitlabToken   = (token.gitlabToken as string | null) ?? null
+      session.user.id       = (token.id ?? token.sub) as string
+      session.user.name     = (token.name     as string | null) ?? session.user.name
+      session.user.email    = (token.email    as string | null) ?? session.user.email
+      session.user.image    = (token.picture  as string | null) ?? session.user.image
+      session.user.username = (token.username as string | null) ?? null
       return session
     }
   },
+
   pages:  { signIn: "/login" },
   secret: process.env.NEXTAUTH_SECRET,
 }
