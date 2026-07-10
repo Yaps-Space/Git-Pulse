@@ -1,7 +1,7 @@
 "use client"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, Suspense } from "react"
 import { LoginLayout } from "@/features/login/components/LoginLayout"
 
 export default function LoginPage() {
@@ -12,5 +12,9 @@ export default function LoginPage() {
     if (status === "authenticated") router.push("/dashboard")
   }, [status, router])
 
-  return <LoginLayout />
+  return (
+    <Suspense fallback={null}>
+      <LoginLayout />
+    </Suspense>
+  )
 }

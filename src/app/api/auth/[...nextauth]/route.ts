@@ -102,10 +102,6 @@ export const authOptions: NextAuthOptions = {
 
         const existingUser = await findUserByLinkedProvider(provider, providerId)
 
-        if (existingUser && existingUser.id !== (user.id ?? providerId)) {
-          return false
-        }
-
         const providerData = {
           id:          providerId,
           accessToken: account?.access_token ?? null,
