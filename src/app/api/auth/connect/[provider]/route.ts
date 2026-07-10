@@ -10,14 +10,14 @@ import { doc, setDoc } from "firebase/firestore"
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { provider: string } }
+  { params }: { params: { provider: string } | Promise<{ provider: string }> }
 ) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { provider } = params
+  const { provider } = await params
 
   if (provider !== "github" && provider !== "gitlab") {
     return NextResponse.json({ error: "Provider tidak didukung." }, { status: 400 })
