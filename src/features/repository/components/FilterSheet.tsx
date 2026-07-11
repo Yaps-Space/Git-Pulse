@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { X } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
 import { GitHubIcon, GitLabIcon } from "@/shared/components/commons/ProviderIcons"
@@ -20,11 +21,30 @@ interface Props {
 
 export function FilterSheet({ open, filters, onClose, onFilter }: Props) {
   const isMobile = useIsMobile()
+  const [draft, setDraft]       = useState<FilterState>(filters)
+  const [prevOpen, setPrevOpen] = useState(open)
+
+  if (open !== prevOpen) {
+    setPrevOpen(open)
+    if (open) setDraft(filters)
+  }
 
   const set = (key: keyof FilterState, val: string) =>
-    onFilter({ ...filters, [key]: val })
+    setDraft(prev => ({ ...prev, [key]: val }))
 
-  const hasActive = filters.provider || filters.productivity || filters.grade
+  const hasActive = draft.provider || draft.productivity || draft.grade
+
+  const handleReset = () => {
+    const empty: FilterState = { provider: "", productivity: "", grade: "" }
+    setDraft(empty)
+    onFilter(empty)
+    onClose()
+  }
+
+  const handleApply = () => {
+    onFilter(draft)
+    onClose()
+  }
 
   const body = (
     <>
@@ -37,7 +57,7 @@ export function FilterSheet({ open, filters, onClose, onFilter }: Props) {
               onClick={() => set("provider", p)}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-colors",
-                filters.provider === p
+                draft.provider === p
                   ? "border-[#00d964] bg-[#00d964]/10 text-gray-900"
                   : "border-gray-200 text-gray-500 hover:border-gray-300 bg-white"
               )}
@@ -59,7 +79,7 @@ export function FilterSheet({ open, filters, onClose, onFilter }: Props) {
               onClick={() => set("productivity", p)}
               className={cn(
                 "px-3 py-2 rounded-lg border text-sm font-medium transition-colors",
-                filters.productivity === p
+                draft.productivity === p
                   ? "border-[#00d964] bg-[#00d964]/10 text-gray-900"
                   : "border-gray-200 text-gray-500 hover:border-gray-300 bg-white"
               )}
@@ -79,7 +99,7 @@ export function FilterSheet({ open, filters, onClose, onFilter }: Props) {
               onClick={() => set("grade", g)}
               className={cn(
                 "px-3 py-2 rounded-lg border text-sm font-medium transition-colors",
-                filters.grade === g
+                draft.grade === g
                   ? "border-[#00d964] bg-[#00d964]/10 text-gray-900"
                   : "border-gray-200 text-gray-500 hover:border-gray-300 bg-white"
               )}
@@ -97,14 +117,14 @@ export function FilterSheet({ open, filters, onClose, onFilter }: Props) {
       {hasActive && (
         <Button
           className="flex-1 h-10 rounded-lg text-gray-900 font-bold bg-[#CACACA] hover:bg-[#b0b0b0]"
-          onClick={() => onFilter({ provider: "", productivity: "", grade: "" })}
+          onClick={handleReset}
         >
           Reset
         </Button>
       )}
       <Button
         className="flex-1 h-10 rounded-lg bg-[#00D964] hover:bg-[#00c057] text-gray-900 font-bold"
-        onClick={onClose}
+        onClick={handleApply}
       >
         Terapkan
       </Button>

@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { X } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
 import { useIsMobile } from "@/shared/hooks/UseMobile"
@@ -21,11 +22,30 @@ interface Props {
 
 export function TeamSpaceFilterSheet({ open, filters, studyPrograms, academicYears, onClose, onFilter }: Props) {
   const isMobile = useIsMobile()
+  const [draft, setDraft]       = useState<TeamSpaceFilterState>(filters)
+  const [prevOpen, setPrevOpen] = useState(open)
+
+  if (open !== prevOpen) {
+    setPrevOpen(open)
+    if (open) setDraft(filters)
+  }
 
   const set = (key: keyof TeamSpaceFilterState, val: string) =>
-    onFilter({ ...filters, [key]: val })
+    setDraft(prev => ({ ...prev, [key]: val }))
 
-  const hasActive = filters.role || filters.studyProgram || filters.academicYear
+  const hasActive = draft.role || draft.studyProgram || draft.academicYear
+
+  const handleReset = () => {
+    const empty: TeamSpaceFilterState = { role: "", studyProgram: "", academicYear: "" }
+    setDraft(empty)
+    onFilter(empty)
+    onClose()
+  }
+
+  const handleApply = () => {
+    onFilter(draft)
+    onClose()
+  }
 
   const body = (
     <>
@@ -38,7 +58,7 @@ export function TeamSpaceFilterSheet({ open, filters, studyPrograms, academicYea
               onClick={() => set("role", r)}
               className={cn(
                 "px-3 py-2 rounded-lg border text-sm font-medium transition-colors",
-                filters.role === r
+                draft.role === r
                   ? "border-[#00d964] bg-[#00d964]/10 text-gray-900"
                   : "border-gray-200 text-gray-500 hover:border-gray-300 bg-white"
               )}
@@ -59,7 +79,7 @@ export function TeamSpaceFilterSheet({ open, filters, studyPrograms, academicYea
                 onClick={() => set("studyProgram", sp)}
                 className={cn(
                   "px-3 py-2 rounded-lg border text-sm font-medium transition-colors",
-                  filters.studyProgram === sp
+                  draft.studyProgram === sp
                     ? "border-[#00d964] bg-[#00d964]/10 text-gray-900"
                     : "border-gray-200 text-gray-500 hover:border-gray-300 bg-white"
                 )}
@@ -81,7 +101,7 @@ export function TeamSpaceFilterSheet({ open, filters, studyPrograms, academicYea
                 onClick={() => set("academicYear", ay)}
                 className={cn(
                   "px-3 py-2 rounded-lg border text-sm font-medium transition-colors",
-                  filters.academicYear === ay
+                  draft.academicYear === ay
                     ? "border-[#00d964] bg-[#00d964]/10 text-gray-900"
                     : "border-gray-200 text-gray-500 hover:border-gray-300 bg-white"
                 )}
@@ -100,14 +120,14 @@ export function TeamSpaceFilterSheet({ open, filters, studyPrograms, academicYea
       {hasActive && (
         <Button
           className="flex-1 h-10 rounded-lg text-gray-900 font-bold bg-[#CACACA] hover:bg-[#b0b0b0]"
-          onClick={() => onFilter({ role: "", studyProgram: "", academicYear: "" })}
+          onClick={handleReset}
         >
           Reset
         </Button>
       )}
       <Button
         className="flex-1 h-10 rounded-lg bg-[#00D964] hover:bg-[#00c057] text-gray-900 font-bold"
-        onClick={onClose}
+        onClick={handleApply}
       >
         Terapkan
       </Button>
