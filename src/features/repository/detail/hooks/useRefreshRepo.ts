@@ -10,7 +10,11 @@ export function useRefreshRepo(id: string) {
   const refresh = async (fullName: string) => {
     setLoading(true)
     try {
-      await analyzeRepo(fullName)
+      const result = await analyzeRepo(fullName)
+      if (!result.success) {
+        toast.error(result.error ?? "Gagal menganalisis ulang repository.")
+        return
+      }
       mutate(`/api/repo/${id}`)
       toast.success("Repository berhasil dianalisis ulang.")
     } catch (e) {
