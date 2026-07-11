@@ -139,16 +139,13 @@ export function TeamSpaceMemberList({ members, myRole, classId, onMutate, showSe
             size="icon"
             onClick={() => setFilterOpen(true)}
             className={cn(
-              "h-10 w-10 flex-shrink-0 border-gray-200 transition-colors relative",
+              "h-10 w-10 flex-shrink-0 border-gray-200 transition-colors",
               hasFilters
-                ? "text-gray-900 border-[#00D964] bg-[#00d964]/10"
+                ? "text-gray-900 border-[#00D964] bg-[#00D964]"
                 : "bg-white text-gray-900 hover:bg-[#00D964]"
             )}
           >
             <SlidersHorizontal className="w-4 h-4" />
-            {hasFilters && (
-              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#00D964]" />
-            )}
           </Button>
         </div>
       )}
