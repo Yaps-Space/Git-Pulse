@@ -1,4 +1,5 @@
 import useSWR, { useSWRConfig } from "swr"
+import { useCallback } from "react"
 import { AccountData } from "../types/Account";
 
 interface UseAccountResult {
@@ -18,9 +19,11 @@ export function useAccount(): UseAccountResult {
     dedupingInterval:      5_000,
   })
 
+  const refresh = useCallback(() => mutate<AccountData>("/api/account"), [mutate])
+
   return {
     account: data ?? null,
     loading: isLoading,
-    refresh: () => mutate<AccountData>("/api/account"),
+    refresh,
   }
 }

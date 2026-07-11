@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useSearchParams } from "next/navigation"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
 import { Separator } from "@/shared/components/ui/separator"
@@ -21,14 +20,31 @@ import { EditNameDialog } from "./EditNameDialog"
 import { GitHubIcon, GitLabIcon } from "@/shared/components/commons/ProviderIcons"
 import { toast } from "sonner"
 
-type DisconnectTarget = "github" | "gitlab" | null
+type ProviderKey = "github" | "gitlab"
+type DisconnectTarget = ProviderKey | null
+
+const PROVIDER_LABEL: Record<ProviderKey, string> = {
+  github: "GitHub",
+  gitlab: "GitLab",
+}
+
+const PROVIDER_CONFIG: {
+  key:         ProviderKey
+  Icon:        typeof GitHubIcon
+  iconColor:   string
+  iconColorMuted: string
+}[] = [
+  { key: "github", Icon: GitHubIcon, iconColor: "text-gray-700", iconColorMuted: "text-gray-400" },
+  { key: "gitlab", Icon: GitLabIcon, iconColor: "text-[#fc6d26]", iconColorMuted: "text-[#fc6d26]/50" },
+]
 
 export function AccountProfileCard({ name, username, email, avatar, createdAt, linkedProviders, hasPassword, onNameChange }: AccountData) {
-  const isMobile   = useIsMobile()
-  const initials   = name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
-  const params     = useSearchParams()
-  const { update } = useSession()
-  const router     = useRouter()
+  const isMobile    = useIsMobile()
+  const initials    = name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+  const params      = useSearchParams()
+  const pathname    = usePathname()
+  const { update }  = useSession()
+  const router      = useRouter()
   const { refresh } = useAccount()
 
   const [editOpen,         setEditOpen]         = useState(false)
@@ -39,17 +55,22 @@ export function AccountProfileCard({ name, username, email, avatar, createdAt, l
   const [disconnecting,    setDisconnecting]    = useState(false)
   const [blockedMessage,   setBlockedMessage]   = useState<string | null>(null)
 
-  const isGithubConnected = !!linkedProviders?.github?.accessToken
-  const isGitlabConnected = !!linkedProviders?.gitlab?.accessToken
+  const isConnected: Record<ProviderKey, boolean> = {
+    github: !!linkedProviders?.github?.accessToken,
+    gitlab: !!linkedProviders?.gitlab?.accessToken,
+  }
 
   useEffect(() => {
-    const connected = params.get("connected")
-    const error     = params.get("error")
-    if (connected === "github") { toast.success("GitHub berhasil dihubungkan!"); refresh() }
-    if (connected === "gitlab") { toast.success("GitLab berhasil dihubungkan!"); refresh() }
+    const connected = params.get("connected") as ProviderKey | null
+    const error      = params.get("error")
+    if (!connected && !error) return
+
+    if (connected) { toast.success(`${PROVIDER_LABEL[connected]} berhasil dihubungkan!`); refresh() }
     if (error === "provider_taken") toast.error("Akun ini sudah terhubung ke akun GitPulse lain.")
     else if (error)                 toast.error("Gagal menghubungkan akun. Coba lagi.")
-  }, [params, refresh])
+
+    router.replace(pathname)
+  }, [params, refresh, pathname, router])
 
   const handleSaveName = async () => {
     if (!nameInput.trim()) { toast.error("Nama tidak boleh kosong."); return }
@@ -79,17 +100,17 @@ export function AccountProfileCard({ name, username, email, avatar, createdAt, l
     }
   }
 
-  const canDisconnect = (provider: "github" | "gitlab"): boolean => {
+  const canDisconnect = (provider: ProviderKey): boolean => {
     if (hasPassword) return true
-    if (provider === "github") return isGitlabConnected
-    return isGithubConnected
+    const other: ProviderKey = provider === "github" ? "gitlab" : "github"
+    return isConnected[other]
   }
 
-  const handleDisconnectRequest = (provider: "github" | "gitlab") => {
+  const handleDisconnectRequest = (provider: ProviderKey) => {
     if (!canDisconnect(provider)) {
-      const other = provider === "github" ? "GitLab" : "GitHub"
+      const other: ProviderKey = provider === "github" ? "gitlab" : "github"
       setBlockedMessage(
-        `You don't have a password set for this account. Before disconnecting ${provider === "github" ? "GitHub" : "GitLab"}, please set a password or connect ${other} as an alternative login.`
+        `You don't have a password set for this account. Before disconnecting ${PROVIDER_LABEL[provider]}, please set a password or connect ${PROVIDER_LABEL[other]} as an alternative login.`
       )
       return
     }
@@ -103,7 +124,7 @@ export function AccountProfileCard({ name, username, email, avatar, createdAt, l
       const res = await fetch(`/api/account/disconnect/${disconnectTarget}`, { method: "POST" })
       if (res.ok) {
         await refresh()
-        toast.success(`${disconnectTarget === "github" ? "GitHub" : "GitLab"} disconnected successfully.`)
+        toast.success(`${PROVIDER_LABEL[disconnectTarget]} disconnected successfully.`)
         setDisconnectTarget(null)
       } else {
         const data = await res.json()
@@ -180,87 +201,49 @@ export function AccountProfileCard({ name, username, email, avatar, createdAt, l
       <div>
         <p className="text-sm font-semibold text-gray-700 mb-3">Connected Accounts</p>
         <div className="flex flex-col gap-2">
-          {isGithubConnected ? (
-            <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-green-100 bg-green-50/50">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-100 flex-shrink-0">
-                  <GitHubIcon className="w-4 h-4 text-gray-700" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-800">GitHub</p>
-                  {linkedProviders.github?.username && (
-                    <p className="text-xs text-gray-400">@{linkedProviders.github.username}</p>
-                  )}
-                </div>
-              </div>
-              <button
-                onClick={() => handleDisconnectRequest("github")}
-                className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-[#BB230B] font-medium transition-colors"
-              >
-                <Unlink className="w-3.5 h-3.5" />
-                Disconnect
-              </button>
-            </div>
-          ) : (
-            <Link href="/api/auth/connect/github/init">
-              <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-100 hover:border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100 flex-shrink-0">
-                    <GitHubIcon className="w-4 h-4 text-gray-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">GitHub</p>
-                    <p className="text-xs text-gray-400">Belum terhubung</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
-                  <Link2 className="w-3.5 h-3.5" />
-                  Connect
-                </div>
-              </div>
-            </Link>
-          )}
+          {PROVIDER_CONFIG.map(({ key, Icon, iconColor, iconColorMuted }) => {
+            const connected = isConnected[key]
+            const username  = linkedProviders?.[key]?.username
 
-          {isGitlabConnected ? (
-            <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-green-100 bg-green-50/50">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-100 flex-shrink-0">
-                  <GitLabIcon className="w-4 h-4 text-[#fc6d26]" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-800">GitLab</p>
-                  {linkedProviders.gitlab?.username && (
-                    <p className="text-xs text-gray-400">@{linkedProviders.gitlab.username}</p>
-                  )}
-                </div>
-              </div>
-              <button
-                onClick={() => handleDisconnectRequest("gitlab")}
-                className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-[#BB230B] font-medium transition-colors"
-              >
-                <Unlink className="w-3.5 h-3.5" />
-                Disconnect
-              </button>
-            </div>
-          ) : (
-            <Link href="/api/auth/connect/gitlab/init">
-              <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-100 hover:border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+            return connected ? (
+              <div key={key} className="flex items-center justify-between px-4 py-3 rounded-xl border border-green-100 bg-green-50/50">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100 flex-shrink-0">
-                    <GitLabIcon className="w-4 h-4 text-[#fc6d26]/50" />
+                  <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-100 flex-shrink-0">
+                    <Icon className={`w-4 h-4 ${iconColor}`} />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">GitLab</p>
-                    <p className="text-xs text-gray-400">Belum terhubung</p>
+                    <p className="text-sm font-medium text-gray-800">{PROVIDER_LABEL[key]}</p>
+                    {username && <p className="text-xs text-gray-400">@{username}</p>}
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
-                  <Link2 className="w-3.5 h-3.5" />
-                  Connect
-                </div>
+                <button
+                  onClick={() => handleDisconnectRequest(key)}
+                  className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-[#BB230B] font-medium transition-colors"
+                >
+                  <Unlink className="w-3.5 h-3.5" />
+                  Disconnect
+                </button>
               </div>
-            </Link>
-          )}
+            ) : (
+              <Link key={key} href={`/api/auth/connect/${key}/init`}>
+                <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-100 hover:border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100 flex-shrink-0">
+                      <Icon className={`w-4 h-4 ${iconColorMuted}`} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">{PROVIDER_LABEL[key]}</p>
+                      <p className="text-xs text-gray-400">Belum terhubung</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
+                    <Link2 className="w-3.5 h-3.5" />
+                    Connect
+                  </div>
+                </div>
+              </Link>
+            )
+          })}
         </div>
       </div>
 
@@ -272,12 +255,12 @@ export function AccountProfileCard({ name, username, email, avatar, createdAt, l
             </div>
             <DialogHeader>
               <DialogTitle className="flex items-center justify-center text-lg font-semibold">
-                Disconnect {disconnectTarget === "github" ? "GitHub" : "GitLab"}
+                Disconnect {disconnectTarget && PROVIDER_LABEL[disconnectTarget]}
               </DialogTitle>
             </DialogHeader>
             <p className="text-sm text-gray-500 text-center">
               Repository yang sudah terhubung tidak akan terhapus, tapi tidak bisa dianalisis ulang
-              sampai kamu menghubungkan kembali akun {disconnectTarget === "github" ? "GitHub" : "GitLab"}.
+              sampai kamu menghubungkan kembali akun {disconnectTarget && PROVIDER_LABEL[disconnectTarget]}.
             </p>
           </div>
           <div className="flex gap-3 pt-2">
