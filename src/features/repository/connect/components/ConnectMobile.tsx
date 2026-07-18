@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, SlidersHorizontal, AlertCircle, X, RefreshCw } from "lucide-react"
+import { Search, SlidersHorizontal, AlertCircle, X, RefreshCw, ServerCrash } from "lucide-react"
 import { Input }  from "@/shared/components/ui/input"
 import { Button } from "@/shared/components/ui/button"
 import { MobilePageHeader } from "@/shared/components/commons/MobilePageHeader"
@@ -16,8 +16,7 @@ import {
 import { FILTER_OPTIONS } from "../constants/ConnectFilter"
 import { cn } from "@/shared/lib/utils"
 import { GithubRepo, Provider } from "@/features/repository/types"
-
-type FetchState = "idle" | "loading" | "no_token" | "expired" | "empty" | "ok"
+import { FetchState } from "../types"
 
 interface Props {
   search:          string
@@ -39,6 +38,7 @@ interface Props {
   onDismissError:  () => void
   provider:        Provider
   onProvider:      (p: Provider) => void
+  onRetry:         () => void
 }
 
 export function ConnectMobile({
@@ -46,7 +46,7 @@ export function ConnectMobile({
   connecting, fetchState, error,
   githubConnected, gitlabConnected,
   onSearch, onFilter, onPageSize, onPageChange, onConnect, onDismissError,
-  provider, onProvider,
+  provider, onProvider, onRetry,
 }: Props) {
   return (
     <div className="min-h-screen">
@@ -158,7 +158,23 @@ export function ConnectMobile({
           </div>
         )}
 
-        {fetchState === "loading" && <ConnectRepoSkeleton variant="mobile" />}
+        {fetchState === "server_error" && (
+          <div className="bg-white rounded-xl px-4 py-4 flex items-center justify-between border border-red-100">
+            <div className="flex items-center gap-2">
+              <ServerCrash className="w-4 h-4 text-red-400 flex-shrink-0" />
+              <div>
+                <p className="font-medium text-gray-800 text-sm">
+                  Server {provider === "github" ? "GitHub" : "GitLab"} bermasalah
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">Coba lagi sesaat lagi</p>
+              </div>
+            </div>
+            <Button size="sm" variant="outline" className="gap-2 text-xs" onClick={onRetry}>
+              <RefreshCw className="w-3.5 h-3.5" />
+              Ulang
+            </Button>
+          </div>
+        )}
 
         {fetchState === "empty" && (
           <div className="bg-white rounded-xl flex flex-col items-center justify-center py-12 gap-2">
@@ -168,6 +184,8 @@ export function ConnectMobile({
             <p className="text-xs text-gray-400">Coba ganti filter atau provider</p>
           </div>
         )}
+
+        {fetchState === "loading" && <ConnectRepoSkeleton variant="mobile" />}
 
         {fetchState === "ok" && (
           <ConnectRepoList

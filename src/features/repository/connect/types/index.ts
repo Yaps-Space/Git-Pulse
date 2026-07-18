@@ -1,0 +1,1 @@
+export type FetchState = "idle" | "loading" | "no_token" | "expired" | "server_error" | "empty" | "ok"
