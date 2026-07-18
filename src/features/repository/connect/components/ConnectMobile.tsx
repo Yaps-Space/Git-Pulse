@@ -7,6 +7,7 @@ import { MobilePageHeader } from "@/shared/components/commons/MobilePageHeader"
 import { ShowPerPage }  from "@/shared/components/commons/ShowPerPage"
 import { Pagination }   from "@/shared/components/commons/Pagination"
 import { ConnectRepoList } from "./ConnectRepoList"
+import { ConnectRepoSkeleton } from "./ConnectRepoSkeleton"
 import { GitHubIcon, GitLabIcon } from "@/shared/components/commons/ProviderIcons"
 import {
   DropdownMenu, DropdownMenuContent,
@@ -156,6 +157,8 @@ export function ConnectMobile({
             </a>
           </div>
         )}
+
+        {fetchState === "loading" && <ConnectRepoSkeleton variant="mobile" />}
 
         {fetchState === "empty" && (
           <div className="bg-white rounded-xl flex flex-col items-center justify-center py-12 gap-2">
