@@ -47,22 +47,40 @@ function mapGitLabProject(p: GitLabProject): GithubRepo {
   }
 }
 
+async function fetchWithRetry(url: string, token: string, retries = 1): Promise<Response> {
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    if (res.ok || res.status < 500 || attempt >= retries) return res
+    await new Promise(r => setTimeout(r, 800))
+  }
+}
+
 async function fetchGitLabRepos(token: string, page: string, userId: string, linkedGitlab: { id?: string }) {
-  let res  = await fetch(
-    `https://gitlab.com/api/v4/projects?membership=true&per_page=20&page=${page}&order_by=last_activity_at&sort=desc`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  )
+  const baseParams = `membership=true&simple=true&per_page=20&page=${page}&order_by=last_activity_at&sort=desc`
+  let res  = await fetchWithRetry(`https://gitlab.com/api/v4/projects?${baseParams}`, token)
   let data = await res.json() as GitLabProject[]
 
-  if (!res.ok) return { error: (data as unknown as { message?: string })?.message ?? "GitLab error", repos: [] }
+  if (!res.ok && res.status >= 500) {
+    console.error("GitLab projects fetch failed, retrying minimal query:", res.status, JSON.stringify(data))
+    res  = await fetchWithRetry(`https://gitlab.com/api/v4/projects?membership=true&simple=true&per_page=20&page=${page}`, token)
+    data = await res.json() as GitLabProject[]
+  }
+
+  if (!res.ok) {
+    console.error("GitLab projects fetch failed:", res.status, JSON.stringify(data))
+    return { error: (data as unknown as { message?: string })?.message ?? "GitLab error", status: res.status, repos: [] }
+  }
 
   if (Array.isArray(data) && data.length === 0 && linkedGitlab.id) {
-    res  = await fetch(
-      `https://gitlab.com/api/v4/users/${linkedGitlab.id}/projects?per_page=20&page=${page}&order_by=last_activity_at&sort=desc`,
-      { headers: { Authorization: `Bearer ${token}` } }
+    res  = await fetchWithRetry(
+      `https://gitlab.com/api/v4/users/${linkedGitlab.id}/projects?simple=true&per_page=20&page=${page}&order_by=last_activity_at&sort=desc`,
+      token
     )
     data = await res.json() as GitLabProject[]
-    if (!res.ok) return { error: (data as unknown as { message?: string })?.message ?? "GitLab error", repos: [] }
+    if (!res.ok) {
+      console.error("GitLab user projects fetch failed:", res.status, JSON.stringify(data))
+      return { error: (data as unknown as { message?: string })?.message ?? "GitLab error", status: res.status, repos: [] }
+    }
   }
 
   return { repos: Array.isArray(data) ? data.map(mapGitLabProject) : [] }
@@ -98,7 +116,8 @@ export async function GET(req: NextRequest) {
       if (!token) return NextResponse.json({ error: "No GitLab token", repos: [] }, { status: 401 })
       const result = await fetchGitLabRepos(token, page, session.user.id, linked.gitlab ?? {})
       if ("error" in result && result.repos.length === 0) {
-        return NextResponse.json(result, { status: 400 })
+        const status = result.status === 401 || result.status === 403 ? 401 : 502
+        return NextResponse.json(result, { status })
       }
       return NextResponse.json(result)
     }
@@ -119,7 +138,8 @@ export async function GET(req: NextRequest) {
       if (!token) return NextResponse.json({ error: "No GitLab token", repos: [] }, { status: 401 })
       const result = await fetchGitLabRepos(token, page, session.user.id, linked.gitlab ?? {})
       if ("error" in result && result.repos.length === 0) {
-        return NextResponse.json(result, { status: 400 })
+        const status = result.status === 401 || result.status === 403 ? 401 : 502
+        return NextResponse.json(result, { status })
       }
       return NextResponse.json(result)
     }
