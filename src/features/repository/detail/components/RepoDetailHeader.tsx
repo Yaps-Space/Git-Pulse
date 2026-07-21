@@ -56,8 +56,10 @@ export function RepoDetailHeader({ repo, refreshing, onRefresh }: Props) {
       </div>
 
       <div className="flex items-center gap-2">
-        <DisconnectButton id={repo.id} fullName={repo.fullName} className="w-38 h-10" />
-        <RefreshButton    fullName={repo.fullName} refreshing={refreshing} onRefresh={onRefresh} className="w-38 h-10" />
+        {repo.canDisconnect && (
+          <DisconnectButton id={repo.id} fullName={repo.fullName} className="w-38 h-10" />
+        )}
+        <RefreshButton fullName={repo.fullName} refreshing={refreshing} onRefresh={onRefresh} className="w-38 h-10" />
       </div>
     </div>
   )

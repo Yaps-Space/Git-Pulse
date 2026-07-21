@@ -25,6 +25,12 @@ interface Props {
   onMutate:            (fn: (data: TeamSpaceDetail) => TeamSpaceDetail) => void
 }
 
+function memberHasRepoActivity(member: TeamMember, repoFullName: string): boolean {
+  if (member.statusByRepo?.[repoFullName]) return true
+  const monthly = member.commitsPerMonthByRepo?.[repoFullName] ?? []
+  return monthly.some(c => c > 0)
+}
+
 export function TeamSpaceRepoTabs({
   repoHealthList,
   repoCommitsPerMonth,
@@ -44,6 +50,10 @@ export function TeamSpaceRepoTabs({
   const activeCommits = activeRepo
     ? { [activeRepo.repoFullName]: repoCommitsPerMonth[activeRepo.repoFullName] ?? Array(12).fill(0) }
     : {}
+
+  const canViewActiveRepoDetail = activeRepo
+    ? isEvaluator || memberHasRepoActivity(myMembership, activeRepo.repoFullName)
+    : false
 
   const activeMembers = activeRepo
     ? members.map(m => {
@@ -94,9 +104,11 @@ export function TeamSpaceRepoTabs({
           productivityState={activeRepo.productivityState}
           repoFullName={activeRepo.repoFullName}
           repoId={activeRepo.repoId}
+          viewerRepoId={activeRepo.viewerRepoId}
           provider={activeRepo.provider}
           teamSpaceId={classId}
           teamSpaceName={teamSpaceName}
+          canViewDetail={canViewActiveRepoDetail}
         />
       )}
 

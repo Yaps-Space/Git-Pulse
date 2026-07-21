@@ -12,9 +12,11 @@ interface Props {
   productivityState: string
   repoFullName:      string
   repoId:            string | null
+  viewerRepoId:      string | null
   provider:          "github" | "gitlab"
   teamSpaceId:       string
   teamSpaceName:     string
+  canViewDetail:     boolean
 }
 
 export function TeamSpaceRepoHealthCard({
@@ -23,17 +25,23 @@ export function TeamSpaceRepoHealthCard({
   productivityState,
   repoFullName,
   repoId,
+  viewerRepoId,
   provider,
   teamSpaceId,
   teamSpaceName,
+  canViewDetail,
 }: Props) {
   const stateDisplay = capitalizeFirst(productivityState)
   const hasData      = healthScore > 0 || productivityState !== "-"
   const gradeColor   = GRADE_COLOR[healthGrade] ?? "#888"
 
-  const repoHref = repoId
-    ? `/repository/${repoId}?teamSpaceId=${teamSpaceId}&teamSpaceName=${encodeURIComponent(teamSpaceName)}`
-    : null
+  const repoHref = !canViewDetail
+    ? null
+    : viewerRepoId
+      ? `/repository/${viewerRepoId}`
+      : repoId
+        ? `/repository/${repoId}?teamSpaceId=${teamSpaceId}&teamSpaceName=${encodeURIComponent(teamSpaceName)}`
+        : null
 
   return (
     <div className="bg-gray-900 rounded-xl border border-gray-100 overflow-hidden">

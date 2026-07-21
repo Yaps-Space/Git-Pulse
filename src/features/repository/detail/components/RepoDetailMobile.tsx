@@ -15,10 +15,11 @@ import { GitHubIcon, GitLabIcon } from "@/shared/components/commons/ProviderIcon
 interface Props {
   repo:     RepoDetail
   backHref: string
+  teamSpaceId?: string
 }
 
-export function RepoDetailMobile({ repo, backHref }: Props) {
-  const { loading, refresh } = useRefreshRepo(repo.id)
+export function RepoDetailMobile({ repo, backHref, teamSpaceId }: Props) {
+  const { loading, refresh } = useRefreshRepo(repo.id, teamSpaceId)
 
   return (
     <div className="min-h-screen">
@@ -64,8 +65,10 @@ export function RepoDetailMobile({ repo, backHref }: Props) {
 
       <div className="px-4 pt-5 pb-6 flex flex-col gap-3">
         <div className="flex gap-2">
-          <DisconnectButton id={repo.id} fullName={repo.fullName} className="flex-1 h-11 justify-center" />
-          <RefreshButton    fullName={repo.fullName} refreshing={loading} onRefresh={refresh} className="flex-1 h-11 justify-center" />
+          {repo.canDisconnect && (
+            <DisconnectButton id={repo.id} fullName={repo.fullName} className="flex-1 h-11 justify-center" />
+          )}
+          <RefreshButton fullName={repo.fullName} refreshing={loading} onRefresh={refresh} className="flex-1 h-11 justify-center" />
         </div>
 
         <RepoProductivityCard repo={repo} refreshing={loading} />

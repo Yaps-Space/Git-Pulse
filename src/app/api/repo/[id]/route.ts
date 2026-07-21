@@ -2,24 +2,40 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/shared/lib/auth"
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/shared/lib/firebase"
-import { doc, getDoc, deleteDoc, collection, query, where, getDocs } from "firebase/firestore"
+import { doc, getDoc, deleteDoc, collection, query, where, getDocs, DocumentData } from "firebase/firestore"
+
+function membershipHasActivity(membership: DocumentData, fullName: string): boolean {
+  const statusByRepo = (membership.statusByRepo as Record<string, string>) ?? {}
+  if (statusByRepo[fullName]) return true
+
+  const commitsByRepo = (membership.commitsPerMonthByRepo as Record<string, number[]>) ?? {}
+  const monthly = commitsByRepo[fullName] ?? []
+  return monthly.some(c => c > 0)
+}
 
 async function canViewRepo(userId: string, repoOwnerId: string, fullName: string) {
   if (repoOwnerId === userId) return true
 
   const membershipSnap = await getDocs(
-    query(
-      collection(db, "memberships"),
-      where("userId", "==", userId),
-      where("role",   "in", ["owner", "evaluator"]),
-    )
+    query(collection(db, "memberships"), where("userId", "==", userId))
   )
   if (membershipSnap.empty) return false
 
-  const classIds = membershipSnap.docs.map(d => d.data().classId as string)
+  const memberships = membershipSnap.docs.map(d => d.data())
+
+  const privilegedClassIds = memberships
+    .filter(m => m.role === "owner" || m.role === "evaluator")
+    .map(m => m.classId as string)
+
+  const activeContributorClassIds = memberships
+    .filter(m => m.role === "contributor" && membershipHasActivity(m, fullName))
+    .map(m => m.classId as string)
+
+  const classIdsToCheck = [...new Set([...privilegedClassIds, ...activeContributorClassIds])]
+  if (classIdsToCheck.length === 0) return false
 
   const teamSpaceDocs = await Promise.all(
-    classIds.map(classId => getDoc(doc(db, "teamSpaces", classId)))
+    classIdsToCheck.map(classId => getDoc(doc(db, "teamSpaces", classId)))
   )
 
   return teamSpaceDocs.some(tsSnap => {
@@ -56,6 +72,7 @@ export async function GET(
       forks:                 data.forks               ?? 0,
       isPrivate:             data.isPrivate           ?? false,
       provider:              data.provider            ?? "github",
+      canDisconnect:         data.userId === session.user.id && data.isPersonalRepo !== false,
       productivityState:     data.productivityState   ?? "-",
       commitFrequency:       data.commitFrequency     ?? 0,
       activityConsistency:   data.activityConsistency ?? 0,
