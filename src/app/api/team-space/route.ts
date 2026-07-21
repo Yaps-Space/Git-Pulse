@@ -68,7 +68,8 @@ export async function GET() {
             const repoSnap = await getDocs(
               query(
                 collection(db, "repositories"),
-                where("fullName", "==", repoFullName)
+                where("fullName", "==", repoFullName),
+                where("userId", "==", ts.ownerId as string)
               )
             )
             if (!repoSnap.empty) {
