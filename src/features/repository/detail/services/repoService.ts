@@ -1,12 +1,14 @@
 export interface AnalyzeRepoOptions {
-  provider?: string
-  repoId?: number
+  provider?:    string
+  repoId?:      number
+  teamSpaceId?: string
 }
 
 interface AnalyzeRepoBody {
-  fullName: string
-  provider?: string
-  repoId?: number
+  fullName:     string
+  provider?:    string
+  repoId?:      number
+  teamSpaceId?: string
 }
 
 interface AnalyzeRepoResult {
@@ -26,8 +28,9 @@ async function callAnalyze(body: AnalyzeRepoBody): Promise<{ status: number; dat
 
 export async function analyzeRepo(fullName: string, options?: AnalyzeRepoOptions, maxWaitMs = 90_000): Promise<AnalyzeRepoResult> {
   const body: AnalyzeRepoBody = { fullName }
-  if (options?.provider) body.provider = options.provider
-  if (options?.repoId) body.repoId = options.repoId
+  if (options?.provider)    body.provider    = options.provider
+  if (options?.repoId)      body.repoId      = options.repoId
+  if (options?.teamSpaceId) body.teamSpaceId = options.teamSpaceId
 
   const startedAt = Date.now()
   let delay = 2000

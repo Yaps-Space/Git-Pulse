@@ -3,14 +3,14 @@ import { useSWRConfig } from "swr"
 import { toast } from "sonner"
 import { analyzeRepo } from "../services/repoService"
 
-export function useRefreshRepo(id: string) {
+export function useRefreshRepo(id: string, teamSpaceId?: string) {
   const [loading, setLoading] = useState(false)
   const { mutate }            = useSWRConfig()
 
   const refresh = async (fullName: string) => {
     setLoading(true)
     try {
-      const result = await analyzeRepo(fullName)
+      const result = await analyzeRepo(fullName, { teamSpaceId })
       if (!result.success) {
         toast.error(result.error ?? "Gagal menganalisis ulang repository.")
         return

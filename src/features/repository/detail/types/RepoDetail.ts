@@ -15,6 +15,7 @@ export interface RepoDetail {
   forks:                 number
   isPrivate:             boolean
   provider:              "github" | "gitlab"
+  canDisconnect:         boolean
   productivityState:     string
   commitFrequency:       number
   activityConsistency:   number

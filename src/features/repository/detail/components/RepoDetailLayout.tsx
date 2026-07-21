@@ -45,7 +45,13 @@ export function RepoDetailLayout({ id }: Props) {
     </span>
   )
 
-  if (isMobile) return <RepoDetailMobile repo={repo} backHref={fromTeamSpace ? `/team-space/${teamSpaceId}` : "/repository"} />
+  if (isMobile) return (
+    <RepoDetailMobile
+      repo={repo}
+      backHref={fromTeamSpace ? `/team-space/${teamSpaceId}` : "/repository"}
+      teamSpaceId={teamSpaceId ?? undefined}
+    />
+  )
 
   return (
     <PageShell
@@ -60,7 +66,7 @@ export function RepoDetailLayout({ id }: Props) {
       detail={detailContent}
       backHref={backHref}
     >
-      <RepoDetailView repo={repo} />
+      <RepoDetailView repo={repo} teamSpaceId={teamSpaceId ?? undefined} />
     </PageShell>
   )
 }
