@@ -7,6 +7,87 @@ import { TeamMember } from "@/features/team-space/types/TeamSpace"
 import { TeamSpaceDetail, RepoHealth } from "@/features/team-space/detail/types/TeamSpaceDetail"
 import { GithubCommit } from "@/features/team-space/detail/types/analyzeTypes"
 import { getProviderTokens } from "@/shared/lib/getProviderTokens"
+import { getValidGitLabToken } from "@/shared/lib/gitlab"
+
+async function getRepoDoc(repoFullName: string, ownerId: string): Promise<{ id: string; data: DocumentData } | null> {
+  const snap = await getDocs(
+    query(
+      collection(db, "repositories"),
+      where("fullName", "==", repoFullName),
+      where("userId", "==", ownerId)
+    )
+  )
+  if (snap.empty) return null
+  return { id: snap.docs[0].id, data: snap.docs[0].data() }
+}
+
+async function resolveViewerRepoId(
+  repoName: string,
+  repoDoc: { id: string; data: DocumentData } | null,
+  viewerId: string,
+  teamSpaceOwnerId: string
+): Promise<string | null> {
+  if (viewerId === teamSpaceOwnerId) return repoDoc?.id ?? null
+
+  const ownRepoDoc = await getRepoDoc(repoName, viewerId)
+  if (!ownRepoDoc) return null
+  return ownRepoDoc.data.isPersonalRepo !== false ? ownRepoDoc.id : null
+}
+
+async function getTokensForRepo(ownerId: string | null, fallbackUserId: string) {
+  const targetUserId = ownerId ?? fallbackUserId
+  const base         = await getProviderTokens(targetUserId)
+  const gitlabToken  = base.gitlabToken ? await getValidGitLabToken(targetUserId) : null
+
+  if (base.githubToken || gitlabToken) {
+    return { githubToken: base.githubToken, gitlabToken }
+  }
+  return getProviderTokens(fallbackUserId)
+}
+
+async function fetchRepoMonthlyCounts(
+  repoFullName: string,
+  provider:     string,
+  sinceStr:     string,
+  githubToken:  string | null,
+  gitlabToken:  string | null,
+  last12Months: { year: number; month: number }[],
+): Promise<number[]> {
+  const monthlyCounts = Array(12).fill(0)
+  const isGitlab       = provider === "gitlab"
+  const token          = isGitlab ? gitlabToken : githubToken
+  if (!token) return monthlyCounts
+
+  let page = 1
+  while (true) {
+    const url = isGitlab
+      ? `https://gitlab.com/api/v4/projects/${encodeURIComponent(repoFullName)}/repository/commits?per_page=100&page=${page}&since=${sinceStr}`
+      : `https://api.github.com/repos/${repoFullName}/commits?per_page=100&page=${page}&since=${sinceStr}`
+
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    if (!res.ok) break
+
+    const data = await res.json() as GithubCommit[]
+    if (!Array.isArray(data) || data.length === 0) break
+
+    data.forEach((c: GithubCommit) => {
+      const date = c.commit?.author?.date
+      if (!date) return
+      const d        = new Date(date)
+      const matchIdx = last12Months.findIndex(
+        m => m.year === d.getFullYear() && m.month === d.getMonth()
+      )
+      if (matchIdx !== -1) monthlyCounts[matchIdx]++
+    })
+
+    if (data.length < 100) break
+    page++
+  }
+
+  return monthlyCounts
+}
 
 export async function GET(
   _req: NextRequest,
@@ -69,97 +150,42 @@ export async function GET(
       ? ts.repoFullNames
       : ts.repoFullName ? [ts.repoFullName as string] : []
 
-    const { githubToken, gitlabToken } = await getProviderTokens(session.user.id)
-
     const since    = new Date(now)
     since.setFullYear(since.getFullYear() - 1)
     const sinceStr = since.toISOString()
 
     const repoCommitsPerMonth: Record<string, number[]> = {}
-
-    for (const repoName of repoFullNames) {
-      const monthlyCounts = Array(12).fill(0)
-
-      try {
-        const isGitlab = !githubToken && !!gitlabToken
-        const token    = isGitlab ? gitlabToken : githubToken
-        if (!token) { repoCommitsPerMonth[repoName] = monthlyCounts; continue }
-
-        let page = 1
-        while (true) {
-          const url = isGitlab
-            ? `https://gitlab.com/api/v4/projects/${encodeURIComponent(repoName)}/repository/commits?per_page=100&page=${page}&since=${sinceStr}&ref_name=main`
-            : `https://api.github.com/repos/${repoName}/commits?per_page=100&page=${page}&since=${sinceStr}&sha=main`
-
-          const res  = await fetch(url, {
-            headers: { Authorization: isGitlab ? `Bearer ${token}` : `token ${token}` }
-          })
-          const data = await res.json() as GithubCommit[]
-          if (!Array.isArray(data) || data.length === 0) break
-
-          data.forEach((c: GithubCommit) => {
-            const date = c.commit?.author?.date
-            if (!date) return
-            const d        = new Date(date)
-            const matchIdx = last12Months.findIndex(
-              m => m.year === d.getFullYear() && m.month === d.getMonth()
-            )
-            if (matchIdx !== -1) monthlyCounts[matchIdx]++
-          })
-
-          if (data.length < 100) break
-          page++
-        }
-      } catch {
-        // Keep monthlyCounts as zeros if fetch fails for this repo
-      }
-
-      repoCommitsPerMonth[repoName] = monthlyCounts
-    }
-
     const repoHealthList: RepoHealth[] = []
+
     for (const repoName of repoFullNames) {
+      const repoDoc  = await getRepoDoc(repoName, ts.ownerId as string)
+      const provider: "gitlab" | "github" = repoDoc?.data.provider === "gitlab" ? "gitlab" : "github"
+      const ownerId  = (repoDoc?.data.userId as string) ?? (ts.ownerId as string) ?? null
+
+      const viewerRepoId = await resolveViewerRepoId(repoName, repoDoc, session.user.id, ts.ownerId as string)
+
       try {
-        const repoSnap = await getDocs(
-          query(
-            collection(db, "repositories"),
-            where("fullName", "==", repoName)
-          )
+        const { githubToken, gitlabToken } = await getTokensForRepo(ownerId, session.user.id)
+        repoCommitsPerMonth[repoName] = await fetchRepoMonthlyCounts(
+          repoName, provider, sinceStr, githubToken, gitlabToken, last12Months
         )
-        if (!repoSnap.empty) {
-          const repo = repoSnap.docs[0].data() as DocumentData
-          repoHealthList.push({
-            repoFullName:      repoName,
-            repoId:            repoSnap.docs[0].id,
-            healthScore:       repo.healthScore       ?? 0,
-            healthGrade:       repo.healthGrade       ?? "-",
-            productivityState: repo.productivityState ?? "-",
-            provider:          repo.provider          ?? "github",
-          })
-        } else {
-          repoHealthList.push({
-            repoFullName: repoName,
-            repoId:       null,
-            healthScore:  0,
-            healthGrade:  "-",
-            productivityState: "-",
-            provider:     "github",
-          })
-        }
       } catch {
-        repoHealthList.push({
-          repoFullName: repoName,
-          repoId:       null,
-          healthScore:  0,
-          healthGrade:  "-",
-          productivityState: "-",
-          provider:     "github",
-        })
+        repoCommitsPerMonth[repoName] = Array(12).fill(0)
       }
+
+      repoHealthList.push({
+        repoFullName:       repoName,
+        repoId:             repoDoc?.id ?? null,
+        viewerRepoId,
+        healthScore:        (repoDoc?.data.healthScore       as number) ?? 0,
+        healthGrade:        (repoDoc?.data.healthGrade       as string) ?? "-",
+        productivityState:  (repoDoc?.data.productivityState as string) ?? "-",
+        provider,
+      })
     }
 
-    let academicYearLabel:  string | null = null
-    let studyProgramLabel:  string | null = null
+    let academicYearLabel: string | null = null
+    let studyProgramLabel: string | null = null
 
     if (ts.academicYearId) {
       try {

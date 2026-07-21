@@ -3,6 +3,7 @@ import { TeamMember } from "../../types/TeamSpace"
 export interface RepoHealth {
   repoFullName:      string
   repoId:            string | null
+  viewerRepoId:      string | null
   healthScore:       number
   healthGrade:       string
   productivityState: string
