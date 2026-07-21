@@ -252,21 +252,45 @@ export async function upsertRepo(userId: string, fullName: string, repoData: obj
   }
 }
 
-export async function fetchContributorStats(
+async function fetchContributorStatsOnce(
   fullName: string,
   headers:  Record<string, string>
-): Promise<ContributorStatsResult> {
+): Promise<{ status: number; stats: GithubContributorStats[] }> {
   const res = await fetch(`https://api.github.com/repos/${fullName}/stats/contributors`, { headers })
 
-  if (res.status === 202) return { stats: [], pending: true }
+  if (res.status === 202) return { status: 202, stats: [] }
 
   if (!res.ok) {
     console.error("Failed to fetch contributor stats", { fullName, status: res.status })
-    return { stats: [], pending: false }
+    return { status: res.status, stats: [] }
   }
 
   const data = await res.json()
-  return { stats: Array.isArray(data) ? data : [], pending: false }
+  return { status: 200, stats: Array.isArray(data) ? data : [] }
+}
+
+export async function fetchContributorStats(
+  fullName: string,
+  headers:  Record<string, string>,
+  maxRetries = 4,
+  delayMs    = 2000
+): Promise<ContributorStatsResult> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const { status, stats } = await fetchContributorStatsOnce(fullName, headers)
+
+    if (status !== 200 && status !== 202) return { stats: [], pending: false }
+
+    if (stats.length > 0) return { stats, pending: false }
+
+    if (attempt < maxRetries) {
+      await new Promise(r => setTimeout(r, delayMs))
+      continue
+    }
+
+    return { stats: [], pending: status === 202 }
+  }
+
+  return { stats: [], pending: false }
 }
 
 export function aggregateContributorWeeks(stats: GithubContributorStats[]): GithubContributorWeek[] {
@@ -301,4 +325,52 @@ export function padWeeksTo52(weeks: GithubContributorWeek[]): GithubContributorW
   }))
 
   return [...padding, ...weeks]
+}
+
+export interface RawCommit {
+  login: string | null
+  date:  string
+}
+
+export async function fetchRepoCommitsRaw(
+  fullName: string,
+  headers:  Record<string, string>,
+  sinceIso: string
+): Promise<RawCommit[]> {
+  const commits: RawCommit[] = []
+  let page = 1
+
+  while (true) {
+    const res = await fetch(
+      `https://api.github.com/repos/${fullName}/commits?per_page=100&page=${page}&since=${sinceIso}`,
+      { headers }
+    )
+    if (!res.ok) break
+    const data = await res.json()
+    if (!Array.isArray(data) || data.length === 0) break
+
+    data.forEach((c: { author?: { login?: string }; commit?: { author?: { date?: string; email?: string; name?: string } } }) => {
+      const login = c.author?.login?.toLowerCase()
+        ?? c.commit?.author?.email?.toLowerCase()
+        ?? c.commit?.author?.name?.toLowerCase()
+        ?? null
+      commits.push({ login, date: c.commit?.author?.date ?? "" })
+    })
+
+    if (data.length < 100) break
+    page++
+  }
+
+  return commits
+}
+
+export function bucketCommitsInto52Weeks(dates: string[], now: Date = new Date()): number[] {
+  const buckets = Array(52).fill(0)
+  dates.forEach(d => {
+    if (!d) return
+    const dt = new Date(d)
+    const weeksAgo = Math.floor((now.getTime() - dt.getTime()) / (7 * 24 * 60 * 60 * 1000))
+    if (weeksAgo >= 0 && weeksAgo < 52) buckets[51 - weeksAgo] += 1
+  })
+  return buckets
 }
