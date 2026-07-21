@@ -10,6 +10,7 @@ import { cn } from "@/shared/lib/utils"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/shared/components/ui/dialog"
+import { InfiniteCombobox } from "@/shared/components/commons/InfiniteCombobox"
 
 interface Props {
   open:          boolean
@@ -47,6 +48,9 @@ export function TeamSpaceFilterSheet({ open, filters, studyPrograms, academicYea
     onClose()
   }
 
+  const studyProgramOptions = studyPrograms.map(label => ({ id: label, label }))
+  const academicYearOptions = academicYears.map(label => ({ id: label, label }))
+
   const body = (
     <>
       <div className="flex flex-col gap-2">
@@ -72,44 +76,28 @@ export function TeamSpaceFilterSheet({ open, filters, studyPrograms, academicYea
       {studyPrograms.length > 0 && (
         <div className="flex flex-col gap-2">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Program Studi</p>
-          <div className="flex flex-wrap gap-2">
-            {["", ...studyPrograms].map(sp => (
-              <button
-                key={sp}
-                onClick={() => set("studyProgram", sp)}
-                className={cn(
-                  "px-3 py-2 rounded-lg border text-sm font-medium transition-colors",
-                  draft.studyProgram === sp
-                    ? "border-[#00d964] bg-[#00d964]/10 text-gray-900"
-                    : "border-gray-200 text-gray-500 hover:border-gray-300 bg-white"
-                )}
-              >
-                {sp === "" ? "Semua" : sp}
-              </button>
-            ))}
-          </div>
+          <InfiniteCombobox
+            options={studyProgramOptions}
+            value={draft.studyProgram}
+            onChange={v => set("studyProgram", v as string)}
+            placeholder="Semua"
+            searchPlaceholder="Cari program studi..."
+            emptyMessage="Program studi tidak ditemukan"
+          />
         </div>
       )}
 
       {academicYears.length > 0 && (
         <div className="flex flex-col gap-2">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Tahun Ajaran</p>
-          <div className="flex flex-wrap gap-2">
-            {["", ...academicYears].map(ay => (
-              <button
-                key={ay}
-                onClick={() => set("academicYear", ay)}
-                className={cn(
-                  "px-3 py-2 rounded-lg border text-sm font-medium transition-colors",
-                  draft.academicYear === ay
-                    ? "border-[#00d964] bg-[#00d964]/10 text-gray-900"
-                    : "border-gray-200 text-gray-500 hover:border-gray-300 bg-white"
-                )}
-              >
-                {ay === "" ? "Semua" : ay}
-              </button>
-            ))}
-          </div>
+          <InfiniteCombobox
+            options={academicYearOptions}
+            value={draft.academicYear}
+            onChange={v => set("academicYear", v as string)}
+            placeholder="Semua"
+            searchPlaceholder="Cari tahun ajaran..."
+            emptyMessage="Tahun ajaran tidak ditemukan"
+          />
         </div>
       )}
     </>
