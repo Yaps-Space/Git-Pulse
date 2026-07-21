@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/shared/lib/firebase"
 import { collection, query, where, getDocs, doc, getDoc, updateDoc } from "firebase/firestore"
 import { getProviderTokens } from "@/shared/lib/getProviderTokens"
+import { getValidGitLabToken } from "@/shared/lib/gitlab"
 import { GithubCommit, MembershipDoc, MlPredictResponse } from "@/features/team-space/detail/types/analyzeTypes"
 
 function getLastNMonths(n: number): { year: number; month: number }[] {
@@ -14,6 +15,17 @@ function getLastNMonths(n: number): { year: number; month: number }[] {
     result.push({ year: d.getFullYear(), month: d.getMonth() })
   }
   return result
+}
+
+async function getTokensForRepo(teamSpaceOwnerId: string, fallbackUserId: string) {
+  const targetUserId = teamSpaceOwnerId || fallbackUserId
+  const base        = await getProviderTokens(targetUserId)
+  const gitlabToken = base.gitlabToken ? await getValidGitLabToken(targetUserId) : null
+
+  if (base.githubToken || gitlabToken) {
+    return { githubToken: base.githubToken, gitlabToken }
+  }
+  return getProviderTokens(fallbackUserId)
 }
 
 async function fetchRepoCommits(
@@ -27,9 +39,10 @@ async function fetchRepoCommits(
     let page = 1
     while (true) {
       const res  = await fetch(
-        `https://api.github.com/repos/${repoFullName}/commits?per_page=100&page=${page}&since=${sinceStr}&sha=main`,
+        `https://api.github.com/repos/${repoFullName}/commits?per_page=100&page=${page}&since=${sinceStr}`,
         { headers: { Authorization: `Bearer ${githubToken}` } }
       )
+      if (!res.ok) break
       const data = await res.json() as GithubCommit[]
       if (!Array.isArray(data) || data.length === 0) break
       data.forEach(c => {
@@ -50,9 +63,10 @@ async function fetchRepoCommits(
     let page = 1
     while (true) {
       const res  = await fetch(
-        `https://gitlab.com/api/v4/projects/${encodedRepo}/repository/commits?per_page=100&page=${page}&since=${sinceStr}&ref_name=main`,
+        `https://gitlab.com/api/v4/projects/${encodedRepo}/repository/commits?per_page=100&page=${page}&since=${sinceStr}`,
         { headers: { Authorization: `Bearer ${gitlabToken}` } }
       )
+      if (!res.ok) break
       const data = await res.json() as { author_email: string; author_name: string; authored_date: string }[]
       if (!Array.isArray(data) || data.length === 0) break
       data.forEach(c => {
@@ -106,8 +120,6 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
       ? ts.repoFullNames
       : ts.repoFullName ? [ts.repoFullName as string] : []
 
-    const { githubToken, gitlabToken } = await getProviderTokens(session.user.id)
-
     const since    = new Date()
     since.setFullYear(since.getFullYear() - 1)
     const sinceStr = since.toISOString()
@@ -118,6 +130,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     const repoCommitCounts: Record<string, number> = {}
 
     for (const repoFullName of repoFullNames) {
+      const { githubToken, gitlabToken } = await getTokensForRepo(ts.ownerId as string, session.user.id)
       const commits = await fetchRepoCommits(repoFullName, sinceStr, githubToken, gitlabToken)
       repoCommitCounts[repoFullName] = commits.length
 
