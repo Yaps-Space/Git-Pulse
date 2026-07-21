@@ -3,14 +3,103 @@ import { authOptions } from "@/shared/lib/auth"
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/shared/lib/firebase"
 import { collection, query, where, getDocs, doc, serverTimestamp, getDoc } from "firebase/firestore"
+import { getValidGitLabToken } from "@/shared/lib/gitlab"
 import {
   GithubIssue, GithubPR, DatedCommitCount,
   computeCommitStats, computeAvgCloseTime, buildFeatures, callMLService, buildMonthlyStats, upsertRepo,
   fetchContributorStats, padWeeksTo52, aggregateContributorWeeks, adjustHealthForActivity,
+  fetchRepoCommitsRaw, bucketCommitsInto52Weeks,
 } from "@/shared/lib/analyzeUtils"
 
 interface GitlabActor {
   author?: { username?: string }
+}
+
+async function getTeamSpaceOwnerId(teamSpaceId: string): Promise<string | null> {
+  const tsSnap = await getDoc(doc(db, "teamSpaces", teamSpaceId))
+  if (!tsSnap.exists()) return null
+  return (tsSnap.data().ownerId as string) ?? null
+}
+
+async function getOwnerLinkedProviders(ownerId: string) {
+  const ownerSnap = await getDoc(doc(db, "users", ownerId))
+  return ownerSnap.exists() ? (ownerSnap.data().linkedProviders ?? {}) : {}
+}
+
+async function resolveGithubAccess(
+  fullName: string,
+  ownToken: string | null,
+  teamSpaceId: string | null
+): Promise<{ token: string; isOwnerToken: boolean; metaRes: Response } | null> {
+  if (ownToken) {
+    const metaRes = await fetch(`https://api.github.com/repos/${fullName}`, {
+      headers: { Authorization: `Bearer ${ownToken}`, "X-GitHub-Api-Version": "2022-11-28" }
+    })
+    if (metaRes.ok) return { token: ownToken, isOwnerToken: false, metaRes }
+  }
+
+  if (teamSpaceId) {
+    const ownerId = await getTeamSpaceOwnerId(teamSpaceId)
+    if (ownerId) {
+      const ownerLinked = await getOwnerLinkedProviders(ownerId)
+      const ownerToken  = ownerLinked.github?.accessToken as string | undefined
+      if (ownerToken) {
+        const metaRes = await fetch(`https://api.github.com/repos/${fullName}`, {
+          headers: { Authorization: `Bearer ${ownerToken}`, "X-GitHub-Api-Version": "2022-11-28" }
+        })
+        if (metaRes.ok) return { token: ownerToken, isOwnerToken: true, metaRes }
+      }
+    }
+  }
+
+  return null
+}
+
+async function resolveGitlabAccess(
+  fullName: string,
+  ownToken: string | null,
+  teamSpaceId: string | null
+): Promise<{ token: string; isOwnerToken: boolean; projectId: number } | null> {
+  const tryToken = async (token: string) => {
+    const res = await fetch(
+      `https://gitlab.com/api/v4/projects/${encodeURIComponent(fullName)}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    if (!res.ok) return null
+    const proj = await res.json()
+    return proj.id as number
+  }
+
+  if (ownToken) {
+    const projectId = await tryToken(ownToken)
+    if (projectId) return { token: ownToken, isOwnerToken: false, projectId }
+  }
+
+  if (teamSpaceId) {
+    const ownerId = await getTeamSpaceOwnerId(teamSpaceId)
+    if (ownerId) {
+      const ownerLinked = await getOwnerLinkedProviders(ownerId)
+      if (ownerLinked.gitlab?.accessToken) {
+        const ownerToken = await getValidGitLabToken(ownerId)
+        if (ownerToken) {
+          const projectId = await tryToken(ownerToken)
+          if (projectId) return { token: ownerToken, isOwnerToken: true, projectId }
+        }
+      }
+    }
+  }
+
+  return null
+}
+
+function resolveIsPersonalRepo(
+  teamSpaceId: string | null,
+  isOwnerToken: boolean,
+  isRepoOwner: boolean,
+  hasOwnActivity: boolean
+): boolean {
+  if (!teamSpaceId) return true
+  return !isOwnerToken && (isRepoOwner || hasOwnActivity)
 }
 
 export async function POST(req: NextRequest) {
@@ -19,7 +108,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { fullName, provider, repoId } = await req.json()
+  const { fullName, provider, teamSpaceId } = await req.json()
   const [owner, repo] = fullName.split("/")
 
   try {
@@ -40,26 +129,21 @@ export async function POST(req: NextRequest) {
     }
 
     if (detectedProvider === "gitlab") {
-      const token = linked.gitlab?.accessToken
+      const ownToken = (linked.gitlab?.accessToken as string | undefined)
+        ? await getValidGitLabToken(session.user.id)
+        : null
       const gitlabUsername = linked.gitlab?.username as string | undefined
       const gitlabEmail = linked.gitlab?.email as string | undefined
-      if (!token) return NextResponse.json({ error: "No GitLab token" }, { status: 401 })
 
-      let projectId = repoId
-      if (!projectId) {
-        const searchRes = await fetch(
-          `https://gitlab.com/api/v4/projects/${encodeURIComponent(fullName)}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        )
-        if (!searchRes.ok) return NextResponse.json({ error: "GitLab project not found" }, { status: searchRes.status })
-        const proj = await searchRes.json()
-        projectId = proj.id
-      }
+      const access = await resolveGitlabAccess(fullName, ownToken, teamSpaceId ?? null)
+      if (!access) return NextResponse.json({ error: "No access to repository" }, { status: 403 })
+      const { token, isOwnerToken, projectId } = access
 
       const metaRes = await fetch(
         `https://gitlab.com/api/v4/projects/${projectId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
+      if (!metaRes.ok) return NextResponse.json({ error: "No access to repository" }, { status: metaRes.status })
       const meta = await metaRes.json()
 
       const [mrsRes, issuesRes] = await Promise.all([
@@ -152,6 +236,10 @@ export async function POST(req: NextRequest) {
 
       const { commitsPerMonth, prPerMonth, issuesPerMonth } = buildMonthlyStats(personalCommitEvents, myPullRequests, myIssuesRaw, now)
 
+      const isProjectOwner = (meta.namespace?.path as string | undefined)?.toLowerCase() === gitlabUsername?.toLowerCase()
+      const hasOwnCommits = personalCommitEvents.length > 0
+      const isPersonalRepo = resolveIsPersonalRepo(teamSpaceId ?? null, isOwnerToken, isProjectOwner, hasOwnCommits)
+
       const repoData = {
         userId: session.user.id,
         fullName,
@@ -163,6 +251,7 @@ export async function POST(req: NextRequest) {
         stars: meta.visibility === "private" ? null : (meta.star_count || 0),
         forks: meta.visibility === "private" ? null : (meta.forks_count || 0),
         isPrivate: meta.visibility === "private",
+        isPersonalRepo,
         productivityState: prodData.label ?? "-",
         commitFrequency: features.commit_frequency,
         activityConsistency: features.activity_consistency,
@@ -186,9 +275,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, data: repoData })
     }
 
-    const token = linked.github?.accessToken
     const githubUsername = linked.github?.username as string | undefined
-    if (!token) return NextResponse.json({ error: "No GitHub token" }, { status: 401 })
+    const ownToken = (linked.github?.accessToken as string | undefined) ?? null
+
+    const access = await resolveGithubAccess(fullName, ownToken, teamSpaceId ?? null)
+    if (!access) return NextResponse.json({ error: "No access to repository" }, { status: 403 })
+    const { token, isOwnerToken, metaRes } = access
 
     const headers = {
       Authorization: `Bearer ${token}`,
@@ -203,8 +295,7 @@ export async function POST(req: NextRequest) {
 
     const contributorsStats = contributorsResult.stats
 
-    const [metaRes, prsRes, issuesRes, existingRepoSnap] = await Promise.all([
-      fetch(`https://api.github.com/repos/${fullName}`, { headers }),
+    const [prsRes, issuesRes, existingRepoSnap] = await Promise.all([
       fetch(`https://api.github.com/repos/${fullName}/pulls?state=all&per_page=100`, { headers }),
       fetch(`https://api.github.com/repos/${fullName}/issues?state=all&per_page=100`, { headers }),
       getDocs(query(collection(db, "repositories"), where("userId", "==", session.user.id), where("fullName", "==", fullName))),
@@ -221,8 +312,41 @@ export async function POST(req: NextRequest) {
       ? meta.private
       : (existingIsPrivate ?? true)
 
-    const allWeeks = padWeeksTo52(aggregateContributorWeeks(contributorsStats))
-    const allCommitsArr: number[] = allWeeks.map(w => w.c)
+    let allCommitsArr: number[]
+    let personalCommitEvents: DatedCommitCount[]
+    let additionsPercent = 50
+    let deletionsPercent = 50
+
+    if (contributorsStats.length > 0) {
+      const allWeeks = padWeeksTo52(aggregateContributorWeeks(contributorsStats))
+      allCommitsArr = allWeeks.map(w => w.c)
+
+      const myStats = contributorsStats.find(c => c.author?.login?.toLowerCase() === githubUsername?.toLowerCase())
+      const myWeeks = padWeeksTo52(myStats?.weeks ?? [])
+
+      const totalAdditions = myWeeks.reduce((sum, w) => sum + w.a, 0)
+      const totalDeletions = myWeeks.reduce((sum, w) => sum + w.d, 0)
+      const totalChanges = totalAdditions + totalDeletions
+      additionsPercent = totalChanges > 0 ? Math.round((totalAdditions / totalChanges) * 100) : 50
+      deletionsPercent = totalChanges > 0 ? Math.round((totalDeletions / totalChanges) * 100) : 50
+
+      personalCommitEvents = myWeeks.map(w => ({ timestampMs: w.w * 1000, count: w.c }))
+    } else {
+      console.error("Contributor stats unavailable, falling back to raw commits", { fullName })
+
+      const sinceDate = new Date()
+      sinceDate.setDate(sinceDate.getDate() - 52 * 7)
+      const rawCommits = await fetchRepoCommitsRaw(fullName, headers, sinceDate.toISOString())
+
+      allCommitsArr = bucketCommitsInto52Weeks(rawCommits.map(c => c.date))
+
+      const myLogin = githubUsername?.toLowerCase()
+      const myRawCommits = rawCommits.filter(c => c.login === myLogin)
+      personalCommitEvents = myRawCommits
+        .filter(c => c.date)
+        .map(c => ({ timestampMs: new Date(c.date).getTime(), count: 1 }))
+    }
+
     if (allCommitsArr.length !== 52) {
       console.error("Insufficient commit data", {
         fullName,
@@ -230,15 +354,6 @@ export async function POST(req: NextRequest) {
       })
       return NextResponse.json({ error: "Insufficient commit data" }, { status: 400 })
     }
-
-    const myStats = contributorsStats.find(c => c.author?.login === githubUsername)
-    const myWeeks = padWeeksTo52(myStats?.weeks ?? [])
-
-    const totalAdditions = myWeeks.reduce((sum, w) => sum + w.a, 0)
-    const totalDeletions = myWeeks.reduce((sum, w) => sum + w.d, 0)
-    const totalChanges = totalAdditions + totalDeletions
-    const additionsPercent = totalChanges > 0 ? Math.round((totalAdditions / totalChanges) * 100) : 50
-    const deletionsPercent = totalChanges > 0 ? Math.round((totalDeletions / totalChanges) * 100) : 50
 
     const { mean, std, slope, activeWeeks } = computeCommitStats(allCommitsArr)
 
@@ -280,13 +395,16 @@ export async function POST(req: NextRequest) {
     )
 
     const now = new Date()
-    const personalCommitEvents: DatedCommitCount[] = myWeeks.map(w => ({ timestampMs: w.w * 1000, count: w.c }))
     const { commitsPerMonth, prPerMonth, issuesPerMonth } = buildMonthlyStats(
       personalCommitEvents,
       myPullRequests,
       myIssuesRaw,
       now
     )
+
+    const isRepoOwner = (meta.owner?.login as string | undefined)?.toLowerCase() === githubUsername?.toLowerCase()
+    const hasOwnCommits = personalCommitEvents.some(e => e.count > 0)
+    const isPersonalRepo = resolveIsPersonalRepo(teamSpaceId ?? null, isOwnerToken, isRepoOwner, hasOwnCommits)
 
     const repoData = {
       userId: session.user.id,
@@ -299,6 +417,7 @@ export async function POST(req: NextRequest) {
       stars: resolvedIsPrivate ? null : (meta.stargazers_count || 0),
       forks: resolvedIsPrivate ? null : (meta.forks_count || 0),
       isPrivate: resolvedIsPrivate,
+      isPersonalRepo,
       productivityState: prodData.label ?? "-",
       commitFrequency: features.commit_frequency,
       activityConsistency: features.activity_consistency,
